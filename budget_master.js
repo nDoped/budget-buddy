@@ -2,7 +2,7 @@ function onEdit(e) {
   if (e.source.getActiveSheet().getName() === 'Budget') {
     if (e.range.getA1Notation() === 'A2') {
       refreshMonthlyGraph();
-    } else if (e.range.getA1Notation() === 'F2' || e.range.getA1Notation() === 'H2') {
+    } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === 'I2') {
       refreshAnnualGraph();
       fetchNetGrowthVals();
     }
@@ -23,7 +23,7 @@ function onEdit(e) {
 function refreshMonthlyGraph() {
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
   let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
-  let selectedMonth = budgetSheet.getRange(2, 1).getValue();
+  let selectedMonth = budgetSheet.getRange(2, 2).getValue();
   let sheet = SpreadsheetApp.getActive().getSheetByName(selectedMonth);
   let monthlyChartId = dataSheet.getRange(1,7).getValue();
   let updatedChart = false;
@@ -166,14 +166,13 @@ function refreshAnnualGraph() {
 
 function fetchPreRangeMonths() {
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let startMonth = budgetSheet.getRange(2, 6).getValue();
+  let startMonth = budgetSheet.getRange(2, 7).getValue();
   if (startMonth === 'January') {
     return [];
   }
 
   var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   let rangeMonths = [];
-  let include = false;
   for (let i = 0; i < months.length; i++) {
     if (months[i] === startMonth) {
       break;
@@ -185,8 +184,8 @@ function fetchPreRangeMonths() {
 
 function fetchRangeMonths() {
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let startMonth = budgetSheet.getRange(2, 6).getValue();
-  let endMonth = budgetSheet.getRange(2, 8).getValue();
+  let startMonth = budgetSheet.getRange(2, 7).getValue();
+  let endMonth = budgetSheet.getRange(2, 9).getValue();
 
   var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   let rangeMonths = [];
@@ -242,17 +241,17 @@ function fetchNetGrowthVals() {
   });
 
 
-  budgetSheet.getRange(4, 7).setValue(dcAnnualBalanceStart);
-  budgetSheet.getRange(6, 7).setValue(wfAnnualBalanceStart);
-  budgetSheet.getRange(8, 7).setValue(ppAnnualBalanceStart);
-  budgetSheet.getRange(10, 7).setValue(mainSavingsAnnualBalanceStart);
-  budgetSheet.getRange(12, 7).setValue(kifaruSavingsAnnualBalanceStart);
+  budgetSheet.getRange(4, 8).setValue(dcAnnualBalanceStart);
+  budgetSheet.getRange(6, 8).setValue(wfAnnualBalanceStart);
+  budgetSheet.getRange(8, 8).setValue(ppAnnualBalanceStart);
+  budgetSheet.getRange(10, 8).setValue(mainSavingsAnnualBalanceStart);
+  budgetSheet.getRange(12, 8).setValue(kifaruSavingsAnnualBalanceStart);
 
-  budgetSheet.getRange(16, 7).setValue(itAnnualBalanceStart);
-  budgetSheet.getRange(18, 7).setValue(ppCreditAnnualBalanceStart);
-  budgetSheet.getRange(20, 7).setValue(careCreditAnnualBalanceStart);
-  budgetSheet.getRange(22, 7).setValue(studentLoanAnnualBalanceStart);
-  budgetSheet.getRange(24, 7).setValue(vehicleLoanAnnualBalanceStart);
+  budgetSheet.getRange(16, 8).setValue(itAnnualBalanceStart);
+  budgetSheet.getRange(18, 8).setValue(ppCreditAnnualBalanceStart);
+  budgetSheet.getRange(20, 8).setValue(careCreditAnnualBalanceStart);
+  budgetSheet.getRange(22, 8).setValue(studentLoanAnnualBalanceStart);
+  budgetSheet.getRange(24, 8).setValue(vehicleLoanAnnualBalanceStart);
 
   let dcAnnualEndRangeGrowth = 0;
   let wfAnnualEndRangeGrowth = 0;
@@ -285,17 +284,17 @@ function fetchNetGrowthVals() {
   });
 
 
-  budgetSheet.getRange(4, 8).setValue(dcAnnualEndRangeGrowth);
-  budgetSheet.getRange(6, 8).setValue(wfAnnualEndRangeGrowth);
-  budgetSheet.getRange(8, 8).setValue(ppAnnualEndRangeGrowth);
-  budgetSheet.getRange(10, 8).setValue(mainSavingsAnnualEndRangeGrowth);
-  budgetSheet.getRange(12, 8).setValue(kifaruSavingsAnnualEndRangeGrowth);
+  budgetSheet.getRange(4, 9).setValue(dcAnnualEndRangeGrowth);
+  budgetSheet.getRange(6, 9).setValue(wfAnnualEndRangeGrowth);
+  budgetSheet.getRange(8, 9).setValue(ppAnnualEndRangeGrowth);
+  budgetSheet.getRange(10, 9).setValue(mainSavingsAnnualEndRangeGrowth);
+  budgetSheet.getRange(12, 9).setValue(kifaruSavingsAnnualEndRangeGrowth);
 
-  budgetSheet.getRange(16, 8).setValue(itAnnualEndRangeGrowth);
-  budgetSheet.getRange(18, 8).setValue(ppCreditAnnualEndRangeGrowth);
-  budgetSheet.getRange(20, 8).setValue(careCreditAnnualEndRangeGrowth);
-  budgetSheet.getRange(22, 8).setValue(studentLoanAnnualEndRangeGrowth);
-  budgetSheet.getRange(24, 8).setValue(vehicleLoanAnnualEndRangeGrowth);
+  budgetSheet.getRange(16, 9).setValue(itAnnualEndRangeGrowth);
+  budgetSheet.getRange(18, 9).setValue(ppCreditAnnualEndRangeGrowth);
+  budgetSheet.getRange(20, 9).setValue(careCreditAnnualEndRangeGrowth);
+  budgetSheet.getRange(22, 9).setValue(studentLoanAnnualEndRangeGrowth);
+  budgetSheet.getRange(24, 9).setValue(vehicleLoanAnnualEndRangeGrowth);
 }
 
 function fetchMonthlyAccountExpenses(sheet) {
