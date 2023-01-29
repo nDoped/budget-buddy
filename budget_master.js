@@ -1,6 +1,6 @@
 function onEdit(e) {
   if (e.source.getActiveSheet().getName() === 'Budget') {
-    if (e.range.getA1Notation() === 'A2') {
+    if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
     } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === 'I2') {
       refreshAnnualGraph();
