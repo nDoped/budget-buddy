@@ -220,7 +220,6 @@ function fetchNetGrowthVals() {
   let studentLoanAnnualBalanceStart = startBalances.studentLoan;
   let vehicleLoanAnnualBalanceStart = startBalances.vehicleLoan;
 
-
   fetchPreRangeMonths().forEach(m => {
     let monthlyExpenses = {};
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
@@ -238,8 +237,8 @@ function fetchNetGrowthVals() {
     careCreditAnnualBalanceStart += monthlyExpenses.careCredit;
     studentLoanAnnualBalanceStart += monthlyExpenses.studentLoan;
     vehicleLoanAnnualBalanceStart += monthlyExpenses.vehicleLoan;
-  });
 
+  });
 
   budgetSheet.getRange(4, 8).setValue(dcAnnualBalanceStart);
   budgetSheet.getRange(6, 8).setValue(wfAnnualBalanceStart);
@@ -264,7 +263,8 @@ function fetchNetGrowthVals() {
   let careCreditAnnualEndRangeGrowth = 0;
   let studentLoanAnnualEndRangeGrowth = 0;
   let vehicleLoanAnnualEndRangeGrowth = 0;
-
+  let totalExtraExpenses = 0;
+  let monthCnt = 0;
   fetchRangeMonths().forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
 
@@ -281,8 +281,12 @@ function fetchNetGrowthVals() {
     careCreditAnnualEndRangeGrowth += monthlyExpenses.careCredit;
     studentLoanAnnualEndRangeGrowth += monthlyExpenses.studentLoan;
     vehicleLoanAnnualEndRangeGrowth += monthlyExpenses.vehicleLoan;
+
+    totalExtraExpenses += monthlyExpenses.extraExpenses;
+    monthCnt++;
   });
 
+  let avgMonthlyExpenses = totalExtraExpenses / monthCnt;
 
   budgetSheet.getRange(4, 9).setValue(dcAnnualEndRangeGrowth);
   budgetSheet.getRange(6, 9).setValue(wfAnnualEndRangeGrowth);
@@ -295,6 +299,8 @@ function fetchNetGrowthVals() {
   budgetSheet.getRange(20, 9).setValue(careCreditAnnualEndRangeGrowth);
   budgetSheet.getRange(22, 9).setValue(studentLoanAnnualEndRangeGrowth);
   budgetSheet.getRange(24, 9).setValue(vehicleLoanAnnualEndRangeGrowth);
+
+  budgetSheet.getRange(32, 8).setValue(avgMonthlyExpenses);
 }
 
 function fetchMonthlyAccountExpenses(sheet) {
@@ -310,6 +316,8 @@ function fetchMonthlyAccountExpenses(sheet) {
   monthlyExpenses.careCredit = sheet.getRange(5, 15).getValue();
   monthlyExpenses.studentLoan = sheet.getRange(6, 15).getValue();
   monthlyExpenses.vehicleLoan = sheet.getRange(7, 15).getValue();
+
+  monthlyExpenses.extraExpenses = sheet.getRange(37, 10).getValue();
   return monthlyExpenses;
 }
 
