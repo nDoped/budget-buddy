@@ -3,13 +3,13 @@ function onEdit(e) {
     if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
     } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === 'I2') {
-      refreshAnnualGraph();
+      refreshAnnualGraphs();
       fetchNetGrowthVals();
     }
   } else {
     refreshMonthlyGraph();
     fetchNetGrowthVals();
-    refreshAnnualGraph();
+    refreshAnnualGraphs();
   }
   /*
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
@@ -71,7 +71,7 @@ function refreshMonthlyGraph() {
   }
 }
 
-function refreshAnnualGraph() {
+function refreshAnnualGraphs() {
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
   let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
   let monthlyNetAssetIncomes = [];
@@ -82,14 +82,27 @@ function refreshAnnualGraph() {
   let monthlyNetDebtIncomes = [];
   let totalNetGrowths = [];
   let totalMonthlyNetGrowth = 0;
+  let pieData = {};
   fetchRangeMonths().forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     if (sheet === null) {
       return;
     }
 
-    let monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
 
+    let breakdownData = sheet.getRange("P2:Q").getValues();
+    breakdownData.forEach(v => {
+      if (! v[1] || v[0].match(/^Utility.*$|^Recurring.*$|^Rent$|Interest/)) {
+        return;
+      }
+      if (v[0] in pieData) {
+        pieData[v[0]] += v[1];
+      } else {
+        pieData[v[0]] = v[1];
+      }
+    });
+
+    let monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
     // net expenses...inverse for asset accounts
     dcMonthlyNetGrowth = -monthlyExpenses.dc;
     wfMonthlyNetGrowth = -monthlyExpenses.wf;
@@ -121,6 +134,8 @@ function refreshAnnualGraph() {
     totalMonthlyNetGrowth += monthlyAssetNet - monthlyDebtNet;
     totalNetGrowths.push(totalMonthlyNetGrowth);
   });
+
+  refreshPieGraph(pieData, budgetSheet);
 
   dataSheet.getRange("H2:M").clearContent();
   let row = 0;
@@ -172,6 +187,51 @@ function refreshAnnualGraph() {
     budgetSheet.insertChart(chart);
     let annualGraphIdCell = dataSheet.getRange(1, 6);
     annualGraphIdCell.setValue(chart.getChartId());
+  }
+}
+
+function refreshPieGraph(pieData, budgetSheet) {
+  let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
+  let pieChartId = dataSheet.getRange(2,6).getValue();
+  let updatedChart = false;
+
+  dataSheet.getRange("B1:C").clearContent();
+
+  let i = 1;
+  for (let cat in pieData) {
+
+    let amnt = pieData[cat];
+    let nextCatCell = dataSheet.getRange(i, 2);
+    let nextValCell = dataSheet.getRange(i, 3);
+    nextCatCell.setValue(cat);
+    nextValCell.setValue(amnt);
+    i++;
+  }
+
+  if (pieChartId) {
+    let charts = budgetSheet.getCharts();
+    for (let i in charts) {
+      if (charts[i].getChartId() === pieChartId) {
+        let newChart = charts[i].modify()
+          .clearRanges()
+          .addRange(dataSheet.getRange("B1:C"))
+          .build();
+        budgetSheet.updateChart(newChart);
+        updatedChart = true;
+      }
+    }
+  }
+
+  if (! updatedChart) {
+    let chart = budgetSheet.newChart()
+      .setChartType(Charts.ChartType.PIE)
+      .addRange(dataSheet.getRange("B1:C"))
+      .setOption("title", "BreakDown Over Range")
+      .setPosition(15, 1, 0, 0)
+      .build();
+    budgetSheet.insertChart(chart);
+    let pieChartIdCell = dataSheet.getRange(2, 6);
+    pieChartIdCell.setValue(chart.getChartId());
   }
 }
 
