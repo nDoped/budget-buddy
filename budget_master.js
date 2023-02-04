@@ -74,9 +74,14 @@ function refreshMonthlyGraph() {
 function refreshAnnualGraph() {
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
   let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
-  let monthlyNetIncomes = [];
-  let annualNetSnapshotIncomes =[];
-  let annualNet = 0;
+  let monthlyNetAssetIncomes = [];
+  let annualNetAssetSnapshotIncomes =[];
+  let annualNetDebtGrowthSnapshots =[];
+  let annualAssetNet = 0;
+  let annualDebtGrowth = 0;
+  let monthlyNetDebtIncomes = [];
+  let totalNetGrowths = [];
+  let totalMonthlyNetGrowth = 0;
   fetchRangeMonths().forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     if (sheet === null) {
@@ -99,22 +104,39 @@ function refreshAnnualGraph() {
     vehicleLoanMonthlyNetGrowth = monthlyExpenses.vehicleLoan;
 
     let monthlyExpendable = dcMonthlyNetGrowth + wfMonthlyNetGrowth + ppMonthlyNetGrowth;
-    let monthlyNet = monthlyExpendable + mainSavingsMonthlyNetGrowth + kifaruSavingsMonthlyNetGrowth;
-    annualNet += monthlyNet;
-    monthlyNetIncomes.push(monthlyNet);
-    annualNetSnapshotIncomes.push(annualNet);
+    let monthlyAssetNet = monthlyExpendable + mainSavingsMonthlyNetGrowth + kifaruSavingsMonthlyNetGrowth;
+    let monthlyDebtNet =
+      itMonthlyNetGrowth
+      + ppCreditMonthlyNetGrowth
+      + careCreditMonthlyNetGrowth
+      + studentLoanMonthlyNetGrowth
+      + vehicleLoanMonthlyNetGrowth;
+
+    annualAssetNet += monthlyAssetNet;
+    annualDebtGrowth += monthlyDebtNet;
+    monthlyNetAssetIncomes.push(monthlyAssetNet);
+    monthlyNetDebtIncomes.push(annualDebtGrowth);
+    annualNetAssetSnapshotIncomes.push(annualAssetNet);
+    annualNetDebtGrowthSnapshots.push(monthlyDebtNet);
+    totalMonthlyNetGrowth += monthlyAssetNet - monthlyDebtNet;
+    totalNetGrowths.push(totalMonthlyNetGrowth);
   });
 
-  dataSheet.getRange("A2:C").clearContent();
+  dataSheet.getRange("H2:M").clearContent();
   let row = 0;
   fetchRangeMonths().forEach(m => {
-    let monthCell = dataSheet.getRange(row + 2, 1);
+    let monthCell = dataSheet.getRange(row + 2, 8);
     monthCell.setValue(m);
-    let monthlyNetIncomesCol = dataSheet.getRange(row + 2, 2);
-    monthlyNetIncomesCol.setValue(monthlyNetIncomes[row]);
-    let annualNetSnapShotIncomesCol = dataSheet.getRange(row + 2, 3);
-    annualNetSnapShotIncomesCol.setValue(annualNetSnapshotIncomes[row]);
-
+    let monthlyNetAssetIncomesCol = dataSheet.getRange(row + 2, 9);
+    monthlyNetAssetIncomesCol.setValue(monthlyNetAssetIncomes[row]);
+    let annualNetAssetSnapShotIncomesCol = dataSheet.getRange(row + 2, 10);
+    annualNetAssetSnapShotIncomesCol.setValue(annualNetAssetSnapshotIncomes[row]);
+    let annualNetDebtSnapShotCol = dataSheet.getRange(row + 2, 11);
+    annualNetDebtSnapShotCol.setValue(annualNetDebtGrowthSnapshots[row]);
+    let monthlyNetDebtIncomesCol = dataSheet.getRange(row + 2, 12);
+    monthlyNetDebtIncomesCol.setValue(monthlyNetDebtIncomes[row]);
+    let totalNetGrowthCol = dataSheet.getRange(row + 2, 13);
+    totalNetGrowthCol.setValue(totalNetGrowths[row]);
     row++;
   });
 
@@ -126,7 +148,7 @@ function refreshAnnualGraph() {
       if (charts[i].getChartId() === annualChartId) {
         let newChart = charts[i].modify()
           .clearRanges()
-          .addRange(dataSheet.getRange("A2:C"))
+          .addRange(dataSheet.getRange("H1:M"))
           .build();
         budgetSheet.updateChart(newChart);
         updatedChart = true;
@@ -136,27 +158,16 @@ function refreshAnnualGraph() {
 
   if (! updatedChart) {
     let chart = budgetSheet.newChart()
-      .setChartType(Charts.ChartType.AREA)
-      .addRange(dataSheet.getRange("A2:C"))
-      .setPosition(15, 7, 0, 0)
-      .setOption('colors', [ 'red', 'yellow' ])
-      .setOption('pointSize', 2)
-      .setOption("title", "2022 Annual Net Income")
-      .setOption('series', {
-        1: {
-
-          pointsVisible: false
-        },
-        2: {
-          labelInLegend: true,
-        }
+      .setChartType(Charts.ChartType.LINE)
+      .addRange(dataSheet.getRange("H1:M"))
+      .setPosition(1, 11, 0, 0)
+      .setOption('colors', [ 'blue', 'green', 'red', 'yellow' ])
+      .setOption("title", "2023 Net Growths")
+      .setNumHeaders(1)
+      .setOption('vAxis', {
+        title: 'Net Growth'
       })
-      .setOption("legendTextStyle", { color: 'white' })
-      .setOption("vAxis.gridlines", {color: '#333', minSpacing: 1000})
-      .setOption("vAxis.minorGridlines", {color: '#333', minSpacing: 100})
-      .setOption('legend', {position: 'top', textStyle: {color: 'white', fontSize: 11}})
       .build();
-
 
     budgetSheet.insertChart(chart);
     let annualGraphIdCell = dataSheet.getRange(1, 6);
