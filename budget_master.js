@@ -1,5 +1,8 @@
+var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 function onEdit(e) {
-  if (e.source.getActiveSheet().getName() === 'Budget') {
+    let activeSheetName = e.source.getActiveSheet().getName();
+    if (activeSheetName === 'Budget') {
     if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
     } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === 'I2') {
@@ -7,17 +10,66 @@ function onEdit(e) {
       fetchNetGrowthVals();
     }
   } else {
+    if (months.includes(activeSheetName)){
+      refreshMonthlyBreakdown(e.source.getActiveSheet());
+    }
     refreshMonthlyGraph();
     fetchNetGrowthVals();
     refreshAnnualGraphs();
   }
-  /*
-  let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let charts = budgetSheet.getCharts();
-  for (var i in charts) {
-    budgetSheet.removeChart(charts[i]);
+}
+
+function refreshMonthlyBreakdown(sheet) {
+  let transData = sheet.getRange("C3:D").getValues();
+  let breakdownData = {};
+  transData.forEach(t => {
+    let amnt = t[0];
+    let cat = t[1]
+    if (! amnt || cat.match(/^Recurring.*|^Utility.*|^Salary.*|Account Adjustment|^Interest.*|Refund/)) {
+      return;
+    }
+    try {
+      cat = JSON.parse(cat);
+    } catch (e) {}
+
+    if (typeof cat === 'object') {
+      for (i in cat) {
+        if (i in breakdownData) {
+          breakdownData[i] += (amnt * cat[i]) / 100;
+
+        } else {
+          breakdownData[i] = (amnt * cat[i]) / 100;
+        }
+      }
+
+    } else {
+      if (cat in breakdownData) {
+        breakdownData[cat] += amnt;
+
+      } else {
+        breakdownData[cat] = amnt;
+      }
+    }
+  });
+
+  let sortedData = sortObj(breakdownData);
+  let targetRange = sheet.getRange("P12:Q");
+  targetRange.clearContent();
+  let row = 12;
+  for (let cat in sortedData) {
+    let catCell = sheet.getRange(row, 16);
+    let valCell = sheet.getRange(row, 17);
+    catCell.setValue(cat);
+    valCell.setValue(sortedData[cat].toFixed(2));
+    row++;
   }
-  */
+}
+
+function sortObj(obj) {
+  return Object.keys(obj).sort().reduce(function (result, key) {
+    result[key] = obj[key];
+    return result;
+  }, {});
 }
 
 function refreshMonthlyGraph() {
@@ -74,6 +126,8 @@ function refreshMonthlyGraph() {
 function refreshAnnualGraphs() {
   let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
   let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
+  let startMonth = budgetSheet.getRange(2, 7).getValue();
+  let endMonth = budgetSheet.getRange(2, 9).getValue();
   let monthlyNetAssetIncomes = [];
   let annualNetAssetSnapshotIncomes =[];
   let annualNetDebtGrowthSnapshots =[];
@@ -83,7 +137,7 @@ function refreshAnnualGraphs() {
   let totalNetGrowths = [];
   let totalMonthlyNetGrowth = 0;
   let pieData = {};
-  fetchRangeMonths().forEach(m => {
+  fetchRangeMonths(startMonth, endMonth).forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     if (sheet === null) {
       return;
@@ -97,6 +151,7 @@ function refreshAnnualGraphs() {
       }
       if (v[0] in pieData) {
         pieData[v[0]] += v[1];
+
       } else {
         pieData[v[0]] = v[1];
       }
@@ -135,11 +190,11 @@ function refreshAnnualGraphs() {
     totalNetGrowths.push(totalMonthlyNetGrowth);
   });
 
-  refreshPieGraph(pieData, budgetSheet);
+  refreshPieGraph(pieData, budgetSheet, startMonth, endMonth);
 
   dataSheet.getRange("H2:M").clearContent();
   let row = 0;
-  fetchRangeMonths().forEach(m => {
+  fetchRangeMonths(startMonth, endMonth).forEach(m => {
     let monthCell = dataSheet.getRange(row + 2, 8);
     monthCell.setValue(m);
     let monthlyNetAssetIncomesCol = dataSheet.getRange(row + 2, 9);
@@ -190,7 +245,7 @@ function refreshAnnualGraphs() {
   }
 }
 
-function refreshPieGraph(pieData, budgetSheet) {
+function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
   let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
   let pieChartId = dataSheet.getRange(2,6).getValue();
   let updatedChart = false;
@@ -214,6 +269,7 @@ function refreshPieGraph(pieData, budgetSheet) {
       if (charts[i].getChartId() === pieChartId) {
         let newChart = charts[i].modify()
           .clearRanges()
+          .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
           .addRange(dataSheet.getRange("B1:C"))
           .build();
         budgetSheet.updateChart(newChart);
@@ -226,7 +282,7 @@ function refreshPieGraph(pieData, budgetSheet) {
     let chart = budgetSheet.newChart()
       .setChartType(Charts.ChartType.PIE)
       .addRange(dataSheet.getRange("B1:C"))
-      .setOption("title", "BreakDown Over Range")
+      .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
       .setPosition(15, 1, 0, 0)
       .build();
     budgetSheet.insertChart(chart);
@@ -235,14 +291,12 @@ function refreshPieGraph(pieData, budgetSheet) {
   }
 }
 
-function fetchPreRangeMonths() {
-  let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let startMonth = budgetSheet.getRange(2, 7).getValue();
+function fetchPreRangeMonths(startMonth) {
   if (startMonth === 'January') {
     return [];
   }
 
-  var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
   let rangeMonths = [];
   for (let i = 0; i < months.length; i++) {
     if (months[i] === startMonth) {
@@ -253,12 +307,10 @@ function fetchPreRangeMonths() {
   return rangeMonths;
 }
 
-function fetchRangeMonths() {
-  let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let startMonth = budgetSheet.getRange(2, 7).getValue();
-  let endMonth = budgetSheet.getRange(2, 9).getValue();
+function fetchRangeMonths(startMonth, endMonth) {
 
-  var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+
   let rangeMonths = [];
   let include = false;
   for (let i = 0; i < months.length; i++) {
@@ -276,8 +328,9 @@ function fetchRangeMonths() {
 }
 
 function fetchNetGrowthVals() {
-  var budgetSheet = SpreadsheetApp.getActive().getSheetByName("Budget");
-
+  let budgetSheet = SpreadsheetApp.getActive().getSheetByName("Budget");
+  let startMonth = budgetSheet.getRange(2, 7).getValue();
+  let endMonth = budgetSheet.getRange(2, 9).getValue();
   let startBalances = fetchJanFirstBalances();
   // net expenses...so inverse for assest accounts
   let dcAnnualBalanceStart = startBalances.dc;
@@ -291,7 +344,7 @@ function fetchNetGrowthVals() {
   let studentLoanAnnualBalanceStart = startBalances.studentLoan;
   let vehicleLoanAnnualBalanceStart = startBalances.vehicleLoan;
 
-  fetchPreRangeMonths().forEach(m => {
+  fetchPreRangeMonths(startMonth).forEach(m => {
     let monthlyExpenses = {};
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
@@ -336,7 +389,7 @@ function fetchNetGrowthVals() {
   let vehicleLoanAnnualEndRangeGrowth = 0;
   let totalExtraExpenses = 0;
   let monthCnt = 0;
-  fetchRangeMonths().forEach(m => {
+  fetchRangeMonths(startMonth, endMonth).forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
 
     let monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
