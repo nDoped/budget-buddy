@@ -4,22 +4,29 @@ const catColors = {
     Booze: { background: "#85551b", font: "white" },
     Bathroom: { background: "#3c78d8", font: "white" },
     Books: { background: "#ec6868", font: "black" },
+    Bread: { background: "#ffe599", font: "#073763" },
+    Butter: { background: "#7f6000", font: "#0000ff" },
+    "Chips/Snacks": { background: "#cc4125", font: "#0000ff" },
     Coffee: { background: "#dcd4c3", font: "white" },
     Default: { background: "#ff00ff", font: "white" },
     Gas: { background: "#d9d9d9", font: "black" },
     Groceries: { background: "#0eec8d", font: "#7f6000" },
+    "Hot Sauce": { background: "#ff5158", font: "#f4cccc" },
     Hunting: { background: "#3b8d11", font: "white" },
+    Isopropyl: { background: "#ffbebe", font: "#c27ba0" },
+    "Milk/Creme": { background: "black", font: "white" },
     Moving: { background: "#ffe599", font: "black" },
+    Puzzles: { background: "#ff9900", font: "#cccccc" },
+    Salt: { background: "#660000", font: "#ff0000" },
     Rent: { background: "#e41111", font: "white" },
     Restaurant: { background: "#a2c4c9", font: "#666666" },
-    Puzzles: { background: "#ff9900", font: "#cccccc" },
     Tools: { background: "#999999", font: "#000000" },
     "Vitamins & Minerals": { background: "#a4c2f4", font: "#000000" },
 };
 
 function onEdit(e) {
-    let activeSheetName = e.source.getActiveSheet().getName();
-    if (activeSheetName === 'Budget') {
+  let activeSheetName = e.source.getActiveSheet().getName();
+  if (activeSheetName === 'Budget') {
     if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
     } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === 'I2') {
@@ -28,13 +35,41 @@ function onEdit(e) {
     }
   } else {
     if (months.includes(activeSheetName)){
-      refreshMonthlyBreakdown(e.source.getActiveSheet());
-      refreshMonthlyGraph();
-      fetchNetGrowthVals();
-      refreshAnnualGraphs();
+      if (e.range.getA1Notation() === 'H15') {
+        fetchCategoryPercentages(e.source.getActiveSheet());
+      } else {
+        refreshMonthlyBreakdown(e.source.getActiveSheet());
+        refreshMonthlyGraph();
+        fetchNetGrowthVals();
+        refreshAnnualGraphs();
+      }
     }
-
   }
+}
+
+function fetchCategoryPercentages(sheet) {
+  //let sheet =  SpreadsheetApp.getActive().getSheetByName("January");
+  let jsonData = JSON.parse(sheet.getRange('H15').getValue());
+  let tempCategories = {};
+  let runningTotal = 0;
+  let ret = {};
+  for (i in jsonData.categories) {
+    let catSum = jsonData.categories[i].reduce((partialSum, a) => partialSum + a, 0);
+    tempCategories[i] = catSum;
+    runningTotal += catSum;
+  }
+  if (parseFloat(runningTotal.toFixed(2)) !== parseFloat(jsonData.subTotal)) {
+    sheet.getRange('L15').setValue("Totals Error");
+    return;
+  }
+
+  let catCount = Object.keys(tempCategories).length;
+  for (let i in tempCategories) {
+    let taxRate = ((jsonData.subTotal + jsonData.tax) / jsonData.subTotal) - 1;
+    let catSum = tempCategories[i] * ( 1 + taxRate);
+    ret[i] = ((catSum / (jsonData.subTotal + jsonData.tax)) * 100).toFixed(2);
+  }
+  sheet.getRange('L15').setValue(JSON.stringify(ret));
 }
 
 function refreshMonthlyBreakdown(sheet) {
@@ -53,7 +88,7 @@ function refreshMonthlyBreakdown(sheet) {
     } catch (e) {}
 
     if (typeof cat === 'object') {
-      for (i in cat) {
+      for (let i in cat) {
         if (i in breakdownData) {
           breakdownData[i] += (amnt * cat[i]) / 100;
 
@@ -74,7 +109,7 @@ function refreshMonthlyBreakdown(sheet) {
 
   let sortedData = sortObj(breakdownData);
   let targetRange = sheet.getRange("P2:Q");
-  targetRange.clearContent();
+  targetRange.clearContent().setBackgroundColor(null);
   let row = 2;
   for (let cat in sortedData) {
     let catCell = sheet.getRange(row, 16);
