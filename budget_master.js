@@ -1,4 +1,21 @@
-var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const catColors = {
+    AdEnt: { background: "#ead1dc", font: "#c27ba0" },
+    Booze: { background: "#85551b", font: "white" },
+    Bathroom: { background: "#3c78d8", font: "white" },
+    Books: { background: "#ec6868", font: "black" },
+    Coffee: { background: "#dcd4c3", font: "white" },
+    Default: { background: "#ff00ff", font: "white" },
+    Gas: { background: "#d9d9d9", font: "black" },
+    Groceries: { background: "#0eec8d", font: "#7f6000" },
+    Hunting: { background: "#3b8d11", font: "white" },
+    Moving: { background: "#ffe599", font: "black" },
+    Rent: { background: "#e41111", font: "white" },
+    Restaurant: { background: "#a2c4c9", font: "#666666" },
+    Puzzles: { background: "#ff9900", font: "#cccccc" },
+    Tools: { background: "#999999", font: "#000000" },
+    "Vitamins & Minerals": { background: "#a4c2f4", font: "#000000" },
+};
 
 function onEdit(e) {
     let activeSheetName = e.source.getActiveSheet().getName();
@@ -12,20 +29,23 @@ function onEdit(e) {
   } else {
     if (months.includes(activeSheetName)){
       refreshMonthlyBreakdown(e.source.getActiveSheet());
+      refreshMonthlyGraph();
+      fetchNetGrowthVals();
+      refreshAnnualGraphs();
     }
-    refreshMonthlyGraph();
-    fetchNetGrowthVals();
-    refreshAnnualGraphs();
+
   }
 }
 
 function refreshMonthlyBreakdown(sheet) {
+  //let sheet =  SpreadsheetApp.getActive().getSheetByName("January");
   let transData = sheet.getRange("C3:D").getValues();
   let breakdownData = {};
+
   transData.forEach(t => {
     let amnt = t[0];
     let cat = t[1]
-    if (! amnt || cat.match(/^Recurring.*|^Utility.*|^Salary.*|Account Adjustment|^Interest.*|Refund/)) {
+    if (! amnt || cat.match(/^Salary.*|Account Adjustment|^Interest.*|Refund/)) {
       return;
     }
     try {
@@ -53,14 +73,28 @@ function refreshMonthlyBreakdown(sheet) {
   });
 
   let sortedData = sortObj(breakdownData);
-  let targetRange = sheet.getRange("P12:Q");
+  let targetRange = sheet.getRange("P2:Q");
   targetRange.clearContent();
-  let row = 12;
+  let row = 2;
   for (let cat in sortedData) {
     let catCell = sheet.getRange(row, 16);
     let valCell = sheet.getRange(row, 17);
     catCell.setValue(cat);
     valCell.setValue(sortedData[cat].toFixed(2));
+    if (cat in catColors) {
+      sheet.getRange(row, 16).setBackgroundColor(catColors[cat].background);
+      sheet.getRange(row, 16).setFontColor(catColors[cat].font);
+    } else if (cat.match(/^Utility.*$/)) {
+      sheet.getRange(row, 16).setBackgroundColor("#20124d");
+      sheet.getRange(row, 16).setFontColor("white");
+    } else if (cat.match(/^Recurring.*$/)) {
+      sheet.getRange(row, 16).setBackgroundColor("#b4a7d6");
+      sheet.getRange(row, 16).setFontColor("black");
+    } else {
+      sheet.getRange(row, 16).setBackgroundColor(catColors["Default"].background);
+      sheet.getRange(row, 16).setFontColor(catColors["Default"].font);
+    }
+
     row++;
   }
 }
@@ -137,12 +171,12 @@ function refreshAnnualGraphs() {
   let totalNetGrowths = [];
   let totalMonthlyNetGrowth = 0;
   let pieData = {};
+
   fetchRangeMonths(startMonth, endMonth).forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     if (sheet === null) {
       return;
     }
-
 
     let breakdownData = sheet.getRange("P2:Q").getValues();
     breakdownData.forEach(v => {
@@ -253,6 +287,7 @@ function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
   dataSheet.getRange("B1:C").clearContent();
 
   let i = 1;
+  let pieChartColors = [];
   for (let cat in pieData) {
 
     let amnt = pieData[cat];
@@ -260,6 +295,11 @@ function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
     let nextValCell = dataSheet.getRange(i, 3);
     nextCatCell.setValue(cat);
     nextValCell.setValue(amnt);
+    if (cat in catColors) {
+      pieChartColors.push(catColors[cat].background);
+    } else {
+      pieChartColors.push(catColors["Default"].background);
+    }
     i++;
   }
 
@@ -270,6 +310,7 @@ function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
         let newChart = charts[i].modify()
           .clearRanges()
           .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
+          .setOption("colors", pieChartColors)
           .addRange(dataSheet.getRange("B1:C"))
           .build();
         budgetSheet.updateChart(newChart);
@@ -283,6 +324,7 @@ function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
       .setChartType(Charts.ChartType.PIE)
       .addRange(dataSheet.getRange("B1:C"))
       .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
+      .setOption("colors", pieChartColors)
       .setPosition(15, 1, 0, 0)
       .build();
     budgetSheet.insertChart(chart);
@@ -308,9 +350,6 @@ function fetchPreRangeMonths(startMonth) {
 }
 
 function fetchRangeMonths(startMonth, endMonth) {
-
-
-
   let rangeMonths = [];
   let include = false;
   for (let i = 0; i < months.length; i++) {
