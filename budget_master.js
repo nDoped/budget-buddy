@@ -1,31 +1,42 @@
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const groceryColors = { background: "black", font: "white" };
 const catColors = {
     AdEnt: { background: "#ead1dc", font: "#c27ba0" },
     Booze: { background: "#85551b", font: "white" },
     Bathroom: { background: "#3c78d8", font: "white" },
     Books: { background: "#ec6868", font: "black" },
-    Bread: { background: "#ffe599", font: "#073763" },
-    Butter: { background: "#7f6000", font: "#0000ff" },
-    "Chips/Snacks": { background: "#cc4125", font: "#0000ff" },
+    "Groceries:Bread" : groceryColors,
+    "Groceries:Butter" : groceryColors,
+    "Groceries:Cheese" : groceryColors,
+    "Groceries:Chips/Snacks" : groceryColors,
+    "Groceries:Condiments" : groceryColors,
     Coffee: { background: "#dcd4c3", font: "white" },
     Default: { background: "#ff00ff", font: "white" },
+    "Groceries:Flour" : groceryColors,
+    "Groceries:Fruits/Vegetables": groceryColors,
     Gas: { background: "#d9d9d9", font: "black" },
-    Groceries: { background: "#0eec8d", font: "#7f6000" },
-    "Hot Sauce": { background: "#ff5158", font: "#f4cccc" },
+    "Groceries:Generic": groceryColors,
     Hunting: { background: "#3b8d11", font: "white" },
     Isopropyl: { background: "#ffbebe", font: "#c27ba0" },
-    "Milk/Creme": { background: "black", font: "white" },
+    "Groceries:Meat": groceryColors,
+    "Groceries:Milk/Creme": groceryColors,
     Moving: { background: "#ffe599", font: "black" },
+    "Groceries:Nut Butter": groceryColors,
     Puzzles: { background: "#ff9900", font: "#cccccc" },
-    Salt: { background: "#660000", font: "#ff0000" },
+    "Groceries:Salt/Pepper": groceryColors,
     Rent: { background: "#e41111", font: "white" },
     Restaurant: { background: "#a2c4c9", font: "#666666" },
     Tools: { background: "#999999", font: "#000000" },
     "Vitamins & Minerals": { background: "#a4c2f4", font: "#000000" },
 };
 
+var budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
+var dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
+
 function onEdit(e) {
-  let activeSheetName = e.source.getActiveSheet().getName();
+  budgetSheet.getRange("F35").setValue("Calculating...");
+  let activeSheet = e.source.getActiveSheet();
+  let activeSheetName = activeSheet.getName();
   if (activeSheetName === 'Budget') {
     if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
@@ -35,41 +46,72 @@ function onEdit(e) {
     }
   } else {
     if (months.includes(activeSheetName)){
-      if (e.range.getA1Notation() === 'H15') {
-        fetchCategoryPercentages(e.source.getActiveSheet());
+      if (e.range.getA1Notation() === 'J24') {
+        fetchCategoryPercentages(activeSheet);
       } else {
-        refreshMonthlyBreakdown(e.source.getActiveSheet());
+        refreshMonthlyBreakdown(activeSheet);
         refreshMonthlyGraph();
         fetchNetGrowthVals();
         refreshAnnualGraphs();
       }
     }
   }
+  budgetSheet.getRange("F35").clearContent();
 }
 
 function fetchCategoryPercentages(sheet) {
   //let sheet =  SpreadsheetApp.getActive().getSheetByName("January");
-  let jsonData = JSON.parse(sheet.getRange('H15').getValue());
+  let jsonData = JSON.parse(sheet.getRange('J24').getValue());
   let tempCategories = {};
   let runningTotal = 0;
+  let runningTaxableTotal = 0;
   let ret = {};
-  for (i in jsonData.categories) {
-    let catSum = jsonData.categories[i].reduce((partialSum, a) => partialSum + a, 0);
-    tempCategories[i] = catSum;
+  for (let i in jsonData.categories) {
+    let catSum = jsonData.categories[i].reduce((partialSum, a) => {
+      if (typeof a === "boolean") {
+        return partialSum;
+      } else {
+        return partialSum + a;
+      }
+    }, 0);
+    let catIsTaxable = jsonData.categories[i][0];
+    tempCategories[i] = {
+      sum: catSum,
+      taxable: catIsTaxable
+    };
+
     runningTotal += catSum;
+
+    if (catIsTaxable) {
+      runningTaxableTotal += catSum;
+    }
   }
+
   if (parseFloat(runningTotal.toFixed(2)) !== parseFloat(jsonData.subTotal)) {
-    sheet.getRange('L15').setValue("Totals Error");
+    sheet.getRange('J26').setValue("Totals Error");
     return;
   }
 
-  let catCount = Object.keys(tempCategories).length;
+  let taxRate = ((runningTaxableTotal + jsonData.tax) / runningTaxableTotal) - 1;
+  if (! isNaN(taxRate) && parseFloat((taxRate * 100).toFixed(1)) !== jsonData.expectedTaxRate && jsonData.tax) {
+    sheet.getRange('J26').setValue("Tax rate not expected amount");
+    return;
+  }
   for (let i in tempCategories) {
-    let taxRate = ((jsonData.subTotal + jsonData.tax) / jsonData.subTotal) - 1;
-    let catSum = tempCategories[i] * ( 1 + taxRate);
+    let catSum = tempCategories[i].sum;
+
+    if (! catSum) {
+      continue;
+    }
+
+    if (tempCategories[i]['taxable']) {
+      catSum *= ( 1 + taxRate);
+    }
+
     ret[i] = ((catSum / (jsonData.subTotal + jsonData.tax)) * 100).toFixed(2);
   }
-  sheet.getRange('L15').setValue(JSON.stringify(ret));
+
+  sheet.getRange('J26').setValue(JSON.stringify(ret));
 }
 
 function refreshMonthlyBreakdown(sheet) {
@@ -142,8 +184,7 @@ function sortObj(obj) {
 }
 
 function refreshMonthlyGraph() {
-  let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
+
   let selectedMonth = budgetSheet.getRange(2, 2).getValue();
   let sheet = SpreadsheetApp.getActive().getSheetByName(selectedMonth);
   let monthlyChartId = dataSheet.getRange(1,7).getValue();
@@ -193,8 +234,6 @@ function refreshMonthlyGraph() {
 }
 
 function refreshAnnualGraphs() {
-  let budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
-  let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
   let startMonth = budgetSheet.getRange(2, 7).getValue();
   let endMonth = budgetSheet.getRange(2, 9).getValue();
   let monthlyNetAssetIncomes = [];
@@ -259,7 +298,7 @@ function refreshAnnualGraphs() {
     totalNetGrowths.push(totalMonthlyNetGrowth);
   });
 
-  refreshPieGraph(pieData, budgetSheet, startMonth, endMonth);
+  refreshPieGraph(pieData, startMonth, endMonth);
 
   dataSheet.getRange("H2:M").clearContent();
   let row = 0;
@@ -303,6 +342,8 @@ function refreshAnnualGraphs() {
       .setOption('colors', [ 'blue', 'green', 'red', 'yellow' ])
       .setOption("title", "2023 Net Growths")
       .setNumHeaders(1)
+      .setOption("height", 554)
+      .setOption("width", 924)
       .setOption('vAxis', {
         title: 'Net Growth'
       })
@@ -314,8 +355,7 @@ function refreshAnnualGraphs() {
   }
 }
 
-function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
-  let dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
+function refreshPieGraph(pieData, startMonth, endMonth) {
   let pieChartId = dataSheet.getRange(2,6).getValue();
   let updatedChart = false;
 
@@ -323,7 +363,7 @@ function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
 
   let i = 1;
   let pieChartColors = [];
-  for (let cat in pieData) {
+  for (let cat in sortObj(pieData)) {
 
     let amnt = pieData[cat];
     let nextCatCell = dataSheet.getRange(i, 2);
@@ -342,37 +382,32 @@ function refreshPieGraph(pieData, budgetSheet, startMonth, endMonth) {
     let charts = budgetSheet.getCharts();
     for (let i in charts) {
       if (charts[i].getChartId() === pieChartId) {
-        let newChart = charts[i].modify()
-          .clearRanges()
-          .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
-          .setOption("colors", pieChartColors)
-          .addRange(dataSheet.getRange("B1:C"))
-          .build();
-        budgetSheet.updateChart(newChart);
-        updatedChart = true;
+        budgetSheet.removeChart(charts[i]);
+        break;
       }
     }
   }
 
-  if (! updatedChart) {
-    let chart = budgetSheet.newChart()
-      .setChartType(Charts.ChartType.PIE)
-      .addRange(dataSheet.getRange("B1:C"))
-      .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
-      .setOption("colors", pieChartColors)
-      .setPosition(15, 1, 0, 0)
-      .build();
-    budgetSheet.insertChart(chart);
-    let pieChartIdCell = dataSheet.getRange(2, 6);
-    pieChartIdCell.setValue(chart.getChartId());
-  }
+
+  let chart = budgetSheet.newChart()
+    .setChartType(Charts.ChartType.PIE)
+    .addRange(dataSheet.getRange("B1:C"))
+    .setOption("title", "Spending BreakDown: " + startMonth + " Through " + endMonth)
+    .setOption("colors", pieChartColors)
+    .setOption("height", 552)
+    .setOption('is3D', true)
+    .setOption("width", 924)
+    .setPosition(24,11, 0, 0)
+    .build();
+  budgetSheet.insertChart(chart);
+  let pieChartIdCell = dataSheet.getRange(2, 6);
+  pieChartIdCell.setValue(chart.getChartId());
 }
 
 function fetchPreRangeMonths(startMonth) {
   if (startMonth === 'January') {
     return [];
   }
-
 
   let rangeMonths = [];
   for (let i = 0; i < months.length; i++) {
@@ -402,7 +437,6 @@ function fetchRangeMonths(startMonth, endMonth) {
 }
 
 function fetchNetGrowthVals() {
-  let budgetSheet = SpreadsheetApp.getActive().getSheetByName("Budget");
   let startMonth = budgetSheet.getRange(2, 7).getValue();
   let endMonth = budgetSheet.getRange(2, 9).getValue();
   let startBalances = fetchJanFirstBalances();
@@ -503,19 +537,19 @@ function fetchNetGrowthVals() {
 
 function fetchMonthlyAccountExpenses(sheet) {
   let monthlyExpenses = {};
-  monthlyExpenses.dc = sheet.getRange(3, 11).getValue();
-  monthlyExpenses.wf = sheet.getRange(4, 11).getValue();
-  monthlyExpenses.pp = sheet.getRange(5, 11).getValue();
-  monthlyExpenses.mainSavings = sheet.getRange(6, 11).getValue();
-  monthlyExpenses.kifaruSavings = sheet.getRange(7, 11).getValue();
+  monthlyExpenses.dc = sheet.getRange("U4").getValue();
+  monthlyExpenses.wf = sheet.getRange("U5").getValue();
+  monthlyExpenses.pp = sheet.getRange("U6").getValue();
+  monthlyExpenses.mainSavings = sheet.getRange("U7").getValue();
+  monthlyExpenses.kifaruSavings = sheet.getRange("U8").getValue();
 
-  monthlyExpenses.it = sheet.getRange(3, 15).getValue();
-  monthlyExpenses.ppCredit = sheet.getRange(4, 15).getValue();
-  monthlyExpenses.careCredit = sheet.getRange(5, 15).getValue();
-  monthlyExpenses.studentLoan = sheet.getRange(6, 15).getValue();
-  monthlyExpenses.vehicleLoan = sheet.getRange(7, 15).getValue();
+  monthlyExpenses.it = sheet.getRange("Y4").getValue();
+  monthlyExpenses.ppCredit = sheet.getRange("Y5").getValue();
+  monthlyExpenses.careCredit = sheet.getRange("Y6").getValue();
+  monthlyExpenses.studentLoan = sheet.getRange("Y7").getValue();
+  monthlyExpenses.vehicleLoan = sheet.getRange("Y8").getValue();
 
-  monthlyExpenses.extraExpenses = sheet.getRange(37, 10).getValue();
+  monthlyExpenses.extraExpenses = sheet.getRange("J12").getValue();
   return monthlyExpenses;
 }
 
