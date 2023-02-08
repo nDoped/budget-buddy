@@ -40,9 +40,13 @@ function onEdit(e) {
   if (activeSheetName === 'Budget') {
     if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
-    } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === 'I2') {
+    } else if (e.range.getA1Notation() === 'F1') {
       refreshAnnualGraphs();
       fetchNetGrowthVals();
+      budgetSheet.getRange("F1").setValue('Done!');
+      budgetSheet.getRange("F2").clearContent();
+    } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === "I2") {
+      budgetSheet.getRange("F2").setValue('Stale Data!');
     }
   } else {
     if (months.includes(activeSheetName)){
@@ -60,7 +64,7 @@ function onEdit(e) {
 }
 
 function fetchCategoryPercentages(sheet) {
-  //let sheet =  SpreadsheetApp.getActive().getSheetByName("January");
+  //let sheet =  SpreadsheetApp.getActive().getSheetByName("February");
   let jsonData = JSON.parse(sheet.getRange('J24').getValue());
   let tempCategories = {};
   let runningTotal = 0;
@@ -97,6 +101,7 @@ function fetchCategoryPercentages(sheet) {
     sheet.getRange('J26').setValue("Tax rate not expected amount");
     return;
   }
+
   for (let i in tempCategories) {
     let catSum = tempCategories[i].sum;
 
@@ -110,7 +115,6 @@ function fetchCategoryPercentages(sheet) {
 
     ret[i] = ((catSum / (jsonData.subTotal + jsonData.tax)) * 100).toFixed(2);
   }
-
   sheet.getRange('J26').setValue(JSON.stringify(ret));
 }
 
@@ -383,7 +387,6 @@ function refreshPieGraph(pieData, startMonth, endMonth) {
     for (let i in charts) {
       if (charts[i].getChartId() === pieChartId) {
         budgetSheet.removeChart(charts[i]);
-        break;
       }
     }
   }
@@ -440,17 +443,6 @@ function fetchNetGrowthVals() {
   let startMonth = budgetSheet.getRange(2, 7).getValue();
   let endMonth = budgetSheet.getRange(2, 9).getValue();
   let startBalances = fetchJanFirstBalances();
-  // net expenses...so inverse for assest accounts
-  let dcAnnualBalanceStart = startBalances.dc;
-  let wfAnnualBalanceStart = startBalances.wf;
-  let ppAnnualBalanceStart = startBalances.pp;
-  let mainSavingsAnnualBalanceStart = startBalances.mainSavings;
-  let kifaruSavingsAnnualBalanceStart = startBalances.kifaruSavings;
-  let itAnnualBalanceStart = startBalances.it;
-  let ppCreditAnnualBalanceStart = startBalances.ppCredit;
-  let careCreditAnnualBalanceStart = startBalances.careCredit;
-  let studentLoanAnnualBalanceStart = startBalances.studentLoan;
-  let vehicleLoanAnnualBalanceStart = startBalances.vehicleLoan;
 
   fetchPreRangeMonths(startMonth).forEach(m => {
     let monthlyExpenses = {};
@@ -458,43 +450,44 @@ function fetchNetGrowthVals() {
     monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
 
     // net expenses...so inverse for assest accounts
-    dcAnnualBalanceStart -= monthlyExpenses.dc;
-    wfAnnualBalanceStart -= monthlyExpenses.wf;
-    ppAnnualBalanceStart -= monthlyExpenses.pp;
-    mainSavingsAnnualBalanceStart -= monthlyExpenses.mainSavings;
-    kifaruSavingsAnnualBalanceStart -= monthlyExpenses.kifaruSavings;
+    startBalances.dc -= monthlyExpenses.dc;
+    startBalances.wf -= monthlyExpenses.wf;
+    startBalances.pp -= monthlyExpenses.pp;
+    startBalances.mainSavings -= monthlyExpenses.mainSavings;
+    startBalances.kifaruSavings -= monthlyExpenses.kifaruSavings;
 
-    itAnnualBalanceStart += monthlyExpenses.it;
-    ppCreditAnnualBalanceStart += monthlyExpenses.ppCredit;
-    careCreditAnnualBalanceStart += monthlyExpenses.careCredit;
-    studentLoanAnnualBalanceStart += monthlyExpenses.studentLoan;
-    vehicleLoanAnnualBalanceStart += monthlyExpenses.vehicleLoan;
-
+    startBalances.it += monthlyExpenses.it;
+    startBalances.ppCredit += monthlyExpenses.ppCredit;
+    startBalances.careCredit += monthlyExpenses.careCredit;
+    startBalances.studentLoan += monthlyExpenses.studentLoan;
+    startBalances.vehicleLoan += monthlyExpenses.vehicleLoan;
   });
 
-  budgetSheet.getRange(4, 8).setValue(dcAnnualBalanceStart);
-  budgetSheet.getRange(6, 8).setValue(wfAnnualBalanceStart);
-  budgetSheet.getRange(8, 8).setValue(ppAnnualBalanceStart);
-  budgetSheet.getRange(10, 8).setValue(mainSavingsAnnualBalanceStart);
-  budgetSheet.getRange(12, 8).setValue(kifaruSavingsAnnualBalanceStart);
+  budgetSheet.getRange("H4").setValue(startBalances.dc);
+  budgetSheet.getRange("H6").setValue(startBalances.wf);
+  budgetSheet.getRange("H8").setValue(startBalances.pp);
+  budgetSheet.getRange("H10").setValue(startBalances.mainSavings);
+  budgetSheet.getRange("H12").setValue(startBalances.kifaruSavings);
 
-  budgetSheet.getRange(16, 8).setValue(itAnnualBalanceStart);
-  budgetSheet.getRange(18, 8).setValue(ppCreditAnnualBalanceStart);
-  budgetSheet.getRange(20, 8).setValue(careCreditAnnualBalanceStart);
-  budgetSheet.getRange(22, 8).setValue(studentLoanAnnualBalanceStart);
-  budgetSheet.getRange(24, 8).setValue(vehicleLoanAnnualBalanceStart);
+  budgetSheet.getRange("H16").setValue(startBalances.it);
+  budgetSheet.getRange("H18").setValue(startBalances.ppCredit);
+  budgetSheet.getRange("H20").setValue(startBalances.careCredit);
+  budgetSheet.getRange("H22").setValue(startBalances.studentLoan);
+  budgetSheet.getRange("H24").setValue(startBalances.vehicleLoan);
 
-  let dcAnnualEndRangeGrowth = 0;
-  let wfAnnualEndRangeGrowth = 0;
-  let ppAnnualEndRangeGrowth = 0;
-  let mainSavingsAnnualEndRangeGrowth = 0;
-  let kifaruSavingsAnnualEndRangeGrowth = 0;
+  let balanceGrowths = {
+    dc: 0,
+    wf: 0,
+    pp: 0,
+    mainSavings: 0,
+    kifaruSavings: 0,
+    it: 0,
+    ppCredit: 0,
+    careCredit: 0,
+    studentLoan: 0,
+    vehicleLoan: 0
+  };
 
-  let itAnnualEndRangeGrowth = 0;
-  let ppCreditAnnualEndRangeGrowth = 0;
-  let careCreditAnnualEndRangeGrowth = 0;
-  let studentLoanAnnualEndRangeGrowth = 0;
-  let vehicleLoanAnnualEndRangeGrowth = 0;
   let totalExtraExpenses = 0;
   let monthCnt = 0;
   fetchRangeMonths(startMonth, endMonth).forEach(m => {
@@ -502,17 +495,17 @@ function fetchNetGrowthVals() {
 
     let monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
     // net expenses...so inverse for assest accounts
-    dcAnnualEndRangeGrowth -= monthlyExpenses.dc;
-    wfAnnualEndRangeGrowth -= monthlyExpenses.wf;
-    ppAnnualEndRangeGrowth -= monthlyExpenses.pp;
-    mainSavingsAnnualEndRangeGrowth -= monthlyExpenses.mainSavings;
-    kifaruSavingsAnnualEndRangeGrowth -= monthlyExpenses.kifaruSavings;
+    balanceGrowths.dc -= monthlyExpenses.dc;
+    balanceGrowths.wf -= monthlyExpenses.wf;
+    balanceGrowths.pp = monthlyExpenses.pp;
+    balanceGrowths.mainSavings -= monthlyExpenses.mainSavings;
+    balanceGrowths.kifaruSavings -= monthlyExpenses.kifaruSavings;
 
-    itAnnualEndRangeGrowth += monthlyExpenses.it;
-    ppCreditAnnualEndRangeGrowth += monthlyExpenses.ppCredit;
-    careCreditAnnualEndRangeGrowth += monthlyExpenses.careCredit;
-    studentLoanAnnualEndRangeGrowth += monthlyExpenses.studentLoan;
-    vehicleLoanAnnualEndRangeGrowth += monthlyExpenses.vehicleLoan;
+    balanceGrowths.it += monthlyExpenses.it;
+    balanceGrowths.ppCredit += monthlyExpenses.ppCredit;
+    balanceGrowths.careCredit += monthlyExpenses.careCredit;
+    balanceGrowths.studentLoan += monthlyExpenses.studentLoan;
+    balanceGrowths.vehicleLoan += monthlyExpenses.vehicleLoan;
 
     totalExtraExpenses += monthlyExpenses.extraExpenses;
     monthCnt++;
@@ -520,19 +513,19 @@ function fetchNetGrowthVals() {
 
   let avgMonthlyExpenses = totalExtraExpenses / monthCnt;
 
-  budgetSheet.getRange(4, 9).setValue(dcAnnualEndRangeGrowth);
-  budgetSheet.getRange(6, 9).setValue(wfAnnualEndRangeGrowth);
-  budgetSheet.getRange(8, 9).setValue(ppAnnualEndRangeGrowth);
-  budgetSheet.getRange(10, 9).setValue(mainSavingsAnnualEndRangeGrowth);
-  budgetSheet.getRange(12, 9).setValue(kifaruSavingsAnnualEndRangeGrowth);
+  budgetSheet.getRange("I4").setValue(balanceGrowths.dc);
+  budgetSheet.getRange("I6").setValue(balanceGrowths.wf);
+  budgetSheet.getRange("I8").setValue(balanceGrowths.pp);
+  budgetSheet.getRange("I10").setValue(balanceGrowths.mainSavings);
+  budgetSheet.getRange("I12").setValue(balanceGrowths.kifaruSavings);
 
-  budgetSheet.getRange(16, 9).setValue(itAnnualEndRangeGrowth);
-  budgetSheet.getRange(18, 9).setValue(ppCreditAnnualEndRangeGrowth);
-  budgetSheet.getRange(20, 9).setValue(careCreditAnnualEndRangeGrowth);
-  budgetSheet.getRange(22, 9).setValue(studentLoanAnnualEndRangeGrowth);
-  budgetSheet.getRange(24, 9).setValue(vehicleLoanAnnualEndRangeGrowth);
+  budgetSheet.getRange("I16").setValue(balanceGrowths.it);
+  budgetSheet.getRange("I18").setValue(balanceGrowths.ppCredit);
+  budgetSheet.getRange("I20").setValue(balanceGrowths.careCredit);
+  budgetSheet.getRange("I22").setValue(balanceGrowths.studentLoan);
+  budgetSheet.getRange("I24").setValue(balanceGrowths.vehicleLoan);
 
-  budgetSheet.getRange(32, 8).setValue(avgMonthlyExpenses);
+  budgetSheet.getRange("H32").setValue(avgMonthlyExpenses);
 }
 
 function fetchMonthlyAccountExpenses(sheet) {
