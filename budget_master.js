@@ -119,14 +119,17 @@ function fetchCategoryPercentages(sheet) {
 }
 
 function refreshMonthlyBreakdown(sheet) {
-  //let sheet =  SpreadsheetApp.getActive().getSheetByName("January");
-  let transData = sheet.getRange("C3:D").getValues();
+  //let sheet =  SpreadsheetApp.getActive().getSheetByName("February");
+  let transData = sheet.getRange("B3:D").getValues();
   let breakdownData = {};
 
   transData.forEach(t => {
-    let amnt = t[0];
-    let cat = t[1]
-    if (! amnt || cat.match(/^Salary.*|Account Adjustment|^Interest.*|Refund/)) {
+    let transactionType = t[0];
+    let amnt = t[1];
+    let cat = t[2];
+
+    if (! amnt || transactionType.match(/[cC]redit/) || cat.match(/^Salary.*|Account Adjustment|^Interest.*$|^Refund.*$|^Security Deposit.*$/)) {
+       console.log(cat)
       return;
     }
     try {
@@ -188,7 +191,6 @@ function sortObj(obj) {
 }
 
 function refreshMonthlyGraph() {
-
   let selectedMonth = budgetSheet.getRange(2, 2).getValue();
   let sheet = SpreadsheetApp.getActive().getSheetByName(selectedMonth);
   let monthlyChartId = dataSheet.getRange(1,7).getValue();
@@ -240,15 +242,17 @@ function refreshMonthlyGraph() {
 function refreshAnnualGraphs() {
   let startMonth = budgetSheet.getRange(2, 7).getValue();
   let endMonth = budgetSheet.getRange(2, 9).getValue();
-  let monthlyNetAssetIncomes = [];
-  let annualNetAssetSnapshotIncomes =[];
-  let annualNetDebtGrowthSnapshots =[];
+  let acctGrowthData = {
+    monthlyNetAssetIncomes: [],
+    annualNetAssetSnapshotIncomes: [],
+    annualNetDebtGrowthSnapshots: [],
+    monthlyNetDebtIncomes: [],
+    totalNetGrowths: [],
+  };
+  let pieData = {};
   let annualAssetNet = 0;
   let annualDebtGrowth = 0;
-  let monthlyNetDebtIncomes = [];
-  let totalNetGrowths = [];
   let totalMonthlyNetGrowth = 0;
-  let pieData = {};
 
   fetchRangeMonths(startMonth, endMonth).forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
@@ -271,35 +275,28 @@ function refreshAnnualGraphs() {
 
     let monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
     // net expenses...inverse for asset accounts
-    dcMonthlyNetGrowth = -monthlyExpenses.dc;
-    wfMonthlyNetGrowth = -monthlyExpenses.wf;
-    ppMonthlyNetGrowth = -monthlyExpenses.pp;
-    mainSavingsMonthlyNetGrowth = -monthlyExpenses.mainSavings;
-    kifaruSavingsMonthlyNetGrowth = -monthlyExpenses.kifaruSavings;
+    let monthlyAssetGrowth =
+      - monthlyExpenses.dc
+      - monthlyExpenses.wf
+      - monthlyExpenses.pp
+      - monthlyExpenses.mainSavings
+      - monthlyExpenses.kifaruSavings;
 
-    itMonthlyNetGrowth = monthlyExpenses.it;
-    ppCreditMonthlyNetGrowth = monthlyExpenses.ppCredit;
-    careCreditMonthlyNetGrowth = monthlyExpenses.careCredit;
-    studentLoanMonthlyNetGrowth = monthlyExpenses.studentLoan;
-    vehicleLoanMonthlyNetGrowth = monthlyExpenses.vehicleLoan;
+    let monthlyDebtGrowth =
+      monthlyExpenses.it
+      + monthlyExpenses.ppCredit
+      + monthlyExpenses.careCredit
+      + monthlyExpenses.studentLoan
+      + monthlyExpenses.vehicleLoan;
 
-    let monthlyExpendable = dcMonthlyNetGrowth + wfMonthlyNetGrowth + ppMonthlyNetGrowth;
-    let monthlyAssetNet = monthlyExpendable + mainSavingsMonthlyNetGrowth + kifaruSavingsMonthlyNetGrowth;
-    let monthlyDebtNet =
-      itMonthlyNetGrowth
-      + ppCreditMonthlyNetGrowth
-      + careCreditMonthlyNetGrowth
-      + studentLoanMonthlyNetGrowth
-      + vehicleLoanMonthlyNetGrowth;
-
-    annualAssetNet += monthlyAssetNet;
-    annualDebtGrowth += monthlyDebtNet;
-    monthlyNetAssetIncomes.push(monthlyAssetNet);
-    monthlyNetDebtIncomes.push(annualDebtGrowth);
-    annualNetAssetSnapshotIncomes.push(annualAssetNet);
-    annualNetDebtGrowthSnapshots.push(monthlyDebtNet);
-    totalMonthlyNetGrowth += monthlyAssetNet - monthlyDebtNet;
-    totalNetGrowths.push(totalMonthlyNetGrowth);
+    annualAssetNet += monthlyAssetGrowth;
+    annualDebtGrowth += monthlyDebtGrowth;
+    acctGrowthData.monthlyNetAssetIncomes.push(monthlyAssetGrowth);
+    acctGrowthData.monthlyNetDebtIncomes.push(monthlyDebtGrowth);
+    acctGrowthData.annualNetAssetSnapshotIncomes.push(annualAssetNet);
+    acctGrowthData.annualNetDebtGrowthSnapshots.push(annualDebtGrowth);
+    totalMonthlyNetGrowth += monthlyAssetGrowth - monthlyDebtGrowth;
+    acctGrowthData.totalNetGrowths.push(totalMonthlyNetGrowth);
   });
 
   refreshPieGraph(pieData, startMonth, endMonth);
@@ -310,15 +307,15 @@ function refreshAnnualGraphs() {
     let monthCell = dataSheet.getRange(row + 2, 8);
     monthCell.setValue(m);
     let monthlyNetAssetIncomesCol = dataSheet.getRange(row + 2, 9);
-    monthlyNetAssetIncomesCol.setValue(monthlyNetAssetIncomes[row]);
+    monthlyNetAssetIncomesCol.setValue(acctGrowthData.monthlyNetAssetIncomes[row]);
     let annualNetAssetSnapShotIncomesCol = dataSheet.getRange(row + 2, 10);
-    annualNetAssetSnapShotIncomesCol.setValue(annualNetAssetSnapshotIncomes[row]);
+    annualNetAssetSnapShotIncomesCol.setValue(acctGrowthData.annualNetAssetSnapshotIncomes[row]);
     let annualNetDebtSnapShotCol = dataSheet.getRange(row + 2, 11);
-    annualNetDebtSnapShotCol.setValue(annualNetDebtGrowthSnapshots[row]);
+    annualNetDebtSnapShotCol.setValue(acctGrowthData.annualNetDebtGrowthSnapshots[row]);
     let monthlyNetDebtIncomesCol = dataSheet.getRange(row + 2, 12);
-    monthlyNetDebtIncomesCol.setValue(monthlyNetDebtIncomes[row]);
+    monthlyNetDebtIncomesCol.setValue(acctGrowthData.monthlyNetDebtIncomes[row]);
     let totalNetGrowthCol = dataSheet.getRange(row + 2, 13);
-    totalNetGrowthCol.setValue(totalNetGrowths[row]);
+    totalNetGrowthCol.setValue(acctGrowthData.totalNetGrowths[row]);
     row++;
   });
 
@@ -343,7 +340,7 @@ function refreshAnnualGraphs() {
       .setChartType(Charts.ChartType.LINE)
       .addRange(dataSheet.getRange("H1:M"))
       .setPosition(1, 11, 0, 0)
-      .setOption('colors', [ 'blue', 'green', 'red', 'yellow' ])
+      .setOption('colors', [ 'blue', 'green', 'red', 'yellow', 'pink' ])
       .setOption("title", "2023 Net Growths")
       .setNumHeaders(1)
       .setOption("height", 554)
