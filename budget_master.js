@@ -1,5 +1,6 @@
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const groceryColors = { background: "black", font: "white" };
+const housingColors = { background: "#e41111", font: "white" };
 const catColors = {
     AdEnt: { background: "#ead1dc", font: "#c27ba0" },
     Booze: { background: "#85551b", font: "white" },
@@ -24,7 +25,8 @@ const catColors = {
     "Groceries:Nut Butter": groceryColors,
     Puzzles: { background: "#ff9900", font: "#cccccc" },
     "Groceries:Salt/Pepper": groceryColors,
-    Rent: { background: "#e41111", font: "white" },
+    Rent: housingColors,
+    'Security Deposit: Outgoing': housingColors,
     Restaurant: { background: "#a2c4c9", font: "#666666" },
     Tools: { background: "#999999", font: "#000000" },
     "Vitamins & Minerals": { background: "#a4c2f4", font: "#000000" },
@@ -32,6 +34,8 @@ const catColors = {
 
 var budgetSheet =  SpreadsheetApp.getActive().getSheetByName("Budget");
 var dataSheet =  SpreadsheetApp.getActive().getSheetByName("calc_data");
+var startMonth = budgetSheet.getRange(2, 7).getValue();
+var endMonth = budgetSheet.getRange(2, 9).getValue();
 
 function onEdit(e) {
   budgetSheet.getRange("F35").setValue("Calculating...");
@@ -41,8 +45,7 @@ function onEdit(e) {
     if (e.range.getA1Notation() === 'B2') {
       refreshMonthlyGraph();
     } else if (e.range.getA1Notation() === 'F1') {
-      refreshAnnualGraphs();
-      fetchNetGrowthVals();
+      refreshAnnualData();
       budgetSheet.getRange("F1").setValue('Done!');
       budgetSheet.getRange("F2").clearContent();
     } else if (e.range.getA1Notation() === 'G2' || e.range.getA1Notation() === "I2") {
@@ -55,8 +58,7 @@ function onEdit(e) {
       } else {
         refreshMonthlyBreakdown(activeSheet);
         refreshMonthlyGraph();
-        fetchNetGrowthVals();
-        refreshAnnualGraphs();
+        refreshAnnualData();
       }
     }
   }
@@ -102,18 +104,18 @@ function fetchCategoryPercentages(sheet) {
     return;
   }
 
-  for (let i in tempCategories) {
-    let catSum = tempCategories[i].sum;
+  for (let cat in tempCategories) {
+    let catSum = tempCategories[cat].sum;
 
     if (! catSum) {
       continue;
     }
 
-    if (tempCategories[i]['taxable']) {
+    if (tempCategories[cat]['taxable']) {
       catSum *= ( 1 + taxRate);
     }
 
-    ret[i] = ((catSum / (jsonData.subTotal + jsonData.tax)) * 100).toFixed(2);
+    ret[cat] = ((catSum / (jsonData.subTotal + jsonData.tax)) * 100).toFixed(2);
   }
   sheet.getRange('J26').setValue(JSON.stringify(ret));
 }
@@ -128,8 +130,7 @@ function refreshMonthlyBreakdown(sheet) {
     let amnt = t[1];
     let cat = t[2];
 
-    if (! amnt || transactionType.match(/[cC]redit/) || cat.match(/^Salary.*|Account Adjustment|^Interest.*$|^Refund.*$|^Security Deposit.*$/)) {
-       console.log(cat)
+    if (! amnt || transactionType.match(/[cC]redit/) || cat.match(/^Salary.*|Account Adjustment|^Interest.*$|^Refund.*$/)) {
       return;
     }
     try {
@@ -239,22 +240,35 @@ function refreshMonthlyGraph() {
   }
 }
 
-function refreshAnnualGraphs() {
-  let startMonth = budgetSheet.getRange(2, 7).getValue();
-  let endMonth = budgetSheet.getRange(2, 9).getValue();
+function refreshAnnualData() {
+
   let acctGrowthData = {
-    monthlyNetAssetIncomes: [],
-    annualNetAssetSnapshotIncomes: [],
-    annualNetDebtGrowthSnapshots: [],
-    monthlyNetDebtIncomes: [],
+    monthlyAssetGrowth: [],
+    totalAssetGrowth: [],
+    monthlyDebtGrowth: [],
+    totalDebtGrowth: [],
     totalNetGrowths: [],
   };
   let pieData = {};
-  let annualAssetNet = 0;
+  let annualAssetGrowth = 0;
   let annualDebtGrowth = 0;
   let totalMonthlyNetGrowth = 0;
 
-  fetchRangeMonths(startMonth, endMonth).forEach(m => {
+  let balanceGrowths = {
+    dc: 0,
+    wf: 0,
+    pp: 0,
+    mainSavings: 0,
+    kifaruSavings: 0,
+    it: 0,
+    ppCredit: 0,
+    careCredit: 0,
+    studentLoan: 0,
+    vehicleLoan: 0
+  };
+  let totalExtraExpenses = 0;
+  let monthCnt = 0;
+  fetchRangeMonths().forEach(m => {
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     if (sheet === null) {
       return;
@@ -262,7 +276,7 @@ function refreshAnnualGraphs() {
 
     let breakdownData = sheet.getRange("P2:Q").getValues();
     breakdownData.forEach(v => {
-      if (! v[1] || v[0].match(/^Utility.*$|^Recurring.*$|^Rent$|Interest/)) {
+      if (! v[1] || v[0].match(/^Utility.*$|^Recurring.*$|^Rent$|^Interest.*$|^Security Deposit.*$/)) {
         return;
       }
       if (v[0] in pieData) {
@@ -289,33 +303,54 @@ function refreshAnnualGraphs() {
       + monthlyExpenses.studentLoan
       + monthlyExpenses.vehicleLoan;
 
-    annualAssetNet += monthlyAssetGrowth;
+    annualAssetGrowth += monthlyAssetGrowth;
     annualDebtGrowth += monthlyDebtGrowth;
-    acctGrowthData.monthlyNetAssetIncomes.push(monthlyAssetGrowth);
-    acctGrowthData.monthlyNetDebtIncomes.push(monthlyDebtGrowth);
-    acctGrowthData.annualNetAssetSnapshotIncomes.push(annualAssetNet);
-    acctGrowthData.annualNetDebtGrowthSnapshots.push(annualDebtGrowth);
+    acctGrowthData.monthlyAssetGrowth.push(monthlyAssetGrowth);
+    acctGrowthData.monthlyDebtGrowth.push(monthlyDebtGrowth);
+    acctGrowthData.totalAssetGrowth.push(annualAssetGrowth);
+    acctGrowthData.totalDebtGrowth.push(annualDebtGrowth);
     totalMonthlyNetGrowth += monthlyAssetGrowth - monthlyDebtGrowth;
     acctGrowthData.totalNetGrowths.push(totalMonthlyNetGrowth);
+
+    balanceGrowths.dc -= monthlyExpenses.dc;
+    balanceGrowths.wf -= monthlyExpenses.wf;
+    balanceGrowths.pp = monthlyExpenses.pp;
+    balanceGrowths.mainSavings -= monthlyExpenses.mainSavings;
+    balanceGrowths.kifaruSavings -= monthlyExpenses.kifaruSavings;
+
+    balanceGrowths.it += monthlyExpenses.it;
+    balanceGrowths.ppCredit += monthlyExpenses.ppCredit;
+    balanceGrowths.careCredit += monthlyExpenses.careCredit;
+    balanceGrowths.studentLoan += monthlyExpenses.studentLoan;
+    balanceGrowths.vehicleLoan += monthlyExpenses.vehicleLoan;
+
+    totalExtraExpenses += monthlyExpenses.extraExpenses;
+    monthCnt++;
   });
 
-  refreshPieGraph(pieData, startMonth, endMonth);
+  setNetGrowthVals(balanceGrowths, totalExtraExpenses / monthCnt);
+
+  refreshPieGraph(pieData);
 
   dataSheet.getRange("H2:M").clearContent();
   let row = 0;
-  fetchRangeMonths(startMonth, endMonth).forEach(m => {
+  fetchRangeMonths().forEach(m => {
     let monthCell = dataSheet.getRange(row + 2, 8);
     monthCell.setValue(m);
-    let monthlyNetAssetIncomesCol = dataSheet.getRange(row + 2, 9);
-    monthlyNetAssetIncomesCol.setValue(acctGrowthData.monthlyNetAssetIncomes[row]);
-    let annualNetAssetSnapShotIncomesCol = dataSheet.getRange(row + 2, 10);
-    annualNetAssetSnapShotIncomesCol.setValue(acctGrowthData.annualNetAssetSnapshotIncomes[row]);
-    let annualNetDebtSnapShotCol = dataSheet.getRange(row + 2, 11);
-    annualNetDebtSnapShotCol.setValue(acctGrowthData.annualNetDebtGrowthSnapshots[row]);
-    let monthlyNetDebtIncomesCol = dataSheet.getRange(row + 2, 12);
-    monthlyNetDebtIncomesCol.setValue(acctGrowthData.monthlyNetDebtIncomes[row]);
-    let totalNetGrowthCol = dataSheet.getRange(row + 2, 13);
-    totalNetGrowthCol.setValue(acctGrowthData.totalNetGrowths[row]);
+    // monthly asset growth
+    dataSheet.getRange(row + 2, 9).setValue(acctGrowthData.monthlyAssetGrowth[row]);
+
+    // total asset growth
+    dataSheet.getRange(row + 2, 10).setValue(acctGrowthData.totalAssetGrowth[row]);
+
+    // monthly debt growth
+    dataSheet.getRange(row + 2, 11).setValue(acctGrowthData.monthlyDebtGrowth[row]);
+
+    // total debt growth
+    dataSheet.getRange(row + 2, 12).setValue(acctGrowthData.totalDebtGrowth[row]);
+
+    // total economic growth
+    dataSheet.getRange(row + 2, 13).setValue(acctGrowthData.totalNetGrowths[row]);
     row++;
   });
 
@@ -356,9 +391,8 @@ function refreshAnnualGraphs() {
   }
 }
 
-function refreshPieGraph(pieData, startMonth, endMonth) {
+function refreshPieGraph(pieData) {
   let pieChartId = dataSheet.getRange(2,6).getValue();
-  let updatedChart = false;
 
   dataSheet.getRange("B1:C").clearContent();
 
@@ -388,7 +422,6 @@ function refreshPieGraph(pieData, startMonth, endMonth) {
     }
   }
 
-
   let chart = budgetSheet.newChart()
     .setChartType(Charts.ChartType.PIE)
     .addRange(dataSheet.getRange("B1:C"))
@@ -404,7 +437,7 @@ function refreshPieGraph(pieData, startMonth, endMonth) {
   pieChartIdCell.setValue(chart.getChartId());
 }
 
-function fetchPreRangeMonths(startMonth) {
+function fetchPreRangeMonths() {
   if (startMonth === 'January') {
     return [];
   }
@@ -419,7 +452,7 @@ function fetchPreRangeMonths(startMonth) {
   return rangeMonths;
 }
 
-function fetchRangeMonths(startMonth, endMonth) {
+function fetchRangeMonths() {
   let rangeMonths = [];
   let include = false;
   for (let i = 0; i < months.length; i++) {
@@ -436,12 +469,10 @@ function fetchRangeMonths(startMonth, endMonth) {
   return rangeMonths;
 }
 
-function fetchNetGrowthVals() {
-  let startMonth = budgetSheet.getRange(2, 7).getValue();
-  let endMonth = budgetSheet.getRange(2, 9).getValue();
+function setNetGrowthVals(balanceGrowths, avgMonthlyExpenses) {
   let startBalances = fetchJanFirstBalances();
 
-  fetchPreRangeMonths(startMonth).forEach(m => {
+  fetchPreRangeMonths().forEach(m => {
     let monthlyExpenses = {};
     let sheet = SpreadsheetApp.getActive().getSheetByName(m);
     monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
@@ -471,44 +502,6 @@ function fetchNetGrowthVals() {
   budgetSheet.getRange("H20").setValue(startBalances.careCredit);
   budgetSheet.getRange("H22").setValue(startBalances.studentLoan);
   budgetSheet.getRange("H24").setValue(startBalances.vehicleLoan);
-
-  let balanceGrowths = {
-    dc: 0,
-    wf: 0,
-    pp: 0,
-    mainSavings: 0,
-    kifaruSavings: 0,
-    it: 0,
-    ppCredit: 0,
-    careCredit: 0,
-    studentLoan: 0,
-    vehicleLoan: 0
-  };
-
-  let totalExtraExpenses = 0;
-  let monthCnt = 0;
-  fetchRangeMonths(startMonth, endMonth).forEach(m => {
-    let sheet = SpreadsheetApp.getActive().getSheetByName(m);
-
-    let monthlyExpenses = fetchMonthlyAccountExpenses(sheet);
-    // net expenses...so inverse for assest accounts
-    balanceGrowths.dc -= monthlyExpenses.dc;
-    balanceGrowths.wf -= monthlyExpenses.wf;
-    balanceGrowths.pp = monthlyExpenses.pp;
-    balanceGrowths.mainSavings -= monthlyExpenses.mainSavings;
-    balanceGrowths.kifaruSavings -= monthlyExpenses.kifaruSavings;
-
-    balanceGrowths.it += monthlyExpenses.it;
-    balanceGrowths.ppCredit += monthlyExpenses.ppCredit;
-    balanceGrowths.careCredit += monthlyExpenses.careCredit;
-    balanceGrowths.studentLoan += monthlyExpenses.studentLoan;
-    balanceGrowths.vehicleLoan += monthlyExpenses.vehicleLoan;
-
-    totalExtraExpenses += monthlyExpenses.extraExpenses;
-    monthCnt++;
-  });
-
-  let avgMonthlyExpenses = totalExtraExpenses / monthCnt;
 
   budgetSheet.getRange("I4").setValue(balanceGrowths.dc);
   budgetSheet.getRange("I6").setValue(balanceGrowths.wf);
