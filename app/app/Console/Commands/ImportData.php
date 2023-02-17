@@ -31,26 +31,36 @@ class ImportData extends Command
     public function handle()
     {
         $fileName = $this->argument('fileName');
-        $user_id = $this->argument('UserId');
+        $user_id = $this->argument('userId');
         if (($handle = fopen('./storage/imports/' . $fileName, "r")) !== FALSE) {
 
-            //Transactions::truncate();
             $year = substr($fileName, 0, 4);
             $month = substr($fileName, 5, 2);
 
             $date = \Carbon\Carbon::parse($year."-".$month."-01");
             $start = $date->startOfMonth()->format('Y-m-d H:i:s');
             $end = $date->endOfMonth()->format('Y-m-d H:i:s');
-            Transactions::where('user_id', 1)
-                ->whereBetween('created_at', [$start, $end])
-                ->count();
-
+            Transaction::where(function($query) {
+                $query->select('user_id')
+                    ->from('accounts')
+                    ->whereColumn('accounts.id', 'transactions.account_id');
+            }, $user_id)
+                ->whereBetween('transaction_date', [$start, $end])
+                ->delete();
 
             while (($data = fgetcsv($handle, 10000, ",")) !== FALSE) {
+                if (! $data[0] || ! $data[1] || ! $data[2] || ! $data[3]) {
+                    continue;
+                }
                 $transaction_date = $year . '-' . $month . '-' .  sprintf('%02d', $data[0]);
-                $amount = preg_replace('/[,\.]/', '', $data[2]);
+                $amount = intval(preg_replace('/[,\.]/', '', $data[2]));
+                if (! $amount) {
+                    continue;
+                }
 
-                $acct = Account::where('name', '=', $data[3])->first();
+                $acct = Account::where('name', '=', $data[3])
+                    ->where('user_id', '=', $user_id)
+                    ->first();
                 $credit = preg_match('/credit/i', $data[1]) ? true : false;
                 $note = $data[5];
                 $bank_ident = $data[4];
@@ -61,7 +71,7 @@ class ImportData extends Command
                 $trans->account_id = $acct->id;
                 $trans->credit = $credit;
                 $trans->note = $note;
-                $trans->bank_identifier = $bank_identifier;
+                $trans->bank_identifier = $bank_ident;
                 $trans->save();
 
                 /*
