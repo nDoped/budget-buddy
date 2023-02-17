@@ -5,7 +5,7 @@ import Accounts from '@/Components/Accounts.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 
 const props = defineProps({
-  data: Array
+  data: Object
 });
 </script>
 

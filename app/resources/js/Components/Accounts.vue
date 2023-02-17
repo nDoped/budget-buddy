@@ -4,8 +4,8 @@ import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { useForm } from '@inertiajs/vue3'
 const props = defineProps({
-    accounts: Array,
-    account_types: Array
+    accounts: Object,
+    account_types: Object
 });
 function submit() {
   form.post(route('accounts.store'), {

@@ -61,12 +61,12 @@ const showAll = () => {
 }
 
 const fields = ref([
-  { key: 'id', label: 'ID', sortable: true },
+  //{ key: 'id', label: 'ID', sortable: true },
   { key: 'transaction_date', label: 'Transaction Date', sortable: true },
   { key: 'asset_text', label: 'Credit/Debit', sortable: true },
   { key: 'amount', label: 'Amount', sortable:true },
   { key: 'account', label: 'Account', sortable:true },
-  { key: 'account_type', label: 'Account Type', sortable:true },
+  //{ key: 'account_type', label: 'Account Type', sortable:true },
   { key: 'ident', label: 'Bank Identifier' },
   { key: 'note', label: 'Note' },
 ]);
