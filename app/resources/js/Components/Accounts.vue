@@ -1,5 +1,4 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -25,10 +24,6 @@ const form = useForm({
 
 <template>
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
-    <div>
-        <ApplicationLogo class="block h-12 w-auto" />
-    </div>
-
     <div class="flex flex-col">
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
@@ -43,6 +38,7 @@ const form = useForm({
                   <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Inital Balance</th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr v-for="account in accounts" :key="account.id" class="bg-gray-100 border-b">
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -61,101 +57,96 @@ const form = useForm({
                     {{ account.initial_balance }}
                   </td>
                 </tr>
-
               </tbody>
-
             </table>
           </div>
         </div>
       </div>
     </div>
 
-    <div >
-      <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <form @submit.prevent="submit">
-              <div class="flex flex-row p-6 bg-white border-b border-gray-200">
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="name" value="Account Name" />
-                    <TextInput
-                        id="name"
-                        v-model="form.name"
-                        type="text"
-                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        required
-                    />
-                    <InputError :message="form.errors.name" class="mt-2" />
-                  </div>
-                </div>
-
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="init_bal" value="Initial Balance" />
-                    <TextInput
-                        id="init_bal"
-                        v-model="form.initial_balance"
-                        type="text"
-                        class="mt-1 block w-full"
-                        required
-                        autofocus
-                        autocomplete="initial_balance"
-                    />
-                    <InputError :message="form.errors.initial_balance" class="mt-2" />
-                  </div>
-                </div>
-
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="type" value="Account Type" />
-                    <select
-                      id="type"
-                      v-model="form.type"
+    <div class="py-12">
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+          <form @submit.prevent="submit">
+            <div class="flex flex-row p-6 bg-white border-b border-gray-200">
+              <div class="m-5">
+                <div class="mb-6">
+                  <InputLabel for="name" value="Account Name" />
+                  <TextInput
+                      id="name"
+                      v-model="form.name"
+                      type="text"
                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
-                    >
-                      <option selected value="">Select Type...</option>
-                      <option v-for="type in account_types" :value="type.id">
-                        {{ type.name }}
-                      </option>
-                    </select>
-                    <InputError :message="form.errors.type" class="mt-2" />
-                  </div>
-                </div>
-
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="interest" value="Interest Rate" />
-                    <TextInput
-                        id="interest"
-                        v-model="form.interest_rate"
-                        type="text"
-                        class="mt-1 block w-full"
-                        required
-                        autofocus
-                        autocomplete="interest_rate"
-                    />
-                    <InputError :message="form.errors.interest_rate" class="mt-2" />
-                  </div>
+                      required
+                  />
+                  <InputError :message="form.errors.name" class="mt-2" />
                 </div>
               </div>
 
+              <div class="m-5">
+                <div class="mb-6">
+                  <InputLabel for="init_bal" value="Initial Balance" />
+                  <TextInput
+                      id="init_bal"
+                      v-model="form.initial_balance"
+                      type="text"
+                      class="mt-1 block w-full"
+                      required
+                      autofocus
+                      autocomplete="initial_balance"
+                  />
+                  <InputError :message="form.errors.initial_balance" class="mt-2" />
+                </div>
+              </div>
+
+              <div class="m-5">
+                <div class="mb-6">
+                  <InputLabel for="type" value="Account Type" />
+                  <select
+                    id="type"
+                    v-model="form.type"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+
+                  >
+                    <option selected value="">Select Type...</option>
+                    <option v-for="type in account_types" :value="type.id">
+                      {{ type.name }}
+                    </option>
+                  </select>
+                  <InputError :message="form.errors.type" class="mt-2" />
+                </div>
+              </div>
+
+              <div class="m-5">
+                <div class="mb-6">
+                  <InputLabel for="interest" value="Interest Rate" />
+                  <TextInput
+                      id="interest"
+                      v-model="form.interest_rate"
+                      type="text"
+                      class="mt-1 block w-full"
+                      required
+                      autofocus
+                      autocomplete="interest_rate"
+                  />
+                  <InputError :message="form.errors.interest_rate" class="mt-2" />
+                </div>
+              </div>
+            </div>
+
+            <div class="m-5">
               <button
                 type="submit"
-                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
                 :disabled="form.processing"
                 :class="{ 'opacity-25': form.processing }"
               >
-                Submit
+                Add Account
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-
-
-
   </div>
 </template>

@@ -1,29 +1,80 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import { computed, reactive, watch, ref, onMounted } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import { sort } from 'fast-sort'
+import { useForm } from '@inertiajs/vue3'
+import TransactionsForm from '@/Components/TransactionsForm.vue';
+import InputDate from '@/Components/InputDate.vue';
+import DateFilter from '@/Components/DateFilter.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3'
-import { computed, reactive, watch, ref } from 'vue';
-import { sort } from 'fast-sort'
+import Checkbox from '@/Components/Checkbox.vue';
 const sortBy = ref(null);
 const sortDesc = ref(null);
+const transBeingDeleted = ref(null);
 
-const props = defineProps({
+const confirmTransactionDeletion = (trans) => {
+    transBeingDeleted.value = trans;
+};
+
+let props = defineProps({
   transactions: Array,
-  accounts: Array
+  accounts: Array,
+  start: String,
+  end: String,
 });
+const startDateEl = ref();
+const endDateEl = ref();
+const transStart = ref(props.start);
+const transEnd = ref(props.end);
+
+const deleteTransactionForm = useForm({});
+const deleteTransaction = () => {
+    deleteTransactionForm.delete(route('transactions.destroy', { id: transBeingDeleted.value, transStart: transStart.value, transEnd: transEnd.value }), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => (transBeingDeleted.value = null),
+    });
+}
+
+const filterTransactionsForm = useForm({});
+const filterEventHandler = (data) => {
+    filterTransactionsForm.get(route('transactions', data.value), {
+        preserveScroll: true,
+        preserveState: true,
+    });
+}
+const showAll = () => {
+    filterTransactionsForm.get(route('transactions', { show_all: true }), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+          transStart.value = null;
+          transEnd.value = null;
+        }
+    });
+}
 
 const fields = ref([
   { key: 'id', label: 'ID', sortable: true },
   { key: 'transaction_date', label: 'Transaction Date', sortable: true },
-  { key: 'credit', label: 'Credit/Debit', sortable: true },
+  { key: 'asset_text', label: 'Credit/Debit', sortable: true },
   { key: 'amount', label: 'Amount', sortable:true },
   { key: 'account', label: 'Account', sortable:true },
   { key: 'account_type', label: 'Account Type', sortable:true },
   { key: 'ident', label: 'Bank Identifier' },
   { key: 'note', label: 'Note' },
 ]);
+
+onMounted(() => {
+  transStart.value = props.start;
+  transEnd.value = props.end;
+});
 
 const sortedItems = computed(() => {
   const { transactions } = props;
@@ -38,15 +89,13 @@ const sortedItems = computed(() => {
 
 const setSort = (key) => {
   if (sortBy.value === key) {
-    if (sortDesc.value === true) sortDesc.value = null;
-    else if (sortDesc.value === false) sortDesc.value = true;
-    else sortDesc.value = false;
+    sortDesc.value = ! sortDesc.value;
   } else {
     sortBy.value = key;
     sortDesc.value = false;
   }
 };
-const perPage = ref(10);
+const perPage = ref(20);
 const pagination = reactive({
   currentPage: 1,
   perPage: perPage,
@@ -68,137 +117,49 @@ watch(
   () => (pagination.currentPage = 1)
 );
 
-
-function submit() {
-  form.post(route('transactions.store'), {
-    preserveScroll: true,
-    onSuccess: () => form.reset(),
-  });
-}
-
-const form = useForm({
-  transaction_date: null,
-  amount: null,
-  credit: null,
-  account: null,
-  note: null,
-  path: null,
-  bank_identifier: null
-});
 </script>
 
 <template>
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
-    <div>
-        <ApplicationLogo class="block h-12 w-auto" />
-    </div>
+    <TransactionsForm :accounts="accounts" :startDate="transStart" :endDate="transEnd"/>
 
-    <div >
-      <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div class="bg-slate-500 overflow-hidden shadow-sm sm:rounded-lg">
-            <form @submit.prevent="submit">
-              <div class="flex flex-row p-6 bg-slate-500 border-b border-gray-200">
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="date" value="Transaction Date" />
-                    <input
-                      id="date"
-                      type="date"
-                      v-model="form.transaction_date"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder=""
+    <div class="grid grid-cols-2 gap-4">
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 min-w-full sm:px-6 lg:px-8">
 
-                    />
-                    <InputError :message="form.errors.transaction_date" class="mt-2" />
-                  </div>
-                </div>
+          <DateFilter
+            :start="transStart"
+            :end="transEnd"
+            :processing="filterTransactionsForm.processing"
+            @filter="filterEventHandler"
+          >
+            Filter
+          </DateFilter>
 
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="amount" value="Amount" />
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      v-model="form.amount"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          <button
+            class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
+            :class="{ 'opacity-25': filterTransactionsForm.processing }"
+            :disabled="filterTransactionsForm.processing"
 
-                    />
-                    <InputError :message="form.errors.amount" class="mt-2" />
-                  </div>
-                </div>
-
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="credit" value="Credit/Debit" />
-                    <select
-                      id="credit"
-                      v-model="form.credit"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
-                    >
-                      <option value=true>Credit</option>
-                      <option value=false>Debit</option>
-                    </select>
-                    <InputError :message="form.errors.credit" class="mt-2" />
-                  </div>
-                </div>
-
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="account" value="Account" />
-                    <select
-                      id="account"
-                      v-model="form.account"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
-                    >
-                      <option selected value="">Select Account...</option>
-                      <option v-for="account in accounts" :value="account.id">
-                        {{ account.name }}
-                      </option>
-                    </select>
-                    <InputError :message="form.errors.account" class="mt-2" />
-                  </div>
-                </div>
-                <div class="m-5">
-                  <div class="mb-6">
-                    <InputLabel for="note" value="Note" />
-                    <TextInput
-                        id="note"
-                        v-model="form.note"
-                        type="text"
-                        class="mt-1 block w-full"
-                        autofocus
-                        autocomplete="note"
-                    />
-                    <InputError :message="form.errors.note" class="mt-2" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="m-5">
-                <button
-                  type="submit"
-                  class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
-                  :disabled="form.processing"
-                  :class="{ 'opacity-25': form.processing }"
-                >
-                  Add Transaction
-                </button>
-              </div>
-            </form>
-          </div>
+            @click="showAll"
+          >
+            Show All
+          </button>
         </div>
       </div>
-    </div>
 
-    <div class="flex flex-col">
-      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
-          <div class="overflow-hidden">
-            <div style="text-align: right">
+      <div v-if="transactions.length > 0" class="place-self-end overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 min-w-full sm:px-6 lg:px-8">
+          <div class="m-1 overflow-hidden" >
+            Results per page
+            <button class="mx-2" @click="perPage = 5">5</button>
+            <button class="mx-2" @click="perPage = 10">10</button>
+            <button class="mx-2" @click="perPage = 20">20</button>
+            <button class="mx-2" @click="perPage = 50">50</button>
+          </div>
+
+          <div class="m-1 overflow-hidden" style="text-align: right">
+            <div>
               <button
                 :disabled="pagination.currentPage <= 1"
                 @click="pagination.currentPage--"
@@ -213,14 +174,15 @@ const form = useForm({
                 &gt;&gt;
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <div style="text-align: right">
-              Results per page
-              <button class="mx-2" @click="perPage = 5">5</button>
-              <button class="mx-2" @click="perPage = 10">10</button>
-              <button class="mx-2" @click="perPage = 20">20</button>
-            </div>
-
+    <div v-if="transactions.length > 0" class="flex flex-col">
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="focus:ring-4 focus:outline-none font-medium rounded-lg tpy-2 inline-block min-w-full sm:px-6 lg:px-8">
+          <div class="overflow-hidden">
             <table class="min-w-full">
               <thead>
                 <tr>
@@ -232,25 +194,63 @@ const form = useForm({
                         <span v-else-if="sortDesc === false">↓</span>
                       </template>
                     </th>
+
                     <th v-else>
                       {{ label }}
                     </th>
                   </template>
+                  <th>Yeet button</th>
                 </tr>
               </thead>
+
               <tbody>
-                <tr v-for="item in paginatedItems" :key="item.uuid" :class="{ 'bg-gray-100':true, 'border-b': true, 'credit':item.credit === 'Credit', 'debit': item.credit === 'Debit'}">
+                <tr v-for="item in paginatedItems" :key="item.uuid" :class="{ 'bg-gray-100':true, 'border-b': true, 'credit':item.asset, 'debit': ! item.asset }">
                   <td v-for="{ key } in fields" :key="key" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <slot :name="`cell(${key})`" :value="item[key]" :item="item">
                       {{ item[key] }}
                     </slot>
                   </td>
+
+                  <td class="text-center">
+                    <button class="text-center cursor-pointer text-sm text-red-500" @click="confirmTransactionDeletion(item)">
+                      <span class="text-center">❌</span>
+                    </button>
+                    <ConfirmationModal :show="transBeingDeleted != null" @close="transBeingDeleted = null">
+                        <template #title>
+                            Delete Transaction
+                        </template>
+
+                        <template #content>
+                            You sure you wanna delete this mofo?
+                        </template>
+
+                        <template #footer>
+                          <SecondaryButton @click="transBeingDeleted = null">
+                              Cancel
+                          </SecondaryButton>
+
+                          <DangerButton
+                            class="ml-3"
+                            :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                            :disabled="deleteTransactionForm.processing"
+                            @click="deleteTransaction"
+                          >
+                                Delete
+                          </DangerButton>
+                        </template>
+                    </ConfirmationModal>
+                  </td>
                 </tr>
+
               </tbody>
             </table>
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-else>
+      <p>No transactions found in the given date range</p>
     </div>
   </div>
 </template>

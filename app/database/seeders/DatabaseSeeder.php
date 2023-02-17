@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        /*
         $email = 'notsure@example.org';
         $user = User::factory()->create([
             'name' => 'Not Sure',
@@ -34,6 +33,10 @@ class DatabaseSeeder extends Seeder
         ]);
         $loan_type = AccountType::factory()->create([
             'name' => 'Loan',
+            'asset' => false,
+        ]);
+        $credit_type = AccountType::factory()->create([
+            'name' => 'Credit',
             'asset' => false,
         ]);
         $checking = Account::factory()->create([
@@ -62,7 +65,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Frodo Baggins',
             'email' => 'frodo@example.org'
         ]);
-         */
         $savings = Account::factory()->create([
             'name' => 'Test savings account, please ignore',
             'user_id' => 2,

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,13 +33,13 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [ DashboardController::class, 'dashboard' ])->name('dashboard');
 
-    Route::get('/accounts', [ AccountController::class, 'index' ])->name('accounts');
     Route::get('/transactions', [ TransactionController::class, 'index' ])->name('transactions');
     Route::post('/transactions/store', [ TransactionController::class, 'store' ])->name('transactions.store');
+    Route::delete('/transactions/destroy', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
+
+    Route::get('/accounts', [ AccountController::class, 'index' ])->name('accounts');
     Route::post('/accounts/store', [ AccountController::class, 'store' ])->name('accounts.store');
 
 });

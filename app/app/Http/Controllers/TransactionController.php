@@ -19,14 +19,12 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = [
-            'transactions' => [],
-            'accounts' => [],
-        ];
+        $start = $request->start;
+        $end = $request->end;
+        $data = Transaction::fetch_transaction_data_for_current_user($request->start, $request->end, $request->show_all);
         $current_user = Auth::user();
-
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
         foreach ($accounts as $acct) {
             $data['accounts'][] = [
@@ -34,26 +32,6 @@ class TransactionController extends Controller
                 'name' => $acct->name,
             ];
         }
-        $transactions = Transaction::where(function($query) {
-            $query->select('user_id')
-                ->from('accounts')
-                ->whereColumn('accounts.id', 'transactions.account_id');
-        }, $current_user->id)->get();
-        foreach ($transactions as $trans) {
-            $acct = $trans->account;
-            $type = AccountType::find($acct->type_id);
-            $data['transactions'][] = [
-                'amount' => $trans->amount / 100,
-                'account' => $acct->name,
-                'account_type' => $type->name,
-                'credit' => ($trans->credit) ? 'Credit' : 'Debit',
-                'transaction_date' => $trans->transaction_date,
-                'note' => $trans->note,
-                'bank_identifier' => $trans->note,
-                'id' => $trans->id
-            ];
-        }
-
         return Inertia::render('Transactions', [
             'data' => $data,
         ]);
@@ -77,12 +55,27 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
+        /*
+        Log::info([
+            'freq' => $request->frequency,
+            'recurr' => $request->recurring,
+            'end' => $request->end_date,
+            'amount' => $request->amount,
+            'transaction_date' => $request->transaction_date,
+            'account' => $request->account,
+            'transBuddy' => $request->transBuddy,
+            'transBuddyAcct' => $request->transBuddyAccount,
+            'transBuddyNote' => $request->transBuddyNote,
+        ]);
+         */
+
         $request->validate([
-            'amount' => ['required', 'max:50'],
+            'amount' => ['required', 'gt:0',],
             'account' => ['required', 'numeric'],
             'transaction_date' => ['required', 'date'],
             'credit' => ['required'],
         ]);
+
         $trans = new Transaction();
         $trans->amount = $request->amount * 100;
         $trans->credit = ($request->credit === 'true') ? 1 : 0;
@@ -90,7 +83,41 @@ class TransactionController extends Controller
         $trans->transaction_date = $request->transaction_date;
         $trans->note = $request->note;
         $trans->save();
-        return redirect()->route('transactions')->with('message', 'Successfully Created Transaction: #' . $trans->id);
+        if ($request->transBuddy) {
+            $trans_buddy = $trans->replicate();
+            $trans_buddy->credit = ! $trans->credit;
+            $trans_buddy->note = $request->transBuddyNote;
+            $trans_buddy->account_id = $request->transBuddyAccount;
+            $trans_buddy->save();
+        }
+
+        if ($request->recurring) {
+            $duration = ($request->frequency === 'monthly') ? 'P1M' : 'P14D';
+            $d = new \DateTime($request->transaction_date);
+            $next_date = $d->add(new \DateInterval($duration));
+            while ($next_date->format(\DateTime::ATOM) <= $request->end_date) {
+                $recurring_trans = $trans->replicate();
+                $recurring_trans->transaction_date = $next_date->format(\DateTime::ATOM);
+                $recurring_trans->save();
+                if ($request->transBuddy) {
+                    $recurring_buddy = $trans_buddy->replicate();
+                    $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
+                    $recurring_buddy->save();
+                }
+                $next_date = $next_date->add(new \DateInterval($duration));
+            }
+        }
+
+        Log::info([
+            'in store start'=> $request->transStart,
+            'end'=> $request->transEnd,
+
+        ]);
+        return redirect()
+            ->route(
+                'transactions',
+                [ 'start' => $request->transStart, 'end' => $request->transEnd ]
+            );
     }
 
     /**
@@ -132,8 +159,13 @@ class TransactionController extends Controller
      * @param  \App\Models\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Transaction $transaction)
+    public function destroy(Request $request)
     {
-        //
+        Transaction::destroy($request->id);
+        return redirect()
+            ->route(
+                'transactions',
+                [ 'start' => $request->transStart, 'end' => $request->transEnd ]
+            );
     }
 }
