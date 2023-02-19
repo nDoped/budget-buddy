@@ -43,9 +43,6 @@ watch([ () => props.start, () => props.end ], (args) => {
   transEnd.value = args[1];
 });
 watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => {
-
-  console.log('newStart', newStart);
-  console.log('newEnd', newEnd);
   if (newStart && newEnd) {
     filterData.value = {
       start: newStart,
@@ -83,26 +80,10 @@ watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => 
   <div class="m-2">
     <InputLabel for="transaction_start_date" value="Start Date" class="text-white"/>
     <InputDate id="transactions_start_date" v-model="transStart" />
-    <button
-      :class="{ 'opacity-25': processing }"
-      :disabled="processing"
-      class="text-white bg-gray-600 mt-1 focus:ring-4 focus:outline-none font-small rounded-lg text-sm w-full sm:w-auto px-1 py-1 text-center "
-      @click="transStart = null"
-    >
-      Clear
-    </button>
 
     <span class="m-1">
       <InputLabel for="transaction_end_date" value="End Date" class="text-white"/>
       <InputDate id="transactions_start_date" v-model="transEnd" />
-      <button
-        :class="{ 'opacity-25': processing }"
-        :disabled="processing"
-        class="text-white bg-gray-600 mt-1 focus:ring-4 focus:outline-none font-small rounded-lg text-sm w-full sm:w-auto px-1 py-1 text-center "
-        @click="transEnd = null"
-      >
-        Clear
-      </button>
     </span>
   </div>
 

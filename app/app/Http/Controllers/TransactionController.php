@@ -23,7 +23,74 @@ class TransactionController extends Controller
     {
         $start = $request->start;
         $end = $request->end;
-        $data = Transaction::fetch_transaction_data_for_current_user($request->start, $request->end, $request->show_all);
+        $show_all = $request->show_all;
+        $use_session_dates = $request->use_session_filter_dates;
+
+        /*
+            start   end     show_all        use_ses ||  default current month       show everything         use start/end       use session start/end         clear session
+                0     0         0               0   ||      1                           0                      0                      0                            0
+                0     0         0               1   ||      0                           0                      0                      1                            0
+                0     0         1               0   ||      0                           1                      0                      0                            1
+                0     0         1               1   ||
+                0     1         0               0   ||      0                           0                      1                      0                            0
+                0     1         0               1   ||      0                           0                      1                      0                            0
+                0     1         1               0   ||
+                0     1         1               1   ||
+                1     0         0               0   ||      0                           0                      1                      0                            0
+                1     0         0               1   ||      0                           0                      1                      0                            0
+                1     1         0               0   ||      0                           0                      1                      0                            0
+                1     1         0               1   ||      0                           0                      1                      0                            0
+         */
+
+        Log::info([
+            'start' => $start,
+            'end' => $end,
+            'show_all' => $show_all,
+            'use_session_dates' => $use_session_dates,
+        ]);
+        Log::info($request->session()->all());
+
+        if (! $start && ! $end && !$show_all && ! $use_session_dates) {
+            $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
+            $start = date('Y-m-01');
+            $end = date('Y-m-t');
+            session(['filter_start_date' => $start]);
+            session(['filter_end_date' => $end]);
+
+        } else if ($use_session_dates) {
+            $start = session('filter_start_date');
+            $end = session('filter_end_date');
+
+        } else if ($show_all) {
+            $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
+            $start = $end = null;
+
+        } else if ($start || $end) {
+
+            if ($start && $end) {
+                session([ 'filter_start_date' => $start ]);
+                session([ 'filter_end_date' => $end ]);
+            } else if ($start) {
+                session([ 'filter_start_date' => $start ]);
+                session([ 'filter_end_date' => null ]);
+            } else {
+                session([ 'filter_start_date' => null ]);
+                session([ 'filter_end_date' => $end ]);
+            }
+        }
+
+        /*
+        Log::info([
+            'start' => $start,
+            'end' => $end,
+        ]);
+
+        Log::info($request->session()->all());
+         */
+
+        $data = Transaction::fetch_transaction_data_for_current_user($start, $end);
+        $data['start'] = $start;
+        $data['end'] = $end;
         $current_user = Auth::user();
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
         foreach ($accounts as $acct) {
@@ -108,15 +175,17 @@ class TransactionController extends Controller
             }
         }
 
+        /*
         Log::info([
             'in store start'=> $request->transStart,
             'end'=> $request->transEnd,
-
         ]);
+         */
+
         return redirect()
             ->route(
                 'transactions',
-                [ 'start' => $request->transStart, 'end' => $request->transEnd ]
+                [ 'use_session_filter_dates' => true ]
             );
     }
 
@@ -150,7 +219,18 @@ class TransactionController extends Controller
      */
     public function update(Request $request, Transaction $transaction)
     {
-        //
+        $transaction->amount = $request->amount * 100;
+        $transaction->note = $request->note;
+        $transaction->account_id = $request->account_id;
+        $transaction->credit = $request->boolean('credit');
+        $transaction->bank_identifier = $request->bank_identifier;
+        $transaction->transaction_date = $request->date('transaction_date');
+        $transaction->save();
+        return redirect()
+            ->route(
+                'transactions',
+                [ 'use_session_filter_dates' => true ]
+            );
     }
 
     /**
@@ -165,7 +245,7 @@ class TransactionController extends Controller
         return redirect()
             ->route(
                 'transactions',
-                [ 'start' => $request->transStart, 'end' => $request->transEnd ]
+                [ 'use_session_filter_dates' => true ]
             );
     }
 }

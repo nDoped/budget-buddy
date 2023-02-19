@@ -19,6 +19,7 @@ defineExpose({ focus: () => input.value.focus() });
 </script>
 
 <template>
+  <div class="flex flex-row">
     <input
       ref="input"
       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -26,6 +27,14 @@ defineExpose({ focus: () => input.value.focus() });
       type="date"
       @input="$emit('update:modelValue', $event.target.value)"
     >
+    <button
+      style="display:inline"
+      class="text-rose-700 ml-2 focus:ring-4 focus:outline-none font-small rounded-sm text-sm w-full sm:w-auto px-1 py-1 text-center "
+      @click="$emit('update:modelValue', '')"
+    >
+     X
+    </button>
+  </div>
 </template>
 
 

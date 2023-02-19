@@ -14,17 +14,26 @@ class DashboardController extends Controller
 {
     public function dashboard(Request $request)
     {
-        /*
         Log::info([
             'start' => $request->start,
             'end' => $request->end,
             'show_all' => $request->show_all,
         ]);
-         */
 
-        $trans_data = Transaction::fetch_transaction_data_for_current_user($request->start, $request->end, $request->show_all);
-        $account_data = $this->_fetch_account_data($trans_data['start'], $trans_data['end']);
-//        Log::info(print_r($trans_data, true));
+        $show_all = $request->show_all;
+        $start = $request->start;
+        $end = $request->end;
+
+        if (! $start && ! $end && ! $show_all) {
+            $start = date('Y-m-01');
+            $end = date('Y-m-t');
+
+        } else if ($show_all) {
+            $start = $end = null;
+        }
+
+        $trans_data = Transaction::fetch_transaction_data_for_current_user($start, $end);
+        $account_data = $this->_fetch_account_data($start, $end);
 
         if ($trans_data['transactions_to_range']) {
             foreach ($trans_data['transactions_to_range'] as $trans) {
@@ -66,7 +75,6 @@ class DashboardController extends Controller
 
         $asset_accts = [];
         $debt_accts = [];
-        //Log::info(print_r($account_data, true));
         foreach ($account_data as $id => $acct) {
             $acct['end_balance'] = ($acct['init_balance_raw'] + $acct['pre_range_net_growth'] + $acct['in_range_net_growth']) / 100;
             $acct['start_balance'] = ($acct['init_balance_raw'] + $acct['pre_range_net_growth']) / 100;
@@ -78,8 +86,8 @@ class DashboardController extends Controller
             }
         }
 
-        $data['start'] = $trans_data['start'];
-        $data['end'] = $trans_data['end'];
+        $data['start'] = $start;
+        $data['end'] = $end;
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;
 
@@ -104,6 +112,7 @@ class DashboardController extends Controller
                 'init_balance' => $acct->initial_balance / 100,
                 'init_balance_raw' => $acct->initial_balance,
                 'asset' => $acct->asset,
+                'url' => $acct->url,
                 'in_range_net_growth' => 0,
                 'pre_range_net_growth' => 0,
                 'end_balance' => 0

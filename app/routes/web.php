@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\AccountController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DashboardController;
 
@@ -37,9 +37,10 @@ Route::middleware([
 
     Route::get('/transactions', [ TransactionController::class, 'index' ])->name('transactions');
     Route::post('/transactions/store', [ TransactionController::class, 'store' ])->name('transactions.store');
+    Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transaction.update');
     Route::delete('/transactions/destroy', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
 
-    Route::get('/accounts', [ AccountController::class, 'index' ])->name('accounts');
-    Route::post('/accounts/store', [ AccountController::class, 'store' ])->name('accounts.store');
-
+    Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.show');
+    Route::post('/settings/store_account', [ SettingsController::class, 'store_account' ])->name('accounts.store');
+    Route::post('/settings/store_account_type', [ SettingsController::class, 'store_account_type' ])->name('account_types.store');
 });

@@ -1,7 +1,9 @@
 <script setup>
 import InputLabel from '@/Components/InputLabel.vue';
+import { ref } from 'vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
+import AccountTable from '@/Components/DataTable.vue';
 import { useForm } from '@inertiajs/vue3'
 const props = defineProps({
     accounts: Object,
@@ -14,9 +16,19 @@ function submit() {
   });
 }
 
+const account_fields = ref([
+  { key: 'name', label: 'Name', highlight:false, has_url:true },
+  { key: 'type', label: 'Account Type' },
+  { key: 'owner', label: 'Owner' },
+  { key: 'interest_rate', label: 'Interest Rate' },
+  { key: 'initial_balance', label: 'Initial Balance' },
+  { key: 'url', label: 'URL' }
+]);
+
 const form = useForm({
   name: null,
   type: null,
+  url: null,
   interest_rate: null,
   initial_balance: null,
 });
@@ -26,125 +38,123 @@ const form = useForm({
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
     <div class="flex flex-col">
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <h1>Accounts</h1>
+      </div>
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
           <div class="overflow-hidden">
-            <table class="min-w-full">
-              <thead class="bg-white border-b">
-                <tr>
-                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Name</th>
-                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Type</th>
-                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Owner</th>
-                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Interest Rate</th>
-                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Inital Balance</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr v-for="account in accounts" :key="account.id" class="bg-gray-100 border-b">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {{ account.name }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {{ account.type }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {{ account.owner }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {{ (account.interest_rate) ?? 'Not Set' }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {{ account.initial_balance }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <AccountTable
+            :items="accounts"
+            :fields="account_fields"
+          />
           </div>
         </div>
       </div>
     </div>
 
-    <div class="py-12">
-      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-          <form @submit.prevent="submit">
-            <div class="flex flex-row p-6 bg-white border-b border-gray-200">
-              <div class="m-5">
-                <div class="mb-6">
-                  <InputLabel for="name" value="Account Name" />
-                  <TextInput
-                      id="name"
-                      v-model="form.name"
-                      type="text"
+    <div class="flex flex-col">
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <h1>Create One</h1>
+      </div>
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+          <div class="overflow-hidden">
+            <form @submit.prevent="submit">
+              <div class="flex flex-wrap p-6 bg-white border-b border-gray-200">
+
+                <div class="m-5">
+                  <div class="mb-6">
+                    <InputLabel for="type" value="Account Type" />
+                    <select
+                      id="type"
+                      v-model="form.type"
                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      required
-                  />
-                  <InputError :message="form.errors.name" class="mt-2" />
+
+                    >
+                      <option selected value="">Select Type...</option>
+                      <option v-for="type in account_types" :value="type.id">
+                        {{ type.name }}
+                      </option>
+                    </select>
+                    <InputError :message="form.errors.type" class="mt-2" />
+                  </div>
+                </div>
+
+                <div class="m-5">
+                  <div class="mb-6">
+                    <InputLabel for="name" value="Account Name" />
+                    <TextInput
+                        id="name"
+                        v-model="form.name"
+                        type="text"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        required
+                    />
+                    <InputError :message="form.errors.name" class="mt-2" />
+                  </div>
+                </div>
+
+                <div class="m-5">
+                  <div class="mb-6">
+                    <InputLabel for="init_bal" value="Initial Balance" />
+                    <TextInput
+                        id="init_bal"
+                        v-model="form.initial_balance"
+                        type="text"
+                        class="mt-1 block w-full"
+                        required
+                        autofocus
+                        autocomplete="initial_balance"
+                    />
+                    <InputError :message="form.errors.initial_balance" class="mt-2" />
+                  </div>
+                </div>
+
+                <div class="m-5">
+                  <div class="mb-6">
+                    <InputLabel for="interest" value="Interest Rate" />
+                    <TextInput
+                        id="interest"
+                        v-model="form.interest_rate"
+                        type="text"
+                        class="mt-1 block w-full"
+                        autofocus
+                        autocomplete="interest_rate"
+                    />
+                    <InputError :message="form.errors.interest_rate" class="mt-2" />
+                  </div>
+                </div>
+
+                <div class="m-5 w-full">
+                  <div class="mb-6">
+                    <InputLabel for="url" value="URL" />
+                    <TextInput
+                        id="url"
+                        v-model="form.url"
+                        type="text"
+                        class="mt-1 block w-full"
+                        autofocus
+                        placeholder="https://example.org"
+                        autocomplete="url"
+                    />
+                    <InputError :message="form.errors.url" class="mt-2" />
+                  </div>
                 </div>
               </div>
 
               <div class="m-5">
-                <div class="mb-6">
-                  <InputLabel for="init_bal" value="Initial Balance" />
-                  <TextInput
-                      id="init_bal"
-                      v-model="form.initial_balance"
-                      type="text"
-                      class="mt-1 block w-full"
-                      required
-                      autofocus
-                      autocomplete="initial_balance"
-                  />
-                  <InputError :message="form.errors.initial_balance" class="mt-2" />
-                </div>
+                <button
+                  type="submit"
+                  class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
+                  :disabled="form.processing"
+                  :class="{ 'opacity-25': form.processing }"
+                >
+                  Add Account
+                </button>
               </div>
+            </form>
 
-              <div class="m-5">
-                <div class="mb-6">
-                  <InputLabel for="type" value="Account Type" />
-                  <select
-                    id="type"
-                    v-model="form.type"
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
-                  >
-                    <option selected value="">Select Type...</option>
-                    <option v-for="type in account_types" :value="type.id">
-                      {{ type.name }}
-                    </option>
-                  </select>
-                  <InputError :message="form.errors.type" class="mt-2" />
-                </div>
-              </div>
-
-              <div class="m-5">
-                <div class="mb-6">
-                  <InputLabel for="interest" value="Interest Rate" />
-                  <TextInput
-                      id="interest"
-                      v-model="form.interest_rate"
-                      type="text"
-                      class="mt-1 block w-full"
-                      required
-                      autofocus
-                      autocomplete="interest_rate"
-                  />
-                  <InputError :message="form.errors.interest_rate" class="mt-2" />
-                </div>
-              </div>
-            </div>
-
-            <div class="m-5">
-              <button
-                type="submit"
-                class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
-                :disabled="form.processing"
-                :class="{ 'opacity-25': form.processing }"
-              >
-                Add Account
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

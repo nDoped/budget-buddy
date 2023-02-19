@@ -1,122 +1,126 @@
 <script setup>
-import { computed, reactive, watch, ref, onMounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import { sort } from 'fast-sort'
-import { useForm } from '@inertiajs/vue3'
-import TransactionsForm from '@/Components/TransactionsForm.vue';
-import InputDate from '@/Components/InputDate.vue';
-import DateFilter from '@/Components/DateFilter.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import ConfirmationModal from '@/Components/ConfirmationModal.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import DangerButton from '@/Components/DangerButton.vue';
-import InputError from '@/Components/InputError.vue';
-import TextInput from '@/Components/TextInput.vue';
-import Checkbox from '@/Components/Checkbox.vue';
-const sortBy = ref(null);
-const sortDesc = ref(null);
-const transBeingDeleted = ref(null);
+  import { computed, reactive, watch, ref, onMounted, onBeforeUpdate } from 'vue';
+  import { Link } from '@inertiajs/vue3';
+  import { sort } from 'fast-sort'
+  import { useForm } from '@inertiajs/vue3'
+  import TransactionsForm from '@/Components/TransactionsForm.vue';
+  import TransactionEditForm from '@/Components/TransactionEditForm.vue';
+  import DateFilter from '@/Components/DateFilter.vue';
+  const sortBy = ref(null);
+  const sortDesc = ref(null);
 
-const confirmTransactionDeletion = (trans) => {
-    transBeingDeleted.value = trans;
-};
+  let props = defineProps({
+    transactions: Array,
+    accounts: Array,
+    start: String,
+    end: String,
+  });
+  const startDateEl = ref();
+  const endDateEl = ref();
+  const transStart = ref(props.start);
+  const transEnd = ref(props.end);
 
-let props = defineProps({
-  transactions: Array,
-  accounts: Array,
-  start: String,
-  end: String,
-});
-const startDateEl = ref();
-const endDateEl = ref();
-const transStart = ref(props.start);
-const transEnd = ref(props.end);
-
-const deleteTransactionForm = useForm({});
-const deleteTransaction = () => {
-    deleteTransactionForm.delete(route('transactions.destroy', { id: transBeingDeleted.value, transStart: transStart.value, transEnd: transEnd.value }), {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => (transBeingDeleted.value = null),
-    });
-}
-
-const filterTransactionsForm = useForm({});
-const filterEventHandler = (data) => {
-    filterTransactionsForm.get(route('transactions', data.value), {
-        preserveScroll: true,
-        preserveState: true,
-    });
-}
-const showAll = () => {
-    filterTransactionsForm.get(route('transactions', { show_all: true }), {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-          transStart.value = null;
-          transEnd.value = null;
-        }
-    });
-}
-
-const fields = ref([
-  //{ key: 'id', label: 'ID', sortable: true },
-  { key: 'transaction_date', label: 'Transaction Date', sortable: true },
-  { key: 'asset_text', label: 'Credit/Debit', sortable: true },
-  { key: 'amount', label: 'Amount', sortable:true },
-  { key: 'account', label: 'Account', sortable:true },
-  //{ key: 'account_type', label: 'Account Type', sortable:true },
-  { key: 'ident', label: 'Bank Identifier' },
-  { key: 'note', label: 'Note' },
-]);
-
-onMounted(() => {
-  transStart.value = props.start;
-  transEnd.value = props.end;
-});
-
-const sortedItems = computed(() => {
-  const { transactions } = props;
-  if (sortDesc.value === null) return transactions;
-
-  if (sortDesc.value) {
-    return sort(transactions).desc(sortBy.value);
-  } else {
-    return sort(transactions).asc(sortBy.value);
+  const filterTransactionsForm = useForm({});
+  const filterEventHandler = (data) => {
+      filterTransactionsForm.get(route('transactions', data.value), {
+          preserveScroll: true,
+          preserveState: true,
+      });
   }
-});
 
-const setSort = (key) => {
-  if (sortBy.value === key) {
-    sortDesc.value = ! sortDesc.value;
-  } else {
-    sortBy.value = key;
-    sortDesc.value = false;
-  }
-};
-const perPage = ref(20);
-const pagination = reactive({
-  currentPage: 1,
-  perPage: perPage,
-  totalPages: computed(() =>
-    Math.ceil(props.transactions.length / pagination.perPage)
-  ),
-});
+  const fields = ref([
+    { key: 'id', label: 'ID', sortable: true, color_text:false },
+    { key: 'transaction_date', label: 'Transaction Date', sortable: true, color_text:false },
+    { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
+    { key: 'amount', label: 'Amount', sortable:true, color_text:true },
+    { key: 'account', label: 'Account', sortable:true, color_text:false },
+    //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
+    { key: 'bank_identifier', label: 'Bank Identifier', sortable:false, color_text:false },
+    { key: 'note', label: 'Note', sortable:false, color_text:false },
+  ]);
 
-const paginatedItems = computed(() => {
-  const { currentPage, perPage } = pagination;
-  const start = (currentPage - 1) * perPage;
-  const stop = start + perPage;
+  onMounted(() => {
+    transStart.value = props.start;
+    transEnd.value = props.end;
+  });
 
-  return sortedItems.value.slice(start, stop);
-});
+  const sortedItems = computed(() => {
+    const { transactions } = props;
+    if (sortDesc.value === null) return transactions;
 
-watch(
-  () => pagination.totalPages,
-  () => (pagination.currentPage = 1)
-);
+    if (sortDesc.value) {
+      return sort(transactions).desc(sortBy.value);
+    } else {
+      return sort(transactions).asc(sortBy.value);
+    }
+  });
 
+  // make sure to reset the refs before each update
+  const tableRowRefs = ref([]);
+  onBeforeUpdate(() => {
+    tableRowRefs.value = []
+  });
+  const showHideRow = (trans, i) => {
+    let hiddenRow = document.getElementById(`hidden_row_${i}`);
+    let visibleRow = tableRowRefs.value[i];
+    let nextVisibleRow = tableRowRefs.value[i + 1];
+    let hiddenRowClasses = [
+      "open_row",
+    ];
+    if (hiddenRow.classList.contains("hidden")) {
+      document.getElementById(`hidden_row_${i}`).classList.remove("hidden");
+      visibleRow.classList.remove("border-b");
+      if (nextVisibleRow) {
+        nextVisibleRow.classList.add("border-t");
+      }
+      /**
+       * Force a browser re-paint so the browser will realize the
+       * element is no longer `hidden` and allow transitions.
+       */
+      const reflow = hiddenRow.offsetHeight;
+
+      hiddenRow.classList.add(...hiddenRowClasses);
+    } else {
+
+      const reflow = hiddenRow.offsetHeight;
+      hiddenRow.classList.add("hidden");
+      visibleRow.classList.add("border-b");
+      if (nextVisibleRow) {
+        nextVisibleRow.classList.remove("border-t");
+      }
+    }
+  };
+
+  const setSort = (key) => {
+    if (sortBy.value === key) {
+      sortDesc.value = ! sortDesc.value;
+    } else {
+      sortBy.value = key;
+      sortDesc.value = false;
+    }
+  };
+
+  const perPage = ref(20);
+  const pagination = reactive({
+    currentPage: 1,
+    perPage: perPage,
+    totalPages: computed(() =>
+      Math.ceil(props.transactions.length / pagination.perPage)
+    ),
+  });
+
+  const paginatedItems = computed(() => {
+    const { currentPage, perPage } = pagination;
+    const start = (currentPage - 1) * perPage;
+    const stop = start + perPage;
+
+    return sortedItems.value.slice(start, stop);
+  });
+
+  watch(
+    () => pagination.totalPages,
+    () => (pagination.currentPage = 1)
+  );
 </script>
 
 <template>
@@ -135,16 +139,6 @@ watch(
           >
             Filter
           </DateFilter>
-
-          <button
-            class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
-            :class="{ 'opacity-25': filterTransactionsForm.processing }"
-            :disabled="filterTransactionsForm.processing"
-
-            @click="showAll"
-          >
-            Show All
-          </button>
         </div>
       </div>
 
@@ -183,7 +177,7 @@ watch(
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="focus:ring-4 focus:outline-none font-medium rounded-lg tpy-2 inline-block min-w-full sm:px-6 lg:px-8">
           <div class="overflow-hidden">
-            <table class="min-w-full">
+            <table class="min-w-full table-auto">
               <thead>
                 <tr>
                   <template v-for="{ key, label, sortable } in fields" :key="key">
@@ -199,49 +193,46 @@ watch(
                       {{ label }}
                     </th>
                   </template>
-                  <th>Yeet button</th>
                 </tr>
               </thead>
 
               <tbody>
-                <tr v-for="item in paginatedItems" :key="item.uuid" :class="{ 'bg-gray-100':true, 'border-b': true, 'credit':item.asset, 'debit': ! item.asset }">
-                  <td v-for="{ key } in fields" :key="key" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <slot :name="`cell(${key})`" :value="item[key]" :item="item">
-                      {{ item[key] }}
-                    </slot>
-                  </td>
+                <template v-for="(item, i) in paginatedItems" :key="i">
+                  <tr
+                    @click="showHideRow(item, i)"
+                    :ref="(el) => { tableRowRefs.push(el) }"
+                    class="hover:opacity-80 focus:bg-slate-400"
+                    :class="{
+                      'bg-slate-800':true,
+                      'border-b': true,
+                    }"
+                  >
+                    <td
+                      v-for="{ key, label, sortable, color_text } in fields"
+                      :key="key"
+                      class="text-center px-2 py-1 text-md font-medium"
+                      :class="{
+                        'text-green-400': color_text && item.asset,
+                        'text-rose-800': color_text && ! item.asset,
+                        'text-gray-400': ! color_text
+                      }"
+                    >
+                      <slot :name="`cell(${key})`" :value="item[key]" :item="item">
+                        {{ item[key] }}
+                      </slot>
+                    </td>
+                  </tr>
 
-                  <td class="text-center">
-                    <button class="text-center cursor-pointer text-sm text-red-500" @click="confirmTransactionDeletion(item)">
-                      <span class="text-center">❌</span>
-                    </button>
-                    <ConfirmationModal :show="transBeingDeleted != null" @close="transBeingDeleted = null">
-                        <template #title>
-                            Delete Transaction
-                        </template>
-
-                        <template #content>
-                            You sure you wanna delete this mofo?
-                        </template>
-
-                        <template #footer>
-                          <SecondaryButton @click="transBeingDeleted = null">
-                              Cancel
-                          </SecondaryButton>
-
-                          <DangerButton
-                            class="ml-3"
-                            :class="{ 'opacity-25': deleteTransactionForm.processing }"
-                            :disabled="deleteTransactionForm.processing"
-                            @click="deleteTransaction"
-                          >
-                                Delete
-                          </DangerButton>
-                        </template>
-                    </ConfirmationModal>
-                  </td>
-                </tr>
-
+                  <tr :id="`hidden_row_${i}`" class="hidden">
+                    <td colspan="7" class="w-full">
+                      <TransactionEditForm
+                        :accounts="accounts"
+                        :transaction="item"
+                        @success="showHideRow(item, i)"
+                      />
+                    </td>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
@@ -252,18 +243,24 @@ watch(
     <div v-else>
       <p>No transactions found in the given date range</p>
     </div>
+
   </div>
 </template>
 
 <style>
-.credit {
-  background-color: rgba(109, 232, 144, 0.3);
-}
-.debit {
-  background-color: rgba(224, 58, 58, 0.1);
-}
-th.sortable {
-  cursor: pointer;
-}
+  th.sortable {
+    cursor: pointer;
+  }
+
+  .text {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+  }
+
+  .open_row {
+    max-height: 1000px;
+    transition: max-height 1s ease-in-out;
+  }
 </style>
 
