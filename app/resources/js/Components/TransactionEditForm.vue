@@ -10,13 +10,6 @@
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
 
-  function submit() {
-    form.post(route('transaction.update', {transaction: props.transaction.id}), {
-      preserveScroll: true,
-      onSuccess: () => emit('success'),
-      onError: (err) =>  console.err(err)
-    });
-  }
   const emit = defineEmits(['success']);
 
   watch(() => props.transaction, (trans) => {
@@ -25,16 +18,8 @@
     form.credit = props.transaction.asset;
     form.account_id = props.transaction.account_id;
     form.note = props.transaction.note;
+    deleteTransactionForm.id = props.transaction.id;
     form.bank_identifier = props.transaction.bank_identifier;
-  });
-
-  const form = useForm({
-    transaction_date: props.transaction.transaction_date,
-    amount: props.transaction.amount,
-    credit: props.transaction.asset,
-    account_id: props.transaction.account_id,
-    note: props.transaction.note,
-    bank_identifier: props.transaction.bank_identifier
   });
 
   let props = defineProps({
@@ -45,7 +30,7 @@
   const transBeingDeleted = ref(null);
 
   const confirmTransactionDeletion = () => {
-    transBeingDeleted.value = props.transaction;
+    transBeingDeleted.value = props.transaction.id;
   };
 
   const success = () => {
@@ -53,22 +38,38 @@
     emit('success');
   };
 
-  const deleteTransactionForm = useForm({});
+  const deleteTransactionForm = useForm({
+      id:props.transaction.id
+  });
   const deleteTransaction = () => {
-      deleteTransactionForm.delete(route('transactions.destroy', { id: transBeingDeleted.value }), {
+      deleteTransactionForm.delete(route('transactions.destroy', {id: transBeingDeleted.value}), {
         preserveScroll: true,
-        preserveState: true,
         onSuccess: () => success(),
-        onError: (err) =>  console.err(err)
+        onError: (err) =>  console.error(err)
       });
   }
 
+  const form = useForm({
+    transaction_date: props.transaction.transaction_date,
+    amount: props.transaction.amount,
+    credit: props.transaction.asset,
+    account_id: props.transaction.account_id,
+    note: props.transaction.note,
+    bank_identifier: props.transaction.bank_identifier
+  });
+
+  function submit() {
+    form.post(route('transactions.update', { transaction: props.transaction.id }), {
+      preserveScroll: true,
+      onSuccess: () => success(),
+      onError: (err) =>  console.error(err)
+    });
+  }
 
   /*
   onMounted(() => {
-
-    console.log(props.transaction);
-    console.log(props.transaction.transaction_date);
+    console.log('on mount',props.transaction);
+    console.log('on mount', props.transaction.transaction_date);
   });
    */
 
@@ -117,8 +118,8 @@
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
 
               >
-                <option value=true>Credit</option>
-                <option selected="selected" value=false>Debit</option>
+                <option :value="true">Credit</option>
+                <option selected="selected" :value="false">Debit</option>
               </select>
               <InputError :message="form.errors.credit" class="mt-2" />
             </div>

@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use App\Http\Requests\TransactionPostRequest;
 use App\Models\Account;
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\AccountType;
 use App\Models\User;
@@ -42,14 +44,6 @@ class TransactionController extends Controller
                 1     1         0               1   ||      0                           0                      1                      0                            0
          */
 
-        Log::info([
-            'start' => $start,
-            'end' => $end,
-            'show_all' => $show_all,
-            'use_session_dates' => $use_session_dates,
-        ]);
-        Log::info($request->session()->all());
-
         if (! $start && ! $end && !$show_all && ! $use_session_dates) {
             $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
             $start = date('Y-m-01');
@@ -79,15 +73,6 @@ class TransactionController extends Controller
             }
         }
 
-        /*
-        Log::info([
-            'start' => $start,
-            'end' => $end,
-        ]);
-
-        Log::info($request->session()->all());
-         */
-
         $data = Transaction::fetch_transaction_data_for_current_user($start, $end);
         $data['start'] = $start;
         $data['end'] = $end;
@@ -99,6 +84,9 @@ class TransactionController extends Controller
                 'name' => $acct->name,
             ];
         }
+        Log::info([
+            'app/Http/Controllers/TransactionController.php:86 data' => $data,
+        ]);
         return Inertia::render('Transactions', [
             'data' => $data,
         ]);
@@ -117,56 +105,36 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\TransactionPostRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TransactionPostRequest $request)
     {
-        /*
-        Log::info([
-            'freq' => $request->frequency,
-            'recurr' => $request->recurring,
-            'end' => $request->end_date,
-            'amount' => $request->amount,
-            'transaction_date' => $request->transaction_date,
-            'account' => $request->account,
-            'transBuddy' => $request->transBuddy,
-            'transBuddyAcct' => $request->transBuddyAccount,
-            'transBuddyNote' => $request->transBuddyNote,
-        ]);
-         */
-
-        $request->validate([
-            'amount' => ['required', 'gt:0',],
-            'account' => ['required', 'numeric'],
-            'transaction_date' => ['required', 'date'],
-            'credit' => ['required'],
-        ]);
-
+        $data = $request->validated();
         $trans = new Transaction();
-        $trans->amount = $request->amount * 100;
-        $trans->credit = ($request->credit === 'true') ? 1 : 0;
-        $trans->account_id = $request->account;
-        $trans->transaction_date = $request->transaction_date;
-        $trans->note = $request->note;
+        $trans->amount = $data['amount'] * 100;
+        $trans->credit = $data['credit'];
+        $trans->account_id = $data['account_id'];
+        $trans->transaction_date = $data['transaction_date'];
+        $trans->note = $data['note'];
         $trans->save();
-        if ($request->transBuddy) {
+        if ($data['trans_buddy']) {
             $trans_buddy = $trans->replicate();
             $trans_buddy->credit = ! $trans->credit;
-            $trans_buddy->note = $request->transBuddyNote;
-            $trans_buddy->account_id = $request->transBuddyAccount;
+            $trans_buddy->account_id = $data['trans_buddy_account'];
+            $trans_buddy->note = $data['trans_buddy_note'];
             $trans_buddy->save();
         }
 
-        if ($request->recurring) {
-            $duration = ($request->frequency === 'monthly') ? 'P1M' : 'P14D';
-            $d = new \DateTime($request->transaction_date);
+        if ($data['recurring']) {
+            $duration = ($data['frequency'] === 'monthly') ? 'P1M' : 'P14D';
+            $d = new \DateTime($data['transaction_date']);
             $next_date = $d->add(new \DateInterval($duration));
-            while ($next_date->format(\DateTime::ATOM) <= $request->end_date) {
+            while ($next_date->format(\DateTime::ATOM) <= $data['recurring_end_date']) {
                 $recurring_trans = $trans->replicate();
                 $recurring_trans->transaction_date = $next_date->format(\DateTime::ATOM);
                 $recurring_trans->save();
-                if ($request->transBuddy) {
+                if ($data['trans_buddy']) {
                     $recurring_buddy = $trans_buddy->replicate();
                     $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
                     $recurring_buddy->save();
@@ -175,12 +143,18 @@ class TransactionController extends Controller
             }
         }
 
-        /*
-        Log::info([
-            'in store start'=> $request->transStart,
-            'end'=> $request->transEnd,
-        ]);
-         */
+        if ($data['categories']) {
+            $cats = json_decode($data['categories'], true);
+            foreach ($cats as $cat => $percent) {
+                $cat_model = Category::where('name', '=', $cat)->first();
+                if (! $cat_model) {
+                    $cat_model = new Category();
+                    $cat_model->name = $cat;
+                    $cat_model->save();
+                }
+                $trans->categories()->save($cat_model, [ 'percentage' => $percent ]);
+            }
+        }
 
         return redirect()
             ->route(
@@ -213,18 +187,22 @@ class TransactionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\TransactionPostRequest $request
      * @param  \App\Models\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Transaction $transaction)
+    public function update(TransactionPostRequest $request, Transaction $transaction)
     {
-        $transaction->amount = $request->amount * 100;
-        $transaction->note = $request->note;
-        $transaction->account_id = $request->account_id;
-        $transaction->credit = $request->boolean('credit');
-        $transaction->bank_identifier = $request->bank_identifier;
-        $transaction->transaction_date = $request->date('transaction_date');
+        $data = $request->validated();
+        Log::info([
+            'app/Http/Controllers/TransactionController.php:194 data' => $data,
+        ]);
+        $transaction->amount = $data['amount'] * 100;
+        $transaction->note = $data['note'];
+        $transaction->account_id = $data['account_id'];
+        $transaction->credit = $data['credit'];
+        $transaction->bank_identifier = $data['bank_identifier'];
+        $transaction->transaction_date = $data['transaction_date'];
         $transaction->save();
         return redirect()
             ->route(
@@ -236,12 +214,16 @@ class TransactionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Transaction  $transaction
+     * @param  \App\Http\Requests\TransactionPostRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request)
+    public function destroy(TransactionPostRequest $request)
     {
-        Transaction::destroy($request->id);
+        $data = $request->validated();
+        Log::info([
+            'app/Http/Controllers/TransactionController.php:219 destroy data' => $data,
+        ]);
+        Transaction::destroy($data['id']);
         return redirect()
             ->route(
                 'transactions',

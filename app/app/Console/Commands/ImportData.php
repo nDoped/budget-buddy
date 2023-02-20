@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Transaction;
 use App\Models\Account;
+use App\Models\Category;
 use Illuminate\Support\Facades\Log;
 
 class ImportData extends Command
@@ -53,17 +54,24 @@ class ImportData extends Command
                     continue;
                 }
                 $transaction_date = $year . '-' . $month . '-' .  sprintf('%02d', $data[0]);
+                $credit = preg_match('/credit/i', $data[1]) ? true : false;
                 $amount = intval(preg_replace('/[,\.]/', '', $data[2]));
                 if (! $amount) {
                     continue;
                 }
 
-                $acct = Account::where('name', '=', $data[3])
+                $los_gatos = json_decode($data[3], true);
+                if (is_null($los_gatos)) {
+                    $los_gatos = [
+                        $data[3] => 100
+                    ];
+                }
+
+                $acct = Account::where('name', '=', $data[4])
                     ->where('user_id', '=', $user_id)
                     ->first();
-                $credit = preg_match('/credit/i', $data[1]) ? true : false;
-                $note = $data[5];
-                $bank_ident = $data[4];
+                $bank_ident = $data[5];
+                $note = $data[6];
 
                 $trans = new Transaction();
                 $trans->transaction_date = $transaction_date;
@@ -73,6 +81,15 @@ class ImportData extends Command
                 $trans->note = $note;
                 $trans->bank_identifier = $bank_ident;
                 $trans->save();
+                foreach ($los_gatos as $cat => $percent) {
+                    $cat_model = Category::where('name', '=', $cat)->first();
+                    if (! $cat_model) {
+                        $cat_model = new Category();
+                        $cat_model->name = $cat;
+                        $cat_model->save();
+                    }
+                    $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+                }
 
                 /*
                 Log::info([

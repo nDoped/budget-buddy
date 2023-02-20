@@ -37,8 +37,8 @@ Route::middleware([
 
     Route::get('/transactions', [ TransactionController::class, 'index' ])->name('transactions');
     Route::post('/transactions/store', [ TransactionController::class, 'store' ])->name('transactions.store');
-    Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transaction.update');
-    Route::delete('/transactions/destroy', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
+    Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transactions.update');
+    Route::delete('/transactions/destroy/{id}', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
 
     Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.show');
     Route::post('/settings/store_account', [ SettingsController::class, 'store_account' ])->name('accounts.store');

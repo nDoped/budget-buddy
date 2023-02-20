@@ -20,8 +20,7 @@ class TransactionPostRequest extends FormRequest
     {
         $trans = $this->route('transaction');
         Log::info([
-            'trans' => gettype($trans)
-
+          'app/Http/Requests/TransactionPostRequest.php:21 trans type' => gettype($trans)
         ]);
         if ($trans && ! $trans instanceof Transaction) {
             $trans = Transaction::findOrFail($trans);
@@ -46,8 +45,8 @@ class TransactionPostRequest extends FormRequest
         $ret = [];
         $route_name = Route::currentRouteName();
         Log::info([
-            'request' => $request->all(),
-            'route' => $route_name
+          'app/Http/Requests/TransactionPostRequest.php:48 request' => $request->all(),
+          'app/Http/Requests/TransactionPostRequest.php:48 route' => $route_name
         ]);
         switch ($route_name) {
         case 'transactions.destroy':
@@ -99,9 +98,7 @@ class TransactionPostRequest extends FormRequest
             break;
         }
         Log::info([
-            'route' => $route_name,
-            'transaction post rules' => $ret,
-
+          'app/Http/Requests/TransactionPostRequest.php:101 rules' => $ret,
         ]);
         return $ret;
     }

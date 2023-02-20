@@ -7,12 +7,7 @@
   import Checkbox from '@/Components/Checkbox.vue';
 
   function submit() {
-    form.transform((data) => ({
-      ...data,
-      transStart: props.startDate,
-      transEnd: props.endDate
-    }))
-    .post(route('transactions.store'), {
+    form.post(route('transactions.store'), {
       preserveScroll: true,
       onSuccess: () => form.reset(),
     });
@@ -28,17 +23,17 @@
     transaction_date: (new Date()).toISOString().slice(0, 10),
     amount: 0,
     credit: false,
-    account: '',
+    account_id: '',
     note: null,
-    end_date: null,
+    bank_identifier: null,
+    categories: '{ "CategoryName": 100 }',
+    recurring_end_date: null,
     recurring: false,
-    transBuddy: false,
-    transBuddyAccount: '',
-    transBuddyNote: null,
+    trans_buddy: false,
+    trans_buddy_account: '',
+    trans_buddy_note: null,
     frequency: "monthly",
     bank_identifier: null,
-    transStart: props.startDate,
-    transEnd: props.endDate
   });
 </script>
 
@@ -82,8 +77,8 @@
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
 
               >
-                <option value=true>Credit</option>
-                <option selected="selected" value=false>Debit</option>
+                <option :value="true">Credit</option>
+                <option selected="selected" :value="false">Debit</option>
               </select>
               <InputError :message="form.errors.credit" class="mt-2" />
             </div>
@@ -92,7 +87,7 @@
               <InputLabel for="account" value="Account" />
               <select
                 id="account"
-                v-model="form.account"
+                v-model="form.account_id"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
 
               >
@@ -101,7 +96,7 @@
                   {{ account.name }}
                 </option>
               </select>
-              <InputError :message="form.errors.account" class="mt-2" />
+              <InputError :message="form.errors.account_id" class="mt-2" />
             </div>
 
             <div class="m-4 w-full">
@@ -115,6 +110,19 @@
                   autocomplete="note"
               />
               <InputError :message="form.errors.note" class="mt-2" />
+            </div>
+
+            <div class="m-4 w-full">
+              <InputLabel for="categories" value="Categories" />
+              <TextInput
+                  id="note"
+                  v-model="form.categories"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autofocus
+                  autocomplete="note"
+              />
+              <InputError :message="form.errors.categories" class="mt-2" />
             </div>
           </div>
 
@@ -138,34 +146,35 @@
                     <option value="monthly">Monthly</option>
                     <option value="biweekly">Bi-Weekly</option>
                   </select>
+                  <InputError :message="form.errors.frequency" class="mt-2" />
 
                 </div>
 
                 <div class="m-4">
-                  <InputLabel for="end_date" value="End Date" />
+                  <InputLabel for="recurring_end_date" value="End Date" />
                   <input
-                    id="end_date"
+                    id="recurring_end_date"
                     type="date"
-                    v-model="form.end_date"
+                    v-model="form.recurring_end_date"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder=""
                   />
-                  <InputError :message="form.errors.end_date" class="mt-2" />
+                  <InputError :message="form.errors.recurring_end_date" class="mt-2" />
                 </div>
               </template>
             </div>
 
             <div class="m-6">
               <InputLabel for="trans_buddy" value="Create a transaction buddy?"/>
-              <Checkbox id="trans_buddy" v-model:checked="form.transBuddy" name="trans_buddy"/>
-              <InputError class="mt-2" :message="form.errors.transBuddy" />
+              <Checkbox id="trans_buddy" v-model:checked="form.trans_buddy" name="trans_buddy"/>
+              <InputError class="mt-2" :message="form.errors.trans_buddy" />
 
-              <template v-if="form.transBuddy">
+              <template v-if="form.trans_buddy">
                 <div class="m-4">
-                  <InputLabel for="transBuddyAccount" value="Buddy Account" />
+                  <InputLabel for="trans_buddy_account" value="Buddy Account" />
                   <select
-                    id="transBuddyAccount"
-                    v-model="form.transBuddyAccount"
+                    id="trans_buddy_account"
+                    v-model="form.trans_buddy_account"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
 
                   >
@@ -174,20 +183,20 @@
                       {{ account.name }}
                     </option>
                   </select>
-                  <InputError :message="form.errors.account" class="mt-2" />
+                  <InputError :message="form.errors.trans_buddy_account" class="mt-2" />
                 </div>
 
                 <div class="m-4">
                   <InputLabel for="trans_buddy_note" value="Buddy Note" />
                   <TextInput
                       id="trans_buddy_note"
-                      v-model="form.transBuddyNote"
+                      v-model="form.trans_buddy_note"
                       type="text"
                       class="mt-1 block w-full"
                       autofocus
                       autocomplete="note"
                   />
-                  <InputError :message="form.errors.transBuddyNote" class="mt-2" />
+                  <InputError :message="form.errors.trans_buddy_note" class="mt-2" />
                 </div>
               </template>
             </div>

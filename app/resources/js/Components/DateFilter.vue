@@ -18,11 +18,11 @@ onMounted(() => {
 let props = defineProps({
   start: {
     type: String,
-    default: ''
+    default: null
   },
   end: {
     type: String,
-    default: ''
+    default: null
   },
   processing: {
     type: Boolean,
@@ -81,7 +81,7 @@ watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => 
     <InputLabel for="transaction_start_date" value="Start Date" class="text-white"/>
     <InputDate id="transactions_start_date" v-model="transStart" />
 
-    <span class="m-1">
+    <span class="mt-1">
       <InputLabel for="transaction_end_date" value="End Date" class="text-white"/>
       <InputDate id="transactions_start_date" v-model="transEnd" />
     </span>

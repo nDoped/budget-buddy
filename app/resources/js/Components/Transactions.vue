@@ -60,6 +60,7 @@
   onBeforeUpdate(() => {
     tableRowRefs.value = []
   });
+
   const showHideRow = (trans, i) => {
     let hiddenRow = document.getElementById(`hidden_row_${i}`);
     let visibleRow = tableRowRefs.value[i];
@@ -81,7 +82,6 @@
 
       hiddenRow.classList.add(...hiddenRowClasses);
     } else {
-
       const reflow = hiddenRow.offsetHeight;
       hiddenRow.classList.add("hidden");
       visibleRow.classList.add("border-b");
@@ -125,7 +125,7 @@
 
 <template>
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
-    <TransactionsForm :accounts="accounts" :startDate="transStart" :endDate="transEnd"/>
+    <TransactionsForm :accounts="accounts" />
 
     <div class="grid grid-cols-2 gap-4">
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -224,7 +224,7 @@
                   </tr>
 
                   <tr :id="`hidden_row_${i}`" class="hidden">
-                    <td colspan="7" class="w-full">
+                    <td colspan="7" >
                       <TransactionEditForm
                         :accounts="accounts"
                         :transaction="item"

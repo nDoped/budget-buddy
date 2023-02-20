@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -19,13 +20,13 @@ class Transaction extends Model
         return $this->belongsTo(Account::class);
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class)->withPivot('percentage');
+    }
+
     public static function fetch_transaction_data_for_current_user($start = null, $end = null)
     {
-        Log::info([
-            'start in fetch' => $start,
-            'end in fetch' => $end,
-
-        ]);
         $data = [
             'transactions_in_range' => [],
             'transactions_to_range' => [],
