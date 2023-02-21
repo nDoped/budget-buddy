@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\AccountType;
 use App\Models\Account;
@@ -19,9 +20,11 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $email = 'lespaul366@gmail.com';
-        $user = User::factory()->create([
+        $user = User::create([
             'name' => 'nDoped',
-            'email' => $email
+            'email' => $email,
+            'password' => Hash::make('spitfire9'),
+            'profile_photo_path' => 'profile-photos/angry_kitty.jpg'
         ]);
         $checking_type = AccountType::factory()->create([
             'name' => 'Checking',
@@ -102,7 +105,7 @@ class DatabaseSeeder extends Seeder
             'type_id' => $credit_type->id,
             'user_id' => $user->id,
             'initial_balance' => 145300,
-            'initial_balance' => 27.7
+            'interest_rate' => 27.7
         ]);
         Account::factory()->create([
             'name' => 'Student Loan',

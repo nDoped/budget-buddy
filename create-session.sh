@@ -27,7 +27,7 @@ if [ $? != 0 ]; then
 
     tmux new-window -n $mysql_win
     tmux send-keys "cd app" Enter
-    tmux send-keys "sale mysql"
+    tmux send-keys "vim scratch.sql"
 
     tmux new-window -n $debug_win
     tmux send-keys "cd app" Enter
@@ -37,7 +37,7 @@ if [ $? != 0 ]; then
     tmux send-keys "cd app/tests" Enter
 
     tmux new-window -n $imports_win
-    tmux send-keys "cd app/storage/imports/" Enter
+    tmux send-keys "cd app" Enter
     tmux send-keys "#sale artisan import:month 2023-01.csv 1" Enter
     tmux split-window -h
     tmux send-keys "cd app/storage/imports/" Enter

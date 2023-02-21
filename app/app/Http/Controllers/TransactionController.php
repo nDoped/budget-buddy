@@ -73,7 +73,7 @@ class TransactionController extends Controller
             }
         }
 
-        $data = Transaction::fetch_transaction_data_for_current_user($start, $end);
+        $data = Transaction::fetch_transaction_data_for_current_user($start, $end, false);
         $data['start'] = $start;
         $data['end'] = $end;
         $current_user = Auth::user();
@@ -84,9 +84,11 @@ class TransactionController extends Controller
                 'name' => $acct->name,
             ];
         }
+        /*
         Log::info([
             'app/Http/Controllers/TransactionController.php:86 data' => $data,
         ]);
+         */
         return Inertia::render('Transactions', [
             'data' => $data,
         ]);

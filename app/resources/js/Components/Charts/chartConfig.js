@@ -14,7 +14,39 @@ export const data = {
   ]
 }
 
+export const pieData = {
+  labels: ['VueJs', 'EmberJs', 'ReactJs', 'AngularJs'],
+  datasets: [
+    {
+      backgroundColor: ['#41B883', '#E46651', '#00D8FF', '#DD1B16'],
+      data: [40, 20, 80, 10]
+    }
+  ]
+}
+
 export const options = {
   responsive: true,
-  maintainAspectRatio: false
+  maintainAspectRatio: false,
+  plugins:{
+    legend: {
+      display: false
+    },
+    title: {
+      text: 'Breakdown of expenses',
+      display: true
+    },
+    datalabels: {
+      formatter: (value, ctx) => {
+        let sum = 0;
+        let dataArr = ctx.chart.data.datasets[0].data;
+        dataArr.map(data => {
+          sum += data;
+        });
+        let percentage = (value*100 / sum).toFixed(2)+"%";
+        return percentage;
+      },
+      color: '#fff',
+      offset: 24
+    }
+  }
 }

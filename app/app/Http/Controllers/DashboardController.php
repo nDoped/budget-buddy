@@ -48,6 +48,11 @@ class DashboardController extends Controller
         }
 
         foreach ($trans_data['transactions_in_range'] as $trans) {
+            /*
+            Log::info([
+                'app/Http/Controllers/DashboardController.php:51 key' => $trans,
+            ]);
+             */
             $acct = $account_data[$trans['account_id']];
             if ($trans['asset']) {
                 if ($acct['asset']) {
@@ -82,6 +87,7 @@ class DashboardController extends Controller
 
             ],
         ];
+        $total_eco_growth = 0;
         foreach ($account_data as $id => $acct) {
             $start_balance_raw = $acct['init_balance_raw'] + $acct['pre_range_net_growth'];
             $acct['start_balance'] = $start_balance_raw / 100;
@@ -101,6 +107,7 @@ class DashboardController extends Controller
             $total_net_growth[$group]['in_range_net_growth'] += $in_range_net_growth_raw;
             $total_net_growth[$group]['end_balance'] += $end_balance_raw;
         }
+        $total_eco_growth = ($total_net_growth['assets']['in_range_net_growth'] - $total_net_growth['debts']['in_range_net_growth']) / 100;
         foreach ($total_net_growth as $group => $data) {
             foreach ($data as $key => $val) {
                 if ($key === 'name') {
@@ -114,9 +121,14 @@ class DashboardController extends Controller
         $debt_accts[] = $total_net_growth['debts'];
         $data['start'] = $start;
         $data['end'] = $end;
+        $data['category_totals'] = $trans_data['category_totals'];
+        $data['total_economic_growth'] = $total_eco_growth;
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;
 
+        Log::info([
+            'app/Http/Controllers/DashboardController.php:51 catcount' => count($trans_data['category_totals']),
+        ]);
         return Inertia::render('Dashboard', [
             'data' => $data
         ]);

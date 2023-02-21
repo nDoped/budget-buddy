@@ -1,37 +1,37 @@
 <script setup>
-import InputLabel from '@/Components/InputLabel.vue';
-import { ref } from 'vue';
-import InputError from '@/Components/InputError.vue';
-import TextInput from '@/Components/TextInput.vue';
-import AccountTable from '@/Components/DataTable.vue';
-import { useForm } from '@inertiajs/vue3'
-const props = defineProps({
-    accounts: Object,
-    account_types: Object
-});
-function submit() {
-  form.post(route('accounts.store'), {
-    preserveScroll: true,
-    onSuccess: () => form.reset(),
+  import InputLabel from '@/Components/InputLabel.vue';
+  import { ref } from 'vue';
+  import InputError from '@/Components/InputError.vue';
+  import TextInput from '@/Components/TextInput.vue';
+  import AccountTable from '@/Components/DataTable.vue';
+  import { useForm } from '@inertiajs/vue3'
+  const props = defineProps({
+      accounts: Object,
+      account_types: Object
   });
-}
+  function submit() {
+    form.post(route('accounts.store'), {
+      preserveScroll: true,
+      onSuccess: () => form.reset(),
+    });
+  }
 
-const account_fields = ref([
-  { key: 'name', label: 'Name', highlight:false, has_url:true },
-  { key: 'type', label: 'Account Type' },
-  { key: 'owner', label: 'Owner' },
-  { key: 'interest_rate', label: 'Interest Rate' },
-  { key: 'initial_balance', label: 'Initial Balance' },
-  { key: 'url', label: 'URL' }
-]);
+  const account_fields = ref([
+    { key: 'name', label: 'Name', highlight:false, has_url:true },
+    { key: 'type', label: 'Account Type' },
+    { key: 'owner', label: 'Owner' },
+    { key: 'interest_rate', label: 'Interest Rate' },
+    { key: 'initial_balance', label: 'Initial Balance' },
+    { key: 'url', label: 'URL' }
+  ]);
 
-const form = useForm({
-  name: null,
-  type: null,
-  url: null,
-  interest_rate: null,
-  initial_balance: null,
-});
+  const form = useForm({
+    name: null,
+    type: null,
+    url: null,
+    interest_rate: null,
+    initial_balance: null,
+  });
 </script>
 
 <template>

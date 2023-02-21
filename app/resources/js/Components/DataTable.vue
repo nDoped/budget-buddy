@@ -1,39 +1,46 @@
 <script setup>
-let props = defineProps({
-  fields: Object,
-  items: Array,
-  asset: {
-    type: Boolean,
-    default: false
-  }
-});
+  import { ref } from 'vue';
+  let props = defineProps({
+    fields: Object,
+    // @todo, do something with this..first step adding css to totals rows
+    config: {
+      type: Object,
+      default: {}
+    },
+    items: Array,
+    asset: {
+      type: Boolean,
+      default: false
+    }
+  });
+  const itemCount = ref(props.items.length);
+  console.log(itemCount);
 
-const textColor = (item, highlight) => {
-  let ret = 'text-slate-400';
-  if (! highlight) {
+  const textColor = (item, highlight) => {
+    let ret = 'text-slate-400';
+    if (! highlight) {
+      return ret;
+    }
+    if (props.asset) {
+      if (item > 0) {
+        ret = 'text-green-400';
+      } else {
+        ret = 'text-red-400';
+      }
+
+    } else {
+      if (item > 0) {
+        ret = 'text-red-400';
+      } else {
+        ret = 'text-green-400';
+      }
+    }
     return ret;
-  }
-  if (props.asset) {
-    if (item > 0) {
-      ret = 'text-green-400';
-    } else {
-      ret = 'text-red-400';
-    }
-
-  } else {
-    if (item > 0) {
-      ret = 'text-red-400';
-    } else {
-      ret = 'text-green-400';
-    }
-  }
-  return ret;
-};
-
+  };
 </script>
 
 <template>
-  <table class="min-w-full ">
+  <table class="min-w-full table-auto">
     <thead>
       <tr>
         <template v-for="{ key, label } in fields" :key="key">
@@ -51,7 +58,7 @@ const textColor = (item, highlight) => {
         <td v-for="{ key, label, highlight, has_url } in fields"
           :key="key"
           :class="textColor(item[key], highlight)"
-          class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+          class="px-6 py-4 text-sm font-medium"
         >
           <slot :name="`cell(${key})`" :value="item[key]" :item="item">
             {{ item[key] }}

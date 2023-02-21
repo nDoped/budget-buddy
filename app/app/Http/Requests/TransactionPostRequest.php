@@ -97,9 +97,11 @@ class TransactionPostRequest extends FormRequest
             }
             break;
         }
+        /*
         Log::info([
           'app/Http/Requests/TransactionPostRequest.php:101 rules' => $ret,
         ]);
+         */
         return $ret;
     }
 }

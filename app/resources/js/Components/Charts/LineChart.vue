@@ -40,4 +40,3 @@
     :options="chartOptions"
   />
 </template>
-

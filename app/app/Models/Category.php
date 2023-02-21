@@ -15,5 +15,4 @@ class Category extends Model
     {
         return $this->belongsToMany(Transaction::class);
     }
-
 }

@@ -12,10 +12,12 @@ const props = defineProps({
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
           <Welcome
-            :assets="data.asset_accounts"
-            :debts="data.debt_accounts"
-            :start="data.start"
-            :end="data.end"
+            :assets="props.data.asset_accounts"
+            :debts="props.data.debt_accounts"
+            :totalEconomicGrowth="props.data.total_economic_growth"
+            :categorizedExpenses="props.data.category_totals"
+            :start="props.data.start"
+            :end="props.data.end"
           />
         </div>
       </div>

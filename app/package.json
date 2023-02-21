@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "chart.js": "^4.2.1",
+        "chartjs-plugin-datalabels": "^2.2.0",
         "fast-sort": "^3.2.1",
         "vue-chartjs": "^5.2.0"
     }

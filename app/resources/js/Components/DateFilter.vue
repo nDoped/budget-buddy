@@ -77,24 +77,26 @@ watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => 
 </script>
 
 <template>
-  <div class="m-2">
-    <InputLabel for="transaction_start_date" value="Start Date" class="text-white"/>
-    <InputDate id="transactions_start_date" v-model="transStart" />
+  <div class="grid grid-cols-3 place-items-start">
+    <div class="m-2">
+      <InputLabel for="transaction_start_date" value="Start Date" class="text-white"/>
+      <InputDate id="transactions_start_date" v-model="transStart" />
+    </div>
 
-    <span class="mt-1">
+    <div class="m-2">
       <InputLabel for="transaction_end_date" value="End Date" class="text-white"/>
       <InputDate id="transactions_start_date" v-model="transEnd" />
-    </span>
-  </div>
+    </div>
 
-  <div class="m-1">
-    <button
-      :class="{ 'opacity-25': processing }"
-      :disabled="processing"
-      class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
-      @click="filter"
-    >
-      <slot />
-    </button>
+    <div class="m-2">
+      <button
+        :class="{ 'opacity-25': processing }"
+        :disabled="processing"
+        class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
+        @click="filter"
+      >
+        <slot />
+      </button>
+    </div>
   </div>
 </template>
