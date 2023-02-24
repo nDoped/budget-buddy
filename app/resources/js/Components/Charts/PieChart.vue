@@ -7,7 +7,7 @@
     Legend
   } from 'chart.js'
   import { Pie } from 'vue-chartjs'
-  import { pieData, options } from './chartConfig.js'
+  import { pieData, pieChartOptions } from './chartConfig.js'
   import ChartDataLabels from 'chartjs-plugin-datalabels';
 
   ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
@@ -19,7 +19,7 @@
 
     chartOptions: {
       type: Object,
-      default: options
+      default: pieChartOptions
     }
   });
 

@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->string('hex_color', 7)->nullable()->default('#ff00ff');
+            $table->boolean('include_in_expense_breakdown')->default(true);
         });
     }
 
@@ -25,10 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        if (Schema::hasColumn('categories', 'hex_color')) {
-            Schema::table('categories', function (Blueprint $table) {
-                $table->dropColumn('hex_color');
-            });
-        }
+        Schema::table('categories', function (Blueprint $table) {
+            $table->dropColumn('include_in_expense_breakdown');
+        });
     }
 };

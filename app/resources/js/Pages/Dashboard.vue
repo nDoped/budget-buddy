@@ -16,6 +16,7 @@ const props = defineProps({
             :debts="props.data.debt_accounts"
             :totalEconomicGrowth="props.data.total_economic_growth"
             :categorizedExpenses="props.data.category_totals"
+            :accountGrowthLineData="props.data.account_growth_line_data"
             :start="props.data.start"
             :end="props.data.end"
           />

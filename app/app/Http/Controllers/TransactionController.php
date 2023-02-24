@@ -73,7 +73,13 @@ class TransactionController extends Controller
             }
         }
 
-        $data = Transaction::fetch_transaction_data_for_current_user($start, $end, false);
+        $args = [
+            'start' => $start,
+            'end' => $end,
+            'jsonify_categories' => true,
+            'include_to_range' => false
+        ];
+        $data = Transaction::fetch_transaction_data_for_current_user($args);
         $data['start'] = $start;
         $data['end'] = $end;
         $current_user = Auth::user();
@@ -113,6 +119,7 @@ class TransactionController extends Controller
     public function store(TransactionPostRequest $request)
     {
         $data = $request->validated();
+        $current_user = Auth::user();
         $trans = new Transaction();
         $trans->amount = $data['amount'] * 100;
         $trans->credit = $data['credit'];
@@ -132,7 +139,11 @@ class TransactionController extends Controller
             $duration = ($data['frequency'] === 'monthly') ? 'P1M' : 'P14D';
             $d = new \DateTime($data['transaction_date']);
             $next_date = $d->add(new \DateInterval($duration));
-            while ($next_date->format(\DateTime::ATOM) <= $data['recurring_end_date']) {
+            Log::info([
+                'app/Http/Controllers/TransactionController.php:135 next' => $next_date->format('Y-m-d'),
+                'app/Http/Controllers/TransactionController.php:135 end' => $data['recurring_end_date']
+            ]);
+            while ($next_date->format('Y-m-d') <= $data['recurring_end_date']) {
                 $recurring_trans = $trans->replicate();
                 $recurring_trans->transaction_date = $next_date->format(\DateTime::ATOM);
                 $recurring_trans->save();
@@ -142,6 +153,9 @@ class TransactionController extends Controller
                     $recurring_buddy->save();
                 }
                 $next_date = $next_date->add(new \DateInterval($duration));
+                Log::info([
+                    'app/Http/Controllers/TransactionController.php:135 next' => $next_date->format(\DateTime::ATOM),
+                ]);
             }
         }
 
@@ -152,9 +166,10 @@ class TransactionController extends Controller
                 if (! $cat_model) {
                     $cat_model = new Category();
                     $cat_model->name = $cat;
+                    $cat_model->user_id = $current_user->id;
                     $cat_model->save();
                 }
-                $trans->categories()->save($cat_model, [ 'percentage' => $percent ]);
+                $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
             }
         }
 
@@ -197,7 +212,7 @@ class TransactionController extends Controller
     {
         $data = $request->validated();
         Log::info([
-            'app/Http/Controllers/TransactionController.php:194 data' => $data,
+            'app/Http/Controllers/TransactionController.php:194 trans id' => $transaction->id,
         ]);
         $transaction->amount = $data['amount'] * 100;
         $transaction->note = $data['note'];

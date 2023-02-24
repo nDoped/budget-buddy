@@ -5,11 +5,24 @@
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
+  import { toast } from 'vue3-toastify';
+  import 'vue3-toastify/dist/index.css';
 
   function submit() {
     form.post(route('transactions.store'), {
       preserveScroll: true,
-      onSuccess: () => form.reset(),
+      onSuccess: () => {
+        form.reset();
+        toast.success('Transaction Created!');
+      },
+
+      onError: (err) =>  {
+        console.error(err.message);
+        catBeingDeleted.value = null;
+        toast.error(err.message, {
+          autoClose: false,
+        });
+      }
     });
   }
 

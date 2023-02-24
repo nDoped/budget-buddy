@@ -25,8 +25,24 @@ class Transaction extends Model
         return $this->belongsToMany(Category::class)->withPivot('percentage');
     }
 
-    public static function fetch_transaction_data_for_current_user(string $start = null, string $end = null, bool $return_to_range = true) : array
+    /**
+     * Takes arg array of the type
+     *  $args = [
+     *      'start' => bool,
+     *      'end' => bool,
+     *      'jsonify_categories' => bool,
+     *      'include_to_range' => bool,
+     *      'filter_for_expense_breakdown' => bool,
+     *  ];
+     * @array $args
+     * return array
+     */
+    public static function fetch_transaction_data_for_current_user(array $args) : array
     {
+        $start = isset($args['start']) ? $args['start'] : null;
+        $end = isset($args['end']) ? $args['end'] : null;
+        $return_to_range = isset($args['include_to_range']) ? $args['include_to_range'] : null;
+        $jsonify_categories = isset($args['jsonify_categories']) ? $args['jsonify_categories'] : null;
         $data = [
             'transactions_in_range' => [],
         ];
@@ -78,31 +94,41 @@ class Transaction extends Model
         }
 
         $cat_totals = [];
+                Log::info([
+                    'app/Models/Transaction.php:106 key' => $args,
+                ]);
         foreach ($transactions_in_range->get() as $trans) {
             $acct = $trans->account;
             $type = AccountType::find($acct->type_id);
             $categories = [];
+            /*
+            Log::info([
+                'app/Models/Transaction.php:102 transId' => $args
+            ]);
+             */
             foreach ($trans->categories as $cat) {
-                // @todo, remove this after the category UI is built out
-                $reg = '/^Utility.*$|^Recurring.*$|^Rent$|^Interest.*$|^Security Deposit.*$|Salary.*|Account Adjustment|^Interest.*$|^Refund.*$/';
-                if (preg_match($reg, $cat->name)) {
-                    continue;
+                if ($cat->id ===6) {
+                    Log::info([
+                        'app/Models/Transaction.php:106 cat include in' => $cat->include_in_expense_breakdown,
+                        'app/Models/Transaction.php:106 trans id' => $trans->id,
+                        'app/Models/Transaction.php:106 trans amount' => $trans->amount,
+                    ]);
                 }
+
+                if (isset($args['filter_for_expense_breakdown']) && $args['filter_for_expense_breakdown']) {
+                    if (! $cat->include_in_expense_breakdown) {
+                        continue;
+                    }
+                }
+
                 $percent = $cat->pivot->percentage;
                 // ..idk..i guess i wanted percentages to be extremely precise...
                 // they're storeed as 10e4 in the db, so divide by
                 // 10000 to get its numerical value
                 $cat_value = $trans->amount *  ($percent / 10000);
 
-                /*
-                if ($cat->name === "Coffee") {
-                Log::info([
-                    'app/Models/Transaction.php:96 key' => $cat_value,
-                ]);
-                }
-                 */
                 if (isset($cat_totals[$cat->id])) {
-                    $cat_totals[$cat->id]['value'] =+ $cat_value;
+                    $cat_totals[$cat->id]['value'] += $cat_value;
 
                 } else {
                     $cat_totals[$cat->id] = [
@@ -111,15 +137,27 @@ class Transaction extends Model
                         'color' => $cat->hex_color
                     ];
                 }
-                $categories[] =  [
-                    'name' => $cat->name,
-                    'color' => $cat->hex_color,
-                    'percent' => $percent / 100,
-                    'value' => $cat_value / 100
-                ];
+
+                if ($jsonify_categories) {
+                    $categories[$cat->name] =  $percent / 100;
+
+                } else {
+                    $categories[] =  [
+                        'name' => $cat->name,
+                        'color' => $cat->hex_color,
+                        'percent' => $percent / 100,
+                        'value' => $cat_value / 100
+                    ];
+
+                }
             }
 
-
+            if ($jsonify_categories) {
+                Log::info([
+                    'app/Models/Transaction.php:142 los gatos' => $categories,
+                ]);
+                $categores = json_encode($categories);
+            }
 
             $data['transactions_in_range'][] = [
                 'amount_raw' => $trans->amount,
@@ -145,9 +183,6 @@ class Transaction extends Model
             $cat_data['value'] = $cat_data['value'] / 100;
         }
 
-        Log::info([
-            'app/Models/Transaction.php:96 cattos' => count($cat_totals),
-        ]);
         /*
             Log::info([
                 'app/Models/Transaction.php:59 trans' => $data['transactions_in_range'],

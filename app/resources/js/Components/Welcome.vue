@@ -1,6 +1,6 @@
 <script setup>
   import { useForm } from '@inertiajs/vue3'
-  import { watch, ref, onMounted, shallowRef } from 'vue';
+  import { inject, watch, ref, onMounted, shallowRef } from 'vue';
   import InputDate from '@/Components/InputDate.vue';
   import InputLabel from '@/Components/InputLabel.vue';
   import DateFilter from '@/Components/DateFilter.vue';
@@ -8,11 +8,13 @@
   import BarChart from '@/Components/Charts/BarChart.vue';
   import LineChart from '@/Components/Charts/LineChart.vue';
   import PieChart from '@/Components/Charts/PieChart.vue';
+  const formatter = inject('formatter');
 
   let props = defineProps({
     assets: Object,
     debts: Object,
     categorizedExpenses: Object,
+    accountGrowthLineData: Object,
     totalEconomicGrowth: Number,
     start: String,
     end: String
@@ -20,12 +22,13 @@
 
   const tableConfig = ref({
     'has_totals_row': true,
+    'format_values': true,
   });
   const tableFields = ref([
-    { key: 'name', label: 'Name', highlight:false, has_url:true },
-    { key: 'start_balance', label: 'Start Balance', highlight: true },
-    { key: 'in_range_net_growth', label: 'Net Growth', highlight: true },
-    { key: 'end_balance', label: 'End Balance', highlight: true }
+    { key: 'name', label: 'Name', highlight:false, has_url:true, format: false },
+    { key: 'start_balance', label: 'Start Balance', highlight: true, has_url: false, format:true },
+    { key: 'in_range_net_growth', label: 'Net Growth', highlight: true, has_url: false, format:true },
+    { key: 'end_balance', label: 'End Balance', highlight: true, has_url: false, format:true }
   ]);
   const filterTransactionsForm = useForm({});
   const crunchIt = (data) => {
@@ -43,20 +46,51 @@
       }
     ],
   };
-  const chartData = ref(structuredClone(defaultChartStruct));
+
+  const sortObj = (obj) => {
+    return Object.keys(obj).sort().reduce(function (result, key) {
+      result[key] = obj[key];
+      return result;
+    }, {});
+  };
+
+  const pieChartData = ref(structuredClone(defaultChartStruct));
   watch(() => props.categorizedExpenses, (newCats) => {
-    chartData.value = structuredClone(defaultChartStruct);
-    for (let id in props.categorizedExpenses) {
-      chartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      chartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      chartData.value.labels.push(props.categorizedExpenses[id].name);
+    pieChartData.value = structuredClone(defaultChartStruct);
+    for (let id in sortObj(props.categorizedExpenses)) {
+      pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
+      pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
+      pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
   });
+
+  const lineChartData = ref(structuredClone(defaultChartStruct));
+  watch(() => props.accountGrowthLineData, (newData) => {
+    lineChartData.value = structuredClone(defaultChartStruct);
+    for (let id in props.accountGrowthLineData) {
+      console.log(id);
+      console.log(props.accountGrowthLineData[id]);
+      /*
+      lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
+      lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
+      lineChartData.value.labels.push(props.categorizedExpenses[id].name);
+       */
+    }
+  });
+
   onMounted(() => {
-    for (let id in props.categorizedExpenses) {
-      chartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      chartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      chartData.value.labels.push(props.categorizedExpenses[id].name);
+    for (let id in sortObj(props.categorizedExpenses)) {
+      pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
+      pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
+      pieChartData.value.labels.push(props.categorizedExpenses[id].name);
+    }
+
+    for (let id in sortObj(props.accountGrowthLineData)) {
+      /*
+      lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
+      lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
+      lineChartData.value.labels.push(props.categorizedExpenses[id].name);
+       */
     }
   });
 </script>
@@ -79,17 +113,17 @@
 
   <div class="chart-wrapper bg-slate-700 bg-opacity-75 h-[32rem]">
     <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2 md:grid-cols-2">
-      <div class="chart-wrapper">
-        <PieChart :chartData="chartData" />
+      <div class="m-5">
+        <PieChart :chartData="pieChartData" />
       </div>
-      <div class="chart-wrapper">
-        <BarChart />
+      <div class="m-5">
+        <LineChart :chartData="lineChartData"/>
       </div>
     </div>
   </div>
 
   <div class="p-6">
-    <h1> Total Economic Growth: {{ totalEconomicGrowth }} </h1>
+    <h1> Total Economic Growth: {{ formatter.format(totalEconomicGrowth) }} </h1>
   </div>
   <div class="bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2">
     <div class="p-6">

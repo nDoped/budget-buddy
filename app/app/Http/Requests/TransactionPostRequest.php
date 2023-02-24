@@ -19,9 +19,6 @@ class TransactionPostRequest extends FormRequest
     public function authorize()
     {
         $trans = $this->route('transaction');
-        Log::info([
-          'app/Http/Requests/TransactionPostRequest.php:21 trans type' => gettype($trans)
-        ]);
         if ($trans && ! $trans instanceof Transaction) {
             $trans = Transaction::findOrFail($trans);
         }
@@ -44,10 +41,12 @@ class TransactionPostRequest extends FormRequest
     {
         $ret = [];
         $route_name = Route::currentRouteName();
+        /*
         Log::info([
           'app/Http/Requests/TransactionPostRequest.php:48 request' => $request->all(),
           'app/Http/Requests/TransactionPostRequest.php:48 route' => $route_name
         ]);
+         */
         switch ($route_name) {
         case 'transactions.destroy':
             $ret = [

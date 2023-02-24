@@ -26,7 +26,14 @@ class DashboardController extends Controller
             $start = $end = null;
         }
 
-        $trans_data = Transaction::fetch_transaction_data_for_current_user($start, $end);
+        $args = [
+            'start' => $start,
+            'end' => $end,
+            'jsonify_categories' => false,
+            'include_to_range' => true,
+            'filter_for_expense_breakdown' => true
+        ];
+        $trans_data = Transaction::fetch_transaction_data_for_current_user($args);
         $account_data = $this->_fetch_account_data($start, $end);
 
         foreach ($trans_data['transactions_to_range'] as $trans) {
@@ -47,25 +54,71 @@ class DashboardController extends Controller
             }
         }
 
+
+        // todo, fix this
+        $account_growth_line_data = [
+            'daily_asset_growth' => [],
+            'total_asset_growth' => [],
+            'daily_debt_growth' => [],
+            'total_debt_growth' => [],
+            'total_economic_growth' => [],
+        ];
         foreach ($trans_data['transactions_in_range'] as $trans) {
             /*
             Log::info([
                 'app/Http/Controllers/DashboardController.php:51 key' => $trans,
             ]);
              */
+
             $acct = $account_data[$trans['account_id']];
+            // if this is a credit
             if ($trans['asset']) {
+                // to an asset account
                 if ($acct['asset']) {
+                    // accounts for asset growth
                     $account_data[$trans['account_id']]['in_range_net_growth'] += $trans['amount_raw'];
+                    if (isset($account_growth_line_data['daily_asset_growth'][$trans['transaction_date']])) {
+                        $account_growth_line_data['daily_asset_growth'][$trans['transaction_date']] += $trans['amount_raw'];
+
+                    } else {
+                        $account_growth_line_data['daily_asset_growth'][$trans['transaction_date']] = $trans['amount_raw'];
+                    }
+
+                // to a debt account
                 } else {
                     $account_data[$trans['account_id']]['in_range_net_growth'] -= $trans['amount_raw'];
+                    // accounts for negative debt growth
+                    if (isset($account_growth_line_data['daily_debt_growth'][$trans['transaction_date']])) {
+                        $account_growth_line_data['daily_debt_growth'][$trans['transaction_date']] -= $trans['amount_raw'];
+
+                    } else {
+                        $account_growth_line_data['daily_debt_growth'][$trans['transaction_date']] = -$trans['amount_raw'];
+                    }
                 }
 
+            // else this is a debit
             } else {
+                // to an asset account
                 if ($acct['asset']) {
                     $account_data[$trans['account_id']]['in_range_net_growth'] -= $trans['amount_raw'];
+                    // accounts for asset shrinkage
+                    if (isset($account_growth_line_data['daily_asset_growth'][$trans['transaction_date']])) {
+                        $account_growth_line_data['daily_asset_growth'][$trans['transaction_date']] -= $trans['amount_raw'];
+
+                    } else {
+                        $account_growth_line_data['daily_asset_growth'][$trans['transaction_date']] = -$trans['amount_raw'];
+                    }
+
+                // else it's a debit to a debt account
                 } else {
                     $account_data[$trans['account_id']]['in_range_net_growth'] += $trans['amount_raw'];
+                    // accounts for debt growth
+                    if (isset($account_growth_line_data['daily_debt_growth'][$trans['transaction_date']])) {
+                        $account_growth_line_data['daily_debt_growth'][$trans['transaction_date']] += $trans['amount_raw'];
+
+                    } else {
+                        $account_growth_line_data['daily_debt_growth'][$trans['transaction_date']] = $trans['amount_raw'];
+                    }
                 }
             }
         }
@@ -125,10 +178,12 @@ class DashboardController extends Controller
         $data['total_economic_growth'] = $total_eco_growth;
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;
-
+        $data['account_growth_line_data'] = $account_growth_line_data;
+        /*
         Log::info([
             'app/Http/Controllers/DashboardController.php:51 catcount' => count($trans_data['category_totals']),
         ]);
+         */
         return Inertia::render('Dashboard', [
             'data' => $data
         ]);

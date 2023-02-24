@@ -23,6 +23,56 @@ class ImportData extends Command
      * @var string
      */
     protected $description = 'Command description';
+    private $cat_colors = [
+        'Account Adjustment' => '#ff00ff',
+        'AdEnt' => '#5c08a1',
+        'Books' => '#ff5900',
+        'Booze' => '#a26107',
+        'CategoryName' => '#ff00ff',
+        'Coffee' => '#462306',
+        'EVE' => '#ff00ff',
+        'Gas' => '#6c6a6c',
+        'Gifts' => '#12af25',
+        'Groceries:Bread' => '#ffffff',
+        'Groceries:Butter' => '#ffffff',
+        'Groceries:Cheese' => '#ffffff',
+        'Groceries:Chips/Snacks' => '#ffffff',
+        'Groceries:Condiments' => '#ffffff',
+        'Groceries:Flour' => '#ffffff',
+        'Groceries:Fruits/Vegetables' => '#ffffff',
+        'Groceries:Generic' => '#ffffff',
+        'Groceries:Meat' => '#ffffff',
+        'Groceries:Milk/Creme' => '#ffffff',
+        'Groceries:Nut Butter' => '#ffffff',
+        'Groceries:Salt/Pepper' => '#ffffff',
+        'Hunting' => '#2c6912',
+        'Interest:Accrued' => '#ff00ff',
+        'Interest:Earned' => '#ff00ff',
+        'Isopropyl' => '#ff0000',
+        'Moving' => '#876212',
+        'Puzzles' => '#00eeff',
+        'Recurring:Credit Autopay' => '#ff00ff',
+        'Recurring:Insurance' => '#ff00ff',
+        'Recurring:Loan' => '#ff00ff',
+        'Recurring:Service' => '#ff00ff',
+        'Recurring:Utility' => '#ff00ff',
+        'Red Tent' => '#ff00ff',
+        'Refund' => '#ff00ff',
+        'Rent' => '#ff5900',
+        'Restaurant' => '#6da6ca',
+        'Salary:DC' => '#ff00ff',
+        'Salary:Main' => '#ff00ff',
+        'Salary:WF' => '#ff00ff',
+        'savannah\'s bday...' => '#ff00ff',
+        'Security Deposit: Outgoing' => '#ff00ff',
+        'Tools' => '#00ffd5',
+        'Utility:Electric' => '#ff00ff',
+        'Utility:Gas' => '#ff00ff',
+        'Utility:Internet' => '#b67cb6',
+        'Utility:Sewer' => '#ff00ff',
+        'Utility:Water' => '#ff00ff',
+        'Vitamins & Minerals' => '#3389e6',
+    ];
 
     /**
      * Execute the console command.
@@ -86,6 +136,13 @@ class ImportData extends Command
                     if (! $cat_model) {
                         $cat_model = new Category();
                         $cat_model->name = $cat;
+                        if (preg_match('/^Utility.*$|^Recurring.*$|^Rent$|^Interest.*$|^Security Deposit.*$|^Salary.*|Account Adjustment|^Interest.*$|^Refund.*$/', $cat)) {
+                            $cat_model->include_in_expense_breakdown = false;
+                        }
+                        $cat_model->user_id = $user_id;
+                        if (isset($this->cat_colors[$cat_model->name])) {
+                            $cat_model->hex_color = $this->cat_colors[$cat_model->name];
+                        }
                         $cat_model->save();
                     }
                     $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);

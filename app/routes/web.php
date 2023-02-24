@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 
 /*
@@ -39,8 +40,11 @@ Route::middleware([
     Route::post('/transactions/store', [ TransactionController::class, 'store' ])->name('transactions.store');
     Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transactions.update');
     Route::delete('/transactions/destroy/{id}', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
+    Route::post('/categories/update/{category}', [ CategoryController::class, 'update' ])->name('categories.update');
+    Route::delete('/categories/destroy/{id}', [ CategoryController::class, 'destroy' ])->name('categories.destroy');
 
     Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.show');
     Route::post('/settings/store_account', [ SettingsController::class, 'store_account' ])->name('accounts.store');
     Route::post('/settings/store_account_type', [ SettingsController::class, 'store_account_type' ])->name('account_types.store');
+    Route::get('/settings/categories', [ SettingsController::class, 'categories' ])->name('settings.categories');
 });

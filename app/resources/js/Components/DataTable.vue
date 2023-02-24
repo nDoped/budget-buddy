@@ -1,5 +1,6 @@
 <script setup>
-  import { ref } from 'vue';
+  import { inject, ref } from 'vue';
+  const formatter = inject('formatter');
   let props = defineProps({
     fields: Object,
     // @todo, do something with this..first step adding css to totals rows
@@ -55,13 +56,13 @@
 
     <tbody>
       <tr v-for="item in items" :key="item.uuid" :class="{ 'bg-slate-900':true, 'border-b': true }">
-        <td v-for="{ key, label, highlight, has_url } in fields"
+        <td v-for="{ key, label, highlight, has_url, format } in fields"
           :key="key"
           :class="textColor(item[key], highlight)"
           class="px-6 py-4 text-sm font-medium"
         >
           <slot :name="`cell(${key})`" :value="item[key]" :item="item">
-            {{ item[key] }}
+            {{ (format) ? formatter.format(item[key]) : item[key] }}
 
             <a v-if="has_url && item['url']" :href="item['url']" target="_blank" class="ml-1">
               <svg fill="#000000"

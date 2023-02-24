@@ -9,6 +9,8 @@
   import DangerButton from '@/Components/DangerButton.vue';
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
+  import { toast } from 'vue3-toastify';
+  import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['success']);
 
@@ -20,6 +22,7 @@
     form.note = props.transaction.note;
     deleteTransactionForm.id = props.transaction.id;
     form.bank_identifier = props.transaction.bank_identifier;
+    form.categories = props.transaction.categories;
   });
 
   let props = defineProps({
@@ -33,8 +36,9 @@
     transBeingDeleted.value = props.transaction.id;
   };
 
-  const success = () => {
+  const success = (created) => {
     transBeingDeleted.value = null;
+    toast.success((created) ? 'Transaction Updated!' : 'Transaction Deleted!');
     emit('success');
   };
 
@@ -44,8 +48,14 @@
   const deleteTransaction = () => {
       deleteTransactionForm.delete(route('transactions.destroy', {id: transBeingDeleted.value}), {
         preserveScroll: true,
-        onSuccess: () => success(),
-        onError: (err) =>  console.error(err)
+        onSuccess: () => success(false),
+        onError: (err) =>  {
+          console.error(err.message)
+          transBeingDeleted.value = null;
+          toast.error(err.message, {
+            autoClose: false,
+          });
+        }
       });
   }
 
@@ -61,7 +71,7 @@
   function submit() {
     form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
-      onSuccess: () => success(),
+      onSuccess: () => success(true),
       onError: (err) =>  console.error(err)
     });
   }
@@ -138,6 +148,19 @@
                 </option>
               </select>
               <InputError :message="form.errors.account" class="mt-2" />
+            </div>
+
+            <div class="m-4 w-full">
+              <InputLabel for="categories" value="Categories" />
+              <TextInput
+                  id="note"
+                  v-model="form.categories"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autofocus
+                  autocomplete="note"
+              />
+              <InputError :message="form.errors.categories" class="mt-2" />
             </div>
 
             <div class="m-4 w-full">

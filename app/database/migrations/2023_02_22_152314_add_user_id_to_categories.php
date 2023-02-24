@@ -14,7 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->string('hex_color', 7)->nullable()->default('#ff00ff');
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
         });
     }
 
@@ -25,10 +28,9 @@ return new class extends Migration
      */
     public function down()
     {
-        if (Schema::hasColumn('categories', 'hex_color')) {
-            Schema::table('categories', function (Blueprint $table) {
-                $table->dropColumn('hex_color');
-            });
-        }
+        Schema::table('categories', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
+            $table->dropColumn('user_id');
+        });
     }
 };

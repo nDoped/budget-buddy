@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use App\Models\Account;
 use App\Models\AccountType;
 use App\Models\User;
+use App\Models\Category;
 
 class SettingsController extends Controller
 {
@@ -26,6 +27,38 @@ class SettingsController extends Controller
             'data' => $data
         ]);
     }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function categories(Request $request)
+    {
+
+        Log::info([
+            'app/Http/Controllers/SettingsController.php:38 request' => $request->all(),
+        ]);
+        $cats = [];
+        $current_user = Auth::user();
+        $cat_itty = Category::where('user_id', '=', $current_user->id)
+            ->orderBy('name')
+            ->get();
+        foreach ($cat_itty as $cat) {
+            $cats[] = [
+                'name' => $cat->name,
+                'id' => $cat->id,
+                'include_in_expense_breakdown' => $cat->include_in_expense_breakdown,
+                'include_in_expense_breakdown_text' => ($cat->include_in_expense_breakdown) ? "Yes" : "No",
+                'color' => $cat->hex_color,
+            ];
+
+        }
+        return Inertia::render('Settings/Categories', [
+            'categories' => $cats
+        ]);
+    }
+
 
     /**
      * @return array

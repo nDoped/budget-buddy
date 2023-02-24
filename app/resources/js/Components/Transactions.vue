@@ -1,5 +1,5 @@
 <script setup>
-  import { computed, reactive, watch, ref, onMounted, onBeforeUpdate } from 'vue';
+  import { inject, computed, reactive, watch, ref, onMounted, onBeforeUpdate } from 'vue';
   import { Link } from '@inertiajs/vue3';
   import { sort } from 'fast-sort'
   import { useForm } from '@inertiajs/vue3'
@@ -8,6 +8,7 @@
   import DateFilter from '@/Components/DateFilter.vue';
   const sortBy = ref(null);
   const sortDesc = ref(null);
+  const formatter = inject('formatter');
 
   let props = defineProps({
     transactions: Array,
@@ -32,8 +33,9 @@
     { key: 'id', label: 'ID', sortable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
-    { key: 'amount', label: 'Amount', sortable:true, color_text:true },
+    { key: 'amount', label: 'Amount', sortable:true, color_text:true, format:true },
     { key: 'account', label: 'Account', sortable:true, color_text:false },
+    { key: 'categories', label: 'Categories', sortable:true, color_text:false, stringify:true },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
     { key: 'bank_identifier', label: 'Bank Identifier', sortable:false, color_text:false },
     { key: 'note', label: 'Note', sortable:false, color_text:false },
@@ -208,7 +210,7 @@
                     }"
                   >
                     <td
-                      v-for="{ key, label, sortable, color_text } in fields"
+                      v-for="{ key, label, sortable, color_text, format, stringify } in fields"
                       :key="key"
                       class="text-center px-2 py-1 text-md font-medium"
                       :class="{
@@ -218,7 +220,7 @@
                       }"
                     >
                       <slot :name="`cell(${key})`" :value="item[key]" :item="item">
-                        {{ item[key] }}
+                        {{ (format) ? formatter.format(item[key]) : (stringify) ? JSON.stringify(item[key]) : item[key] }}
                       </slot>
                     </td>
                   </tr>

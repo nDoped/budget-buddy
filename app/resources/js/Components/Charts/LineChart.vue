@@ -10,7 +10,7 @@
     Legend
   } from 'chart.js'
   import { Line } from 'vue-chartjs'
-  import * as chartConfig from './chartConfig.js'
+  import { data, lineChartOptions } from './chartConfig.js'
 
   ChartJS.register(
     CategoryScale,
@@ -24,12 +24,12 @@
   let props = defineProps({
     chartData: {
       type: Object,
-      default: chartConfig.data
+      default: data
     },
 
     chartOptions: {
       type: Object,
-      default: chartConfig.options
+      default: lineChartOptions
     }
   });
 </script>

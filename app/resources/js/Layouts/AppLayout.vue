@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { provide, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
@@ -12,6 +12,11 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 defineProps({
     title: String,
 });
+const formatter = Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD'
+});
+provide('formatter', formatter);
 
 const showingNavigationDropdown = ref(false);
 
@@ -227,7 +232,7 @@ const logout = () => {
               Profile
             </ResponsiveNavLink>
 
-            <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
+            <ResponsiveNavLink :href="route('settings.show')" :active="route().current('settings.show')">
               Settings
             </ResponsiveNavLink>
 
