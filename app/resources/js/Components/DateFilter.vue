@@ -77,7 +77,7 @@ watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => 
 </script>
 
 <template>
-  <div class="grid grid-cols-3 place-items-start">
+  <div class="flex flex-row">
     <div class="m-2">
       <InputLabel for="transaction_start_date" value="Start Date" class="text-white"/>
       <InputDate id="transactions_start_date" v-model="transStart" />
@@ -88,7 +88,7 @@ watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => 
       <InputDate id="transactions_start_date" v-model="transEnd" />
     </div>
 
-    <div class="m-2">
+    <div class="m-2 mt-7">
       <button
         :class="{ 'opacity-25': processing }"
         :disabled="processing"

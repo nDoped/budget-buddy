@@ -28,7 +28,6 @@ defineExpose({ focus: () => input.value.focus() });
       @input="$emit('update:modelValue', $event.target.value)"
     >
     <button
-      style="display:inline"
       class="text-rose-700 ml-2 focus:ring-4 focus:outline-none font-small rounded-sm text-sm w-full sm:w-auto px-1 py-1 text-center "
       @click="$emit('update:modelValue', '')"
     >

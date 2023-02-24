@@ -152,6 +152,7 @@
 
             <div class="m-4 w-full">
               <InputLabel for="categories" value="Categories" />
+              <!--
               <TextInput
                   id="note"
                   v-model="form.categories"
@@ -160,6 +161,7 @@
                   autofocus
                   autocomplete="note"
               />
+              -->
               <InputError :message="form.errors.categories" class="mt-2" />
             </div>
 

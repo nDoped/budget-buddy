@@ -6,7 +6,8 @@
   const sortBy = ref(null);
   const sortDesc = ref(null);
   const props = defineProps({
-    items: Array
+    items: Array,
+    fields: Object
   });
   const sortedItems = computed(() => {
     const { items } = props;
@@ -19,48 +20,28 @@
     }
   });
 
-  const tableDataCss = (item, color_bg) => {
-    console.log(item);
-    console.log(color_bg);
-    let ret = (color_bg) ? `backgroundColor: 'bg-[${item['color']}]'` : '';
-    //ret = (color_bg) ? `bg-[${item['color']}]` : '';
-
-    console.log(ret);
-    return ret;
-  };
-
+  const fieldCount = ref(Object.keys(props.fields).length);
+  const maxThWidthClass = computed(() => `max-w-[${1 / fieldCount}]`);
 
   const tableRowCss = (item, i) => {
-    return 'border-b';
+    return 'border-t';
   };
 
-  const showHideRow = (trans, i) => {
-    let hiddenRow = document.getElementById(`hidden_row_${i}`);
-    let visibleRow = tableRowRefs.value[i];
-    let nextVisibleRow = tableRowRefs.value[i + 1];
-    let hiddenRowClasses = [
-      "open_row",
-    ];
+  const showHideRow = (item, i) => {
+    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
+    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
+    /*
+    let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
+    let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
+     */
     if (hiddenRow.classList.contains("hidden")) {
-      document.getElementById(`hidden_row_${i}`).classList.remove("hidden");
-      visibleRow.classList.remove("border-b");
-      if (nextVisibleRow) {
-        nextVisibleRow.classList.add("border-t");
-      }
-      /**
-       * Force a browser re-paint so the browser will realize the
-       * element is no longer `hidden` and allow transitions.
-       */
+      hiddenRow.classList.remove("hidden");
+      // Force a browser re-paint so the browser will realize the
+      // element is no longer `hidden` and allow transitions.
       const reflow = hiddenRow.offsetHeight;
-
-      hiddenRow.classList.add(...hiddenRowClasses);
     } else {
       const reflow = hiddenRow.offsetHeight;
       hiddenRow.classList.add("hidden");
-      visibleRow.classList.add("border-b");
-      if (nextVisibleRow) {
-        nextVisibleRow.classList.remove("border-t");
-      }
     }
   };
 
@@ -100,63 +81,107 @@
   onBeforeUpdate(() => {
     tableRowRefs.value = []
   });
-  const fields = ref([
-    { key: 'id', label: 'ID', sortable: true },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'include_in_expense_breakdown_text', label: 'Show in expense breakdown chart?', sortable: true },
-    { key: 'color', label: 'Color', sortable: true, color_bg:true },
-  ]);
 </script>
 
 
 <template>
-  <table class="min-w-full table-auto">
-    <thead>
-      <tr>
-        <template v-for="{ key, label, sortable } in fields" :key="key">
-          <th v-if="sortable" @click="setSort(key)" class="sortable">
-            {{ label }}
-            <template v-if="sortBy === key">
-              <span v-if="sortDesc === true">↑</span>
-              <span v-else-if="sortDesc === false">↓</span>
-            </template>
-          </th>
+  <div>
+    <div v-if="items.length > 0" class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div v-if="pagination.totalPages > 1" class="py-2 min-w-full sm:px-6 lg:px-8">
+        <div class="m-1" >
+          Results per page
+          <button class="mx-2" @click="perPage = 5">5</button>
+          <button class="mx-2" @click="perPage = 10">10</button>
+          <button class="mx-2" @click="perPage = 20">20</button>
+          <button class="mx-2" @click="perPage = 50">50</button>
+        </div>
 
-          <th v-else>
-            {{ label }}
-          </th>
-        </template>
-      </tr>
-    </thead>
+        <div class="m-1" style="text-align: right">
+          <div>
+            <button
+              :disabled="pagination.currentPage <= 1"
+              @click="pagination.currentPage--"
+            >
+              &lt;&lt;
+            </button>
+            Page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+            <button
+              :disabled="pagination.currentPage >= pagination.totalPages"
+              @click="pagination.currentPage++"
+            >
+              &gt;&gt;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <tbody>
-      <template v-for="(item, i) in paginatedItems" :key="i">
-        <tr
-          @click="showHideRow(item, i)"
-          :ref="(el) => { tableRowRefs.push(el) }"
-          class="hover:opacity-80 focus:bg-slate-400"
-          :class="tableRowCss(item, i)"
-        >
-          <td
-            v-for="{ key } in fields"
-            :key="key"
-            class="text-center px-2 py-1 text-md font-medium"
-            :style="{ 'backgroundColor': (color_bg) ? item[key] : '' }"
-          >
-            <slot :name="`cell(${key})`" :value="item[key]" :item="item">
-              {{ item[key] }}
-            </slot>
-          </td>
+    <table class="min-w-full table-auto">
+      <thead>
+        <tr>
+          <template v-for="{ key, label, sortable } in fields" :key="key">
+            <th v-if="sortable" @click="setSort(key)" class="sortable" :class="maxThWidthClass">
+              {{ label }}
+              <template v-if="sortBy === key">
+                <span v-if="sortDesc === true">↑</span>
+                <span v-else-if="sortDesc === false">↓</span>
+              </template>
+            </th>
+
+            <th v-else :class="maxThWidthClass">
+              {{ label }}
+            </th>
+          </template>
         </tr>
+      </thead>
 
-        <slot :name="`cell(${key})-hidden`" :value="item[key]">
-          <tr :id="`hidden_row_${i}`" class="hidden">
-            <td colspan="7" >
-              Boo!
+      <tbody>
+        <template v-for="(item, i) in paginatedItems" :key="i">
+          <tr
+            @click="showHideRow(item, i)"
+            :ref="(el) => { tableRowRefs.push(el) }"
+            :id="`visible_row_${i}_${item}`"
+            class="hover:opacity-80 focus:bg-slate-400"
+            :class="tableRowCss(item, i)"
+          >
+            <td
+              v-for="{ key } in fields"
+              :key="key"
+              class="text-center px-2 py-1 text-md font-medium"
+            >
+              <slot name="visible_row" :value="item[key]" :item="item" :key="key">
+                {{ item[key] }}
+              </slot>
             </td>
           </tr>
-        </slot>
-      </template>
-    </tbody>
-  </table>
+
+          <tr :id="`hidden_row_${i}_${item}`" class="hidden">
+            <td :colspan="fieldCount">
+              <slot name="hidden_row" :i="i" :item="item">
+                  Boo!
+              </slot>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
 </template>
+
+<style>
+  th.sortable {
+    cursor: pointer;
+  }
+
+  .text {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+  }
+
+  .open_row {
+    max-height: 1000px;
+    transition: max-height 1s ease-in-out;
+  }
+</style>
+

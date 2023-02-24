@@ -5,207 +5,76 @@
   import AppLayout from '@/Layouts/AppLayout.vue';
   import SectionBorder from '@/Components/SectionBorder.vue';
   import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
+  import ExpandableTable from '@/Components/ExpandableTable.vue';
   import CategoryEditForm from '@/Components/CategoryEditForm.vue';
-  const formatter = inject('formatter');
+  //const formatter = inject('formatter');
 
-  const sortBy = ref(null);
-  const sortDesc = ref(null);
   const props = defineProps({
     categories: Array
   });
-  const sortedItems = computed(() => {
-    const { categories } = props;
-    if (sortDesc.value === null) return categories;
 
-    if (sortDesc.value) {
-      return sort(categories).desc(sortBy.value);
-    } else {
-      return sort(categories).asc(sortBy.value);
-    }
-  });
-
-  const tableDataCss = (item, color_bg) => {
-    console.log(item);
-    console.log(color_bg);
-    let ret = (color_bg) ? `backgroundColor: 'bg-[${item['color']}]'` : '';
-    //ret = (color_bg) ? `bg-[${item['color']}]` : '';
-
-    console.log(ret);
-    return ret;
-  };
-
-
-  const tableRowCss = (item, i) => {
-    return 'border-b';
-    /*
-    return `border-b bg-[${item['color']}]`;
-    */
-  };
-
-  const showHideRow = (trans, i) => {
-    let hiddenRow = document.getElementById(`hidden_row_${i}`);
-    let visibleRow = tableRowRefs.value[i];
-    let nextVisibleRow = tableRowRefs.value[i + 1];
-    let hiddenRowClasses = [
-      "open_row",
-    ];
-    if (hiddenRow.classList.contains("hidden")) {
-      document.getElementById(`hidden_row_${i}`).classList.remove("hidden");
-      visibleRow.classList.remove("border-b");
-      if (nextVisibleRow) {
-        nextVisibleRow.classList.add("border-t");
-      }
-      /**
-       * Force a browser re-paint so the browser will realize the
-       * element is no longer `hidden` and allow transitions.
-       */
-      const reflow = hiddenRow.offsetHeight;
-
-      hiddenRow.classList.add(...hiddenRowClasses);
-    } else {
-      const reflow = hiddenRow.offsetHeight;
-      hiddenRow.classList.add("hidden");
-      visibleRow.classList.add("border-b");
-      if (nextVisibleRow) {
-        nextVisibleRow.classList.remove("border-t");
-      }
-    }
-  };
-
-  const setSort = (key) => {
-    if (sortBy.value === key) {
-      sortDesc.value = ! sortDesc.value;
-    } else {
-      sortBy.value = key;
-      sortDesc.value = false;
-    }
-  };
-
-  const perPage = ref(20);
-  const pagination = reactive({
-    currentPage: 1,
-    perPage: perPage,
-    totalPages: computed(() =>
-      Math.ceil(props.categories.length / pagination.perPage)
-    ),
-  });
-
-  const paginatedItems = computed(() => {
-    const { currentPage, perPage } = pagination;
-    const start = (currentPage - 1) * perPage;
-    const stop = start + perPage;
-
-    return sortedItems.value.slice(start, stop);
-  });
-
-  watch(
-    () => pagination.totalPages,
-    () => (pagination.currentPage = 1)
-  );
-
-  // make sure to reset the refs before each update
-  const tableRowRefs = ref([]);
-  onBeforeUpdate(() => {
-    tableRowRefs.value = []
-  });
   const fields = ref([
     { key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'include_in_expense_breakdown_text', label: 'Show in expense breakdown chart?', sortable: true },
     { key: 'color', label: 'Color', sortable: true, color_bg:true },
   ]);
-</script>
 
+  const showHideRow = (item, i) => {
+    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
+    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
+    /*
+    let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
+    let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
+     */
+    if (hiddenRow.classList.contains("hidden")) {
+      hiddenRow.classList.remove("hidden");
+      // Force a browser re-paint so the browser will realize the
+      // element is no longer `hidden` and allow transitions.
+      const reflow = hiddenRow.offsetHeight;
+    } else {
+      const reflow = hiddenRow.offsetHeight;
+      hiddenRow.classList.add("hidden");
+    }
+
+  };
+  const colorBg = (key, value, item) => {
+    let test = fields.value.find(field => field.key === key );
+    if (test.color_bg) {
+
+      console.log(item);
+      //return "backgroundColor: `#${item.color}`";
+      return true;
+      //return styleObject;
+    }
+    return false;
+  };
+</script>
 
 <template>
   <AppLayout title="Settings - Categories">
     <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
       <SettingsNavMenu />
       <div class="overflow-hidden">
-        <div v-if="categories.length > 0" class="place-self-end overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div class="py-2 min-w-full sm:px-6 lg:px-8">
-            <div class="m-1 overflow-hidden" >
-              Results per page
-              <button class="mx-2" @click="perPage = 5">5</button>
-              <button class="mx-2" @click="perPage = 10">10</button>
-              <button class="mx-2" @click="perPage = 20">20</button>
-              <button class="mx-2" @click="perPage = 50">50</button>
+        <ExpandableTable :items="categories" :fields="fields">
+          <template #visible_row="{ item , value, key }">
+            <div v-if="colorBg(key, value, item)">
+              <span :class="`bg-[${item.color}]`">{{ value }}</span>
             </div>
 
-            <div class="m-1 overflow-hidden" style="text-align: right">
-              <div>
-                <button
-                  :disabled="pagination.currentPage <= 1"
-                  @click="pagination.currentPage--"
-                >
-                  &lt;&lt;
-                </button>
-                Page {{ pagination.currentPage }} of {{ pagination.totalPages }}
-                <button
-                  :disabled="pagination.currentPage >= pagination.totalPages"
-                  @click="pagination.currentPage++"
-                >
-                  &gt;&gt;
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          </template>
 
-        <table class="min-w-full table-auto">
-          <thead>
-            <tr>
-              <template v-for="{ key, label, sortable } in fields" :key="key">
-                <th v-if="sortable" @click="setSort(key)" class="sortable">
-                  {{ label }}
-                  <template v-if="sortBy === key">
-                    <span v-if="sortDesc === true">↑</span>
-                    <span v-else-if="sortDesc === false">↓</span>
-                  </template>
-                </th>
-
-                <th v-else>
-                  {{ label }}
-                </th>
-              </template>
-            </tr>
-          </thead>
-
-          <tbody>
-            <template v-for="(item, i) in paginatedItems" :key="i">
-              <tr
-                @click="showHideRow(item, i)"
-                :ref="(el) => { tableRowRefs.push(el) }"
-                class="hover:opacity-80 focus:bg-slate-400"
-                :class="tableRowCss(item, i)"
-              >
-                <td
-                  v-for="{ key, label, sortable, color_bg, format } in fields"
-                  :key="key"
-                  class="text-center px-2 py-1 text-md font-medium"
-                  :style="{ 'backgroundColor': (color_bg) ? item[key] : '' }"
-                >
-                  <slot :name="`cell(${key})`" :value="item[key]" :item="item">
-                    <!--
-                    {{ (format) ? formatter.format(item[key]) : item[key] }}
-                    -->
-                    {{ item[key] }}
-                  </slot>
-                </td>
-              </tr>
-
-              <tr :id="`hidden_row_${i}`" class="hidden">
-                <td colspan="7" >
-                  <CategoryEditForm
-                    :category="item"
-                    @success="showHideRow(item, i)"
-                  />
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+          <template #hidden_row="{item, i}">
+            <CategoryEditForm
+              :category="item"
+              @success="showHideRow(item, i)"
+            />
+          </template>
+        </ExpandableTable>
       </div>
     </div>
   </AppLayout>
 </template>
+<style>
+
+</style>
