@@ -2,11 +2,12 @@ select count(*) from transactions;
 select count(*) from categories;
 select count(*) from category_transaction;
 
-select * from categories;
+select * from categories where id = 47\G
+
 select * from transactions;
 select * from category_transaction ct
     inner join transactions t on t.id = ct.transaction_id
-    where ct.category_id in (47, 48, 49);
+    where ct.category_id in (47)\G
 ;
 select * from categories;
 select * from accounts;

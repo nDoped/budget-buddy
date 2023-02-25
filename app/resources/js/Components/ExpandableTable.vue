@@ -28,8 +28,24 @@
   };
 
   const showHideRow = (item, i) => {
+    /*
     let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
     let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
+    */
+    let clickedRow = tableRowRefs.value[i];
+    console.log('clickedRow', clickedRow);
+    console.log(i);
+    const treeWalker = document.createTreeWalker(
+      clickedRow,
+      NodeFilter.SHOW_ELEMENT,
+      { acceptNode(node) { return NodeFilter.FILTER_ACCEPT; } },
+      false
+    );
+    const node = treeWalker.nextSibling(); // returns null if the first child of the root element has no sibling
+
+    console.log('node', node);
+    let visibleRow = document.getElementById(`visible_row_${i}`);
+    let hiddenRow = document.getElementById(`hidden_row_${i}`);
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
       // Force a browser re-paint so the browser will realize the
@@ -136,7 +152,7 @@
           <tr
             @click="showHideRow(item, i)"
             :ref="(el) => { tableRowRefs.push(el) }"
-            :id="`visible_row_${i}_${Object.values(item).join('-')}`"
+            :id="`visible_row_${i}`"
             class="hover:opacity-80 focus:bg-slate-400"
             :class="tableRowCss(item, i)"
           >
@@ -151,7 +167,7 @@
             </td>
           </tr>
 
-          <tr :id="`hidden_row_${i}_${Object.values(item).join('-')}`" class="hidden">
+          <tr :id="`hidden_row_${i}`" class="hidden">
             <td :colspan="fieldCount">
               <slot name="hidden_row" :i="i" :item="item">
                   Boo!

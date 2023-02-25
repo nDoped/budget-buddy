@@ -22,7 +22,8 @@
     form.note = props.transaction.note;
     deleteTransactionForm.id = props.transaction.id;
     form.bank_identifier = props.transaction.bank_identifier;
-    form.categories = props.transaction.categories;
+    catsJsonStr = JSON.stringify(props.transaction.categories);
+    form.catsJsonStr = catsJsonStr.value;
   });
 
   let props = defineProps({
@@ -36,6 +37,7 @@
     transBeingDeleted.value = props.transaction.id;
   };
 
+  const catsJsonStr = ref(JSON.stringify(props.transaction.categories));
   const success = (created) => {
     transBeingDeleted.value = null;
     toast.success((created) ? 'Transaction Updated!' : 'Transaction Deleted!');
@@ -65,7 +67,8 @@
     credit: props.transaction.asset,
     account_id: props.transaction.account_id,
     note: props.transaction.note,
-    bank_identifier: props.transaction.bank_identifier
+    bank_identifier: props.transaction.bank_identifier,
+    catsJsonStr: catsJsonStr.value
   });
 
   function submit() {
@@ -76,13 +79,12 @@
     });
   }
 
-  /*
+/*
   onMounted(() => {
     console.log('on mount',props.transaction);
-    console.log('on mount', props.transaction.transaction_date);
+    console.log('on mount', props.transaction.categories);
   });
-   */
-
+  */
 </script>
 
 <template>
@@ -151,18 +153,16 @@
             </div>
 
             <div class="m-4 w-full">
-              <InputLabel for="categories" value="Categories" />
-              <!--
+              <InputLabel for="cats" value="Categories" />
               <TextInput
-                  id="note"
-                  v-model="form.categories"
+                  id="cats"
+                  v-model="form.catsJsonStr"
                   type="text"
                   class="mt-1 block w-full"
                   autofocus
-                  autocomplete="note"
+                  autocomplete="cat"
               />
-              -->
-              <InputError :message="form.errors.categories" class="mt-2" />
+              <InputError :message="form.errors.catsJsonStr" class="mt-2" />
             </div>
 
             <div class="m-4 w-full">
@@ -193,47 +193,79 @@
           </div>
 
           <div class="flex flex-wrap p-6 bg-slate-500 border-gray-200">
-            <PrimaryButton
-              class="ml-3"
-              type="submit"
-              :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
-              :disabled="deleteTransactionForm.processing || form.processing"
-            >
-              Save
-            </PrimaryButton>
+            <div>
+              <PrimaryButton
+                class="ml-3"
+                type="submit"
+                :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                :disabled="deleteTransactionForm.processing || form.processing"
+              >
+                Save
+              </PrimaryButton>
 
-            <DangerButton
-              class="ml-3"
-              :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
-              :disabled="deleteTransactionForm.processing || form.processing"
-              @click="confirmTransactionDeletion"
-            >
-              Delete
-            </DangerButton>
-            <ConfirmationModal :show="transBeingDeleted != null" @close="transBeingDeleted = null">
-              <template #title>
-                Delete Transaction
+              <DangerButton
+                class="ml-3"
+                :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                :disabled="deleteTransactionForm.processing || form.processing"
+                @click="confirmTransactionDeletion"
+              >
+                Delete
+              </DangerButton>
+              <ConfirmationModal :show="transBeingDeleted != null" @close="transBeingDeleted = null">
+                <template #title>
+                  Delete Transaction
+                </template>
+
+                <template #content>
+                  You sure you wanna delete this mofo?
+                </template>
+
+                <template #footer>
+                  <SecondaryButton @click="transBeingDeleted = null">
+                    Cancel
+                  </SecondaryButton>
+
+                  <DangerButton
+                    class="ml-3"
+                    :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                    :disabled="deleteTransactionForm.processing"
+                    @click="deleteTransaction"
+                  >
+                    Delete
+                  </DangerButton>
+                </template>
+              </ConfirmationModal>
+            </div>
+
+            <!--
+            <div>
+              <template v-for="(percentage, category) in transaction.categories">
+                <div class="m-4 w-full">
+                  <InputLabel for="cat" value="Category" />
+                  <TextInput
+                      id="cat"
+                      v-model="form.categories[category]"
+                      type="text"
+                      class="mt-1 block w-full"
+                      autofocus
+                      autocomplete="cat"
+                  />
+                  <InputError :message="form.errors.categories" class="mt-2" />
+
+                  <InputLabel for="percent" value="Percentage" />
+                  <TextInput
+                      id="percent"
+                      v-model="form.categories[category].percentage"
+                      type="text"
+                      class="mt-1 block w-full"
+                      autofocus
+                      autocomplete="cat"
+                  />
+                  <InputError :message="form.errors.categories" class="mt-2" />
+                </div>
               </template>
-
-              <template #content>
-                You sure you wanna delete this mofo?
-              </template>
-
-              <template #footer>
-                <SecondaryButton @click="transBeingDeleted = null">
-                  Cancel
-                </SecondaryButton>
-
-                <DangerButton
-                  class="ml-3"
-                  :class="{ 'opacity-25': deleteTransactionForm.processing }"
-                  :disabled="deleteTransactionForm.processing"
-                  @click="deleteTransaction"
-                >
-                  Delete
-                </DangerButton>
-              </template>
-            </ConfirmationModal>
+            </div>
+            -->
           </div>
         </form>
 

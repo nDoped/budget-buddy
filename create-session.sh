@@ -13,14 +13,18 @@ tmux has-session -t $session_name &> /dev/null
 if [ $? != 0 ]; then
     tmux new-session -s $session_name -n $server_win -d
     tmux send-keys "cd app && gstat" Enter
-    tmux split-window -h
-    tmux send-keys "cd app" Enter
-    tmux send-keys "sale npm run dev"
-    tmux split-window -v
-    tmux send-keys "cd app && sale up" Enter
 
     tmux new-window -n $dev_win
+    tmux split-window -v
+    tmux select-pane -U
     tmux send-keys "cd app" Enter
+    tmux send-keys "sale npm run dev"
+    tmux split-window -h
+    tmux send-keys "cd app" Enter
+    tmux send-keys "sale up" Enter
+    tmux select-pane -U
+    tmux send-keys "cd app" Enter
+    tmux send-keys "vim -S dev.vim" Enter
 
     tmux new-window -n $terminal_win
     tmux send-keys "cd app" Enter

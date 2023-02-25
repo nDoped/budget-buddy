@@ -5,6 +5,7 @@
   import BarChart from '@/Components/Charts/BarChart.vue';
   import LineChart from '@/Components/Charts/LineChart.vue';
   import PieChart from '@/Components/Charts/PieChart.vue';
+  import ExpenseBreakdown from '@/Components/Charts/ExpenseBreakdownPie.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   const formatter = inject('formatter');
 
@@ -30,6 +31,7 @@
     }
     return false;
   };
+
   const formatField = (key, value, item) => {
     let test = fields.value.find(field => field.key === key );
     if (test.format) {
@@ -67,12 +69,6 @@
     return ret;
   };
 
-
-  const tableConfig = ref({
-    'has_totals_row': true,
-    'format_values': true,
-    'text_css': 'text-2xl font-semibold',
-  });
   const filterTransactionsForm = useForm({});
   const crunchIt = (data) => {
     filterTransactionsForm.get(route('dashboard', data.value), {
@@ -97,15 +93,6 @@
     }, {});
   };
 
-  const pieChartData = ref(structuredClone(defaultChartStruct));
-  watch(() => props.categorizedExpenses, (newCats) => {
-    pieChartData.value = structuredClone(defaultChartStruct);
-    for (let id in sortObj(props.categorizedExpenses)) {
-      pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      pieChartData.value.labels.push(props.categorizedExpenses[id].name);
-    }
-  });
 
   const lineChartData = ref(structuredClone(defaultChartStruct));
   watch(() => props.accountGrowthLineData, (newData) => {
@@ -122,13 +109,9 @@
   });
 
   onMounted(() => {
-    for (let id in sortObj(props.categorizedExpenses)) {
-      pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      pieChartData.value.labels.push(props.categorizedExpenses[id].name);
-    }
-
     for (let id in sortObj(props.accountGrowthLineData)) {
+      console.log(id);
+      console.log(props.accountGrowthLineData[id]);
       /*
       lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
       lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
@@ -155,7 +138,7 @@
   <div class="chart-wrapper bg-slate-700 bg-opacity-75 h-[32rem]">
     <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2 md:grid-cols-2">
       <div class="m-5">
-        <PieChart :chartData="pieChartData" />
+        <ExpenseBreakdown :categorizedExpenses="categorizedExpenses" />
       </div>
       <div class="m-5">
         <LineChart :chartData="lineChartData"/>

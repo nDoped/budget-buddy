@@ -57,7 +57,7 @@ class DashboardController extends Controller
 
         // todo, fix this
         $account_growth_line_data = [
-            'daily_asset_growth' => [],
+            'daily_asset_growth' => [], // net sum j
             'total_asset_growth' => [],
             'daily_debt_growth' => [],
             'total_debt_growth' => [],
@@ -77,6 +77,8 @@ class DashboardController extends Controller
                 if ($acct['asset']) {
                     // accounts for asset growth
                     $account_data[$trans['account_id']]['in_range_net_growth'] += $trans['amount_raw'];
+
+                    // daily asset growth
                     if (isset($account_growth_line_data['daily_asset_growth'][$trans['transaction_date']])) {
                         $account_growth_line_data['daily_asset_growth'][$trans['transaction_date']] += $trans['amount_raw'];
 
@@ -179,11 +181,9 @@ class DashboardController extends Controller
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;
         $data['account_growth_line_data'] = $account_growth_line_data;
-        /*
         Log::info([
-            'app/Http/Controllers/DashboardController.php:51 catcount' => count($trans_data['category_totals']),
+            'app/Http/Controllers/DashboardController.php:51 line data' => $account_growth_line_data
         ]);
-         */
         return Inertia::render('Dashboard', [
             'data' => $data
         ]);
