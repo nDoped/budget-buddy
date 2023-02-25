@@ -28,12 +28,8 @@
   };
 
   const showHideRow = (item, i) => {
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
-    /*
     let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
     let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
-     */
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
       // Force a browser re-paint so the browser will realize the
@@ -120,7 +116,7 @@
       <thead>
         <tr>
           <template v-for="{ key, label, sortable } in fields" :key="key">
-            <th v-if="sortable" @click="setSort(key)" class="sortable" :class="maxThWidthClass">
+            <th v-if="sortable" @click="setSort(key)" class="sortable text-xl font-bold" :class="maxThWidthClass">
               {{ label }}
               <template v-if="sortBy === key">
                 <span v-if="sortDesc === true">↑</span>
@@ -128,7 +124,7 @@
               </template>
             </th>
 
-            <th v-else :class="maxThWidthClass">
+            <th v-else :class="maxThWidthClass" class="text-xl font-bold">
               {{ label }}
             </th>
           </template>
@@ -140,7 +136,7 @@
           <tr
             @click="showHideRow(item, i)"
             :ref="(el) => { tableRowRefs.push(el) }"
-            :id="`visible_row_${i}_${item}`"
+            :id="`visible_row_${i}_${Object.values(item).join('-')}`"
             class="hover:opacity-80 focus:bg-slate-400"
             :class="tableRowCss(item, i)"
           >
@@ -155,7 +151,7 @@
             </td>
           </tr>
 
-          <tr :id="`hidden_row_${i}_${item}`" class="hidden">
+          <tr :id="`hidden_row_${i}_${Object.values(item).join('-')}`" class="hidden">
             <td :colspan="fieldCount">
               <slot name="hidden_row" :i="i" :item="item">
                   Boo!

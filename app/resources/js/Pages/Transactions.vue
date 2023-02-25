@@ -12,7 +12,7 @@ const props = defineProps({
   <Head title="Transactions" />
   <AppLayout title="Transactions">
     <div class="py-12">
-      <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
+      <div class="max-w-11xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-slate-700 overflow-hidden shadow-xl sm:rounded-lg">
           <Transactions
             :transactions='data.transactions_in_range'

@@ -32,6 +32,7 @@
 
   const success = () => {
     catBeingDeleted.value = null;
+    toast.success('Category Updated!');
     emit('success');
   };
 

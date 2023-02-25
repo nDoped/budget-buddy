@@ -1,29 +1,30 @@
 <script setup>
-import InputLabel from '@/Components/InputLabel.vue';
-import { ref } from 'vue';
-import InputError from '@/Components/InputError.vue';
-import TextInput from '@/Components/TextInput.vue';
-import AccountTypeTable from '@/Components/DataTable.vue';
-import { useForm } from '@inertiajs/vue3'
-const props = defineProps({
-    account_types: Object
-});
-function submit() {
-  form.post(route('account_types.store'), {
-    preserveScroll: true,
-    onSuccess: () => form.reset(),
+  import InputLabel from '@/Components/InputLabel.vue';
+  import { ref } from 'vue';
+  import InputError from '@/Components/InputError.vue';
+  import TextInput from '@/Components/TextInput.vue';
+  import { useForm } from '@inertiajs/vue3'
+  import ExpandableTable from '@/Components/ExpandableTable.vue';
+
+  const props = defineProps({
+      account_types: Object
   });
-}
+  function submit() {
+    form.post(route('account_types.store'), {
+      preserveScroll: true,
+      onSuccess: () => form.reset(),
+    });
+  }
 
-const account_type_fields = ref([
-  { key: 'name', label: 'Name' },
-  { key: 'asset', label: 'Asset/Debt'},
-]);
+  const fields = ref([
+    { key: 'name', label: 'Name' },
+    { key: 'asset', label: 'Asset/Debt'},
+  ]);
 
-const form = useForm({
-  name: null,
-  asset: null,
-});
+  const form = useForm({
+    name: null,
+    asset: null,
+  });
 </script>
 
 <template>
@@ -35,10 +36,17 @@ const form = useForm({
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
           <div class="overflow-hidden">
-          <AccountTypeTable
+          <ExpandableTable
+            class="grow w-full bg-gray-800 text-slate-300"
             :items="account_types"
-            :fields="account_type_fields"
-          />
+            :fields="fields"
+          >
+            <template #visible_row="{ item , value, key }">
+              <div class="font-semibold text-l">
+                {{ value }}
+              </div>
+            </template>
+          </ExpandableTable>
           </div>
         </div>
       </div>

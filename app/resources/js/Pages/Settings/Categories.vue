@@ -21,11 +21,11 @@
   ]);
 
   const showHideRow = (item, i) => {
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
-    /*
     let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
     let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
+    /*
+    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
+    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
      */
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
@@ -53,10 +53,14 @@
 
 <template>
   <AppLayout title="Settings - Categories">
-    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+    <div class="max-w-11xl mx-auto py-10 sm:px-6 lg:px-8">
       <SettingsNavMenu />
       <div class="overflow-hidden">
-        <ExpandableTable :items="categories" :fields="fields">
+        <ExpandableTable
+          :items="categories"
+          :fields="fields"
+          class="grow w-full bg-gray-800 text-slate-300"
+        >
           <template #visible_row="{ item , value, key }">
             <div v-if="colorBg(key, value, item)">
               <span :class="`bg-[${item.color}]`">{{ value }}</span>

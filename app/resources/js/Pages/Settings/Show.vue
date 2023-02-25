@@ -4,7 +4,10 @@
   import Accounts from '@/Components/Accounts.vue';
   import AccountTypes from '@/Components/AccountTypes.vue';
   import SectionBorder from '@/Components/SectionBorder.vue';
-import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
+  import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
+
+  import ExpandableTable from '@/Components/ExpandableTable.vue';
+
 
   const props = defineProps({
     data: Object
@@ -14,7 +17,7 @@ import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
 
 <template>
   <AppLayout title="Settings - Accounts">
-    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+    <div class="max-w-11xl mx-auto py-10 sm:px-6 lg:px-8">
       <SettingsNavMenu />
       <Accounts
         :accounts='data.accounts'
