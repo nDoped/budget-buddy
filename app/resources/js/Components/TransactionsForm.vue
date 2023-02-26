@@ -1,6 +1,7 @@
 <script setup>
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';
+  import InputDate from '@/Components/InputDate.vue';
   import InputError from '@/Components/InputError.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import TextInput from '@/Components/TextInput.vue';
@@ -9,6 +10,7 @@
   import 'vue3-toastify/dist/index.css';
 
   function submit() {
+    /* global route */
     form.post(route('transactions.store'), {
       preserveScroll: true,
       onSuccess: () => {
@@ -18,18 +20,28 @@
 
       onError: (err) =>  {
         console.error(err.message);
-        catBeingDeleted.value = null;
-        toast.error(err.message, {
-          autoClose: false,
-        });
+        for (let field in err) {
+          toast.error(err[field], {
+            autoClose: 6000,
+          });
+        }
       }
     });
   }
 
   let props = defineProps({
-    accounts: Array,
-    startDate: String,
-    endDate: String
+    accounts: {
+      type: Array,
+      default: () => []
+    },
+    startDate: {
+      type: String,
+      default: () => ''
+    },
+    endDate: {
+      type: String,
+      default: () => ''
+    }
   });
 
   const form = useForm({
@@ -46,7 +58,6 @@
     trans_buddy_account: '',
     trans_buddy_note: null,
     frequency: "monthly",
-    bank_identifier: null,
   });
 </script>
 
@@ -57,72 +68,115 @@
         <form @submit.prevent="submit">
           <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
             <div class="m-4">
-              <InputLabel for="date" value="Transaction Date" />
-              <input
-                id="date"
-                type="date"
-                v-model="form.transaction_date"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder=""
-
+              <InputLabel
+                for="date"
+                value="Transaction Date"
               />
-              <InputError :message="form.errors.transaction_date" class="mt-2" />
+              <InputDate
+                id="date"
+                v-model="form.transaction_date"
+              />
+              <InputError
+                :message="form.errors.transaction_date"
+                class="mt-2"
+              />
             </div>
 
             <div class="m-4">
-              <InputLabel for="amount" value="Amount" />
+              <InputLabel
+                for="amount"
+                value="Amount"
+              />
               <input
                 type="number"
                 min="0"
                 step="any"
                 v-model="form.amount"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
+              >
+              <InputError
+                :message="form.errors.amount"
+                class="mt-2"
               />
-              <InputError :message="form.errors.amount" class="mt-2" />
             </div>
 
             <div class="m-4">
-              <InputLabel for="credit" value="Credit/Debit" />
+              <InputLabel
+                for="credit"
+                value="Credit/Debit"
+              />
               <select
                 id="credit"
                 v-model="form.credit"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
               >
-                <option :value="true">Credit</option>
-                <option selected="selected" :value="false">Debit</option>
+                <option :value="true">
+                  Credit
+                </option>
+
+                <option
+                  selected="selected"
+                  :value="false"
+                >
+                  Debit
+                </option>
               </select>
-              <InputError :message="form.errors.credit" class="mt-2" />
+              <InputError
+                :message="form.errors.credit"
+                class="mt-2"
+              />
             </div>
 
             <div class="m-4">
-              <InputLabel for="account" value="Account" />
+              <InputLabel
+                for="account"
+                value="Account"
+              />
               <select
                 id="account"
                 v-model="form.account_id"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
               >
-                <option value="" selected disabled hidden>Select Account...</option>
-                <option v-for="account in accounts" :value="account.id">
+                <option
+                  value=""
+                  selected
+                  disabled
+                  hidden
+                >
+                  Select Account...
+                </option>
+
+                <option
+                  v-for="account in accounts"
+                  :value="account.id"
+                  :key="account.id"
+                >
                   {{ account.name }}
                 </option>
               </select>
-              <InputError :message="form.errors.account_id" class="mt-2" />
+              <InputError
+                :message="form.errors.account_id"
+                class="mt-2"
+              />
             </div>
 
             <div class="m-4 w-full">
-              <InputLabel for="note" value="Note" />
-              <TextInput
-                  id="note"
-                  v-model="form.note"
-                  type="text"
-                  class="mt-1 block w-full"
-                  autofocus
-                  autocomplete="note"
+              <InputLabel
+                for="note"
+                value="Note"
               />
-              <InputError :message="form.errors.note" class="mt-2" />
+              <TextInput
+                id="note"
+                v-model="form.note"
+                type="text"
+                class="mt-1 block w-full"
+                autofocus
+                autocomplete="note"
+              />
+              <InputError
+                :message="form.errors.note"
+                class="mt-2"
+              />
             </div>
 
             <div class="m-4 w-full">
@@ -164,15 +218,18 @@
                 </div>
 
                 <div class="m-4">
-                  <InputLabel for="recurring_end_date" value="End Date" />
-                  <input
-                    id="recurring_end_date"
-                    type="date"
-                    v-model="form.recurring_end_date"
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder=""
+                  <InputLabel
+                    for="recurring_end_date"
+                    value="End Date"
                   />
-                  <InputError :message="form.errors.recurring_end_date" class="mt-2" />
+                  <InputDate
+                    id="date"
+                    v-model="form.recurring_end_date"
+                  />
+                  <InputError
+                    :message="form.errors.recurring_end_date"
+                    class="mt-2"
+                  />
                 </div>
               </template>
             </div>

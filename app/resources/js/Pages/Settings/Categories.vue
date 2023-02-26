@@ -1,16 +1,16 @@
 <script setup>
-  import { Head, Link } from '@inertiajs/vue3';
-  import { inject, onBeforeUpdate, computed, reactive, watch, ref } from 'vue';
-  import { sort } from 'fast-sort'
+  import {  ref } from 'vue';
   import AppLayout from '@/Layouts/AppLayout.vue';
-  import SectionBorder from '@/Components/SectionBorder.vue';
   import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   import CategoryEditForm from '@/Components/CategoryEditForm.vue';
   //const formatter = inject('formatter');
 
   const props = defineProps({
-    categories: Array
+    categories: {
+      type: Array,
+      default: () => {}
+    }
   });
 
   const fields = ref([
@@ -20,29 +20,15 @@
     { key: 'color', label: 'Color', sortable: true, color_bg:true },
   ]);
 
-  const showHideRow = (item, i) => {
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
-    /*
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
-     */
-    if (hiddenRow.classList.contains("hidden")) {
-      hiddenRow.classList.remove("hidden");
-      // Force a browser re-paint so the browser will realize the
-      // element is no longer `hidden` and allow transitions.
-      const reflow = hiddenRow.offsetHeight;
-    } else {
-      const reflow = hiddenRow.offsetHeight;
-      hiddenRow.classList.add("hidden");
-    }
-
+  const hideTr = (hiddenTrRefs, i) => {
+    hiddenTrRefs[i].classList.add("hidden");
   };
+
   const colorBg = (key, value, item) => {
     let test = fields.value.find(field => field.key === key );
     if (test.color_bg) {
 
-      console.log(item);
+      //console.log(item);
       //return "backgroundColor: `#${item.color}`";
       return true;
       //return styleObject;
@@ -65,13 +51,13 @@
             <div v-if="colorBg(key, value, item)">
               <span :class="`bg-[${item.color}]`">{{ value }}</span>
             </div>
-
           </template>
 
-          <template #hidden_row="{item, i}">
+          <template #hidden_row="{hidden_tr_refs, item, i}">
             <CategoryEditForm
               :category="item"
-              @success="showHideRow(item, i)"
+              @cancel="hideTr(hidden_tr_refs, i)"
+              @success="hideTr(hidden_tr_refs, i)"
             />
           </template>
         </ExpandableTable>

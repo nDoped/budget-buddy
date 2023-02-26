@@ -1,14 +1,27 @@
 <script setup>
-  import { inject, onBeforeUpdate, computed, reactive, watch, ref } from 'vue';
+  import { onBeforeUpdate, computed, reactive, watch, ref } from 'vue';
   import { sort } from 'fast-sort'
-  const formatter = inject('formatter');
 
   const sortBy = ref(null);
   const sortDesc = ref(null);
   const props = defineProps({
-    items: Array,
-    fields: Object
+    items: {
+      type: Array,
+      default: () => {}
+    },
+    fields: {
+      type: Object,
+      default: () => {}
+    }
   });
+
+  watch(
+    () => props.items,
+    (props) => {
+      console.log('expandabletable props watch', props);
+    }
+  );
+
   const sortedItems = computed(() => {
     const { items } = props;
     if (sortDesc.value === null) return items;
@@ -21,38 +34,19 @@
   });
 
   const fieldCount = ref(Object.keys(props.fields).length);
-  const maxThWidthClass = computed(() => `max-w-[${1 / fieldCount}]`);
+  const maxThWidthClass = computed(() => `max-w-[${1 / fieldCount.value}]`);
 
-  const tableRowCss = (item, i) => {
+  const tableRowCss = () => {
     return 'border-t';
   };
 
   const showHideRow = (item, i) => {
-    /*
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
-    */
-    let clickedRow = tableRowRefs.value[i];
-    console.log('clickedRow', clickedRow);
-    console.log(i);
-    const treeWalker = document.createTreeWalker(
-      clickedRow,
-      NodeFilter.SHOW_ELEMENT,
-      { acceptNode(node) { return NodeFilter.FILTER_ACCEPT; } },
-      false
-    );
-    const node = treeWalker.nextSibling(); // returns null if the first child of the root element has no sibling
+    //let clickedRow = visibleTrRefs.value[i];
+    let hiddenRow = hiddenTrRefs.value[i];
 
-    console.log('node', node);
-    let visibleRow = document.getElementById(`visible_row_${i}`);
-    let hiddenRow = document.getElementById(`hidden_row_${i}`);
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
-      // Force a browser re-paint so the browser will realize the
-      // element is no longer `hidden` and allow transitions.
-      const reflow = hiddenRow.offsetHeight;
     } else {
-      const reflow = hiddenRow.offsetHeight;
       hiddenRow.classList.add("hidden");
     }
   };
@@ -89,18 +83,30 @@
   );
 
   // make sure to reset the refs before each update
-  const tableRowRefs = ref([]);
+  const visibleTrRefs = ref([]);
+  const hiddenTrRefs = ref([]);
   onBeforeUpdate(() => {
-    tableRowRefs.value = []
+    hiddenTrRefs.value.forEach((tr) => {
+      if (! tr.classList.contains("hidden")) {
+    //    tr.classList.add("hidden");
+      }
+    });
+    visibleTrRefs.value = []
+    hiddenTrRefs.value = []
   });
 </script>
 
-
 <template>
   <div>
-    <div v-if="items.length > 0" class="overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div v-if="pagination.totalPages > 1" class="py-2 min-w-full sm:px-6 lg:px-8">
-        <div class="m-1" >
+    <div
+      v-if="items.length > 0"
+      class="overflow-x-auto sm:-mx-6 lg:-mx-8"
+    >
+      <div
+        v-if="pagination.totalPages > 1"
+        class="py-2 min-w-full sm:px-6 lg:px-8"
+      >
+        <div class="m-1">
           Results per page
           <button class="mx-2" @click="perPage = 5">5</button>
           <button class="mx-2" @click="perPage = 10">10</button>
@@ -151,7 +157,7 @@
         <template v-for="(item, i) in paginatedItems" :key="i">
           <tr
             @click="showHideRow(item, i)"
-            :ref="(el) => { tableRowRefs.push(el) }"
+            :ref="(el) => { visibleTrRefs.push(el) }"
             :id="`visible_row_${i}`"
             class="hover:opacity-80 focus:bg-slate-400"
             :class="tableRowCss(item, i)"
@@ -161,16 +167,30 @@
               :key="key"
               class="text-center px-2 py-1 text-md font-medium"
             >
-              <slot name="visible_row" :value="item[key]" :item="item" :key="key">
+              <slot
+                name="visible_row"
+                :value="item[key]"
+                :item="item"
+                :key="key"
+              >
                 {{ item[key] }}
               </slot>
             </td>
           </tr>
 
-          <tr :id="`hidden_row_${i}`" class="hidden">
+          <tr
+            :ref="(el) => { hiddenTrRefs.push(el) }"
+            :id="`hidden_row_${i}`"
+            class="hidden"
+          >
             <td :colspan="fieldCount">
-              <slot name="hidden_row" :i="i" :item="item">
-                  Boo!
+              <slot
+                name="hidden_row"
+                :i="i"
+                :item="item"
+                :hidden_tr_refs="hiddenTrRefs"
+              >
+                Boo!
               </slot>
             </td>
           </tr>

@@ -94,9 +94,6 @@ class Transaction extends Model
         }
 
         $cat_totals = [];
-                Log::info([
-                    'app/Models/Transaction.php:106 key' => $args,
-                ]);
         foreach ($transactions_in_range->get() as $trans) {
             $acct = $trans->account;
             $type = AccountType::find($acct->type_id);
@@ -108,11 +105,13 @@ class Transaction extends Model
              */
             foreach ($trans->categories as $cat) {
                 if ($cat->id ===6) {
+                    /*
                     Log::info([
                         'app/Models/Transaction.php:106 cat include in' => $cat->include_in_expense_breakdown,
                         'app/Models/Transaction.php:106 trans id' => $trans->id,
                         'app/Models/Transaction.php:106 trans amount' => $trans->amount,
                     ]);
+                     */
                 }
 
                 if (isset($args['filter_for_expense_breakdown']) && $args['filter_for_expense_breakdown']) {
@@ -153,9 +152,11 @@ class Transaction extends Model
             }
 
             if ($jsonify_categories) {
+                /*
                 Log::info([
                     'app/Models/Transaction.php:142 los gatos' => $categories,
                 ]);
+                 */
                 $categores = json_encode($categories);
             }
 

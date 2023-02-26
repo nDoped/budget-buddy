@@ -1,11 +1,14 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import Transactions from '@/Components/Transactions.vue';
+  import { Head } from '@inertiajs/vue3';
+  import AppLayout from '@/Layouts/AppLayout.vue';
+  import TransActions from '@/Components/TransActions.vue';
 
-const props = defineProps({
-    data: Object
-});
+  const props = defineProps({
+    data: {
+      type: Object,
+      default: () => {}
+    }
+  });
 </script>
 
 <template>
@@ -14,11 +17,11 @@ const props = defineProps({
     <div class="py-12">
       <div class="max-w-11xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-slate-700 overflow-hidden shadow-xl sm:rounded-lg">
-          <Transactions
-            :transactions='data.transactions_in_range'
-            :accounts='data.accounts'
-            :start='data.start'
-            :end='data.end'
+          <TransActions
+            :transactions="data.transactions_in_range"
+            :accounts="data.accounts"
+            :start="data.start"
+            :end="data.end"
           />
         </div>
       </div>

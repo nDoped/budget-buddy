@@ -17,56 +17,6 @@ use App\Models\User;
 class CategoryController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\TransactionPostRequest $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(TransactionPostRequest $request)
-    {
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Transaction $transaction)
-    {
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Transaction $transaction)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\Request $request
@@ -80,9 +30,11 @@ class CategoryController extends Controller
             'color' => [ 'required' ],
         ]);
 
+        /*
         Log::info([
           'app/Http/Controllers/CategoryController.php:82 all' => $request->all(),
         ]);
+         */
         $cat = Category::find($request->id);
         $cat->name = $request->name;
         $cat->hex_color = $request->color;

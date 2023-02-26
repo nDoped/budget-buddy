@@ -63,6 +63,7 @@ class TransactionPostRequest extends FormRequest
                 'credit' => [ 'required', 'boolean' ],
                 'bank_identifier' => [ 'nullable', 'string' ],
                 'note' => [ 'nullable', 'string'],
+                'categories' => [ 'nullable', 'json'],
             ];
 
             if ($route_name === 'transactions.store') {
@@ -90,9 +91,6 @@ class TransactionPostRequest extends FormRequest
                 }
 
 
-                $ret = array_merge($ret, $to_merge_recurring, $to_merge_buddy, [
-                    'categories' => [ 'nullable', 'json'],
-                ]);
             }
             break;
         }

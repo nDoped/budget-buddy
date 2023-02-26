@@ -1,7 +1,5 @@
 <script setup>
-  import { inject, computed, reactive, watch, ref, onMounted, onBeforeUpdate } from 'vue';
-  import { Link } from '@inertiajs/vue3';
-  import { sort } from 'fast-sort'
+  import { inject, ref, onMounted } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import TransactionsForm from '@/Components/TransactionsForm.vue';
   import TransactionEditForm from '@/Components/TransactionEditForm.vue';
@@ -11,22 +9,33 @@
   const formatter = inject('formatter');
 
   let props = defineProps({
-    transactions: Array,
-    accounts: Array,
-    start: String,
-    end: String,
+    transactions: {
+      type: Array,
+      default: () => []
+    },
+    accounts: {
+      type: Array,
+      default: () => []
+    },
+    start: {
+      type: String,
+      default: () => ''
+    },
+    end: {
+      type: String,
+      default: () => ''
+    }
   });
-  const startDateEl = ref();
-  const endDateEl = ref();
   const transStart = ref(props.start);
   const transEnd = ref(props.end);
 
   const filterTransactionsForm = useForm({});
   const filterEventHandler = (data) => {
-      filterTransactionsForm.get(route('transactions', data.value), {
-          preserveScroll: true,
-          preserveState: true,
-      });
+    /* global route */
+    filterTransactionsForm.get(route('transactions', data.value), {
+      preserveScroll: true,
+      preserveState: true,
+    });
   }
 
   const fields = ref([
@@ -46,7 +55,12 @@
     transEnd.value = props.end;
   });
 
-  const formatField = (key, value, item) => {
+  const hideTr = (hiddenTrRefs, i) => {
+    console.log('transactions cancelRef() handler', hiddenTrRefs, i);
+    hiddenTrRefs[i].classList.add("hidden");
+  };
+
+  const formatField = (key) => {
     let test = fields.value.find(field => field.key === key );
     if (test.format) {
       return true;
@@ -54,30 +68,12 @@
     return false;
   };
 
-  const colorText = (key, value, item) => {
+  const colorText = (key) => {
     let test = fields.value.find(field => field.key === key );
     if (test.color_text) {
       return true;
     }
     return false;
-  };
-
-  const showHideRow = (item, i) => {
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${item}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${item}`);
-    /*
-    let hiddenRow = document.getElementById(`hidden_row_${i}_${Object.values(item).join('-')}`);
-    let visibleRow = document.getElementById(`visible_row_${i}_${Object.values(item).join('-')}`);
-     */
-    if (hiddenRow.classList.contains("hidden")) {
-      hiddenRow.classList.remove("hidden");
-      // Force a browser re-paint so the browser will realize the
-      // element is no longer `hidden` and allow transitions.
-      const reflow = hiddenRow.offsetHeight;
-    } else {
-      const reflow = hiddenRow.offsetHeight;
-      hiddenRow.classList.add("hidden");
-    }
   };
 </script>
 
@@ -88,7 +84,6 @@
     <div class="flex flex-row">
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 min-w-full sm:px-6 lg:px-8">
-
           <DateFilter
             :start="transStart"
             :end="transEnd"
@@ -124,11 +119,12 @@
         </div>
       </template>
 
-      <template #hidden_row="{item, i}">
+      <template #hidden_row="{hidden_tr_refs, item, i}">
         <TransactionEditForm
           :accounts="accounts"
           :transaction="item"
-          @success="showHideRow(item, i)"
+          @cancel="hideTr(hidden_tr_refs, i)"
+          @success="hideTr(hidden_tr_refs, i)"
         />
       </template>
     </ExpandableTable>
@@ -136,7 +132,6 @@
     <div v-else>
       <p>No transactions found in the given date range</p>
     </div>
-
   </div>
 </template>
 

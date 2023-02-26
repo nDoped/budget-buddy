@@ -1,21 +1,24 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+  import { onMounted, ref } from 'vue';
 
-defineProps({
-    modelValue: String,
-});
-
-defineEmits(['update:modelValue']);
-
-const input = ref(null);
-
-onMounted(() => {
-    if (input.value.hasAttribute('autofocus')) {
-        input.value.focus();
+  defineProps({
+    modelValue: {
+      type: String,
+      default: () => ''
     }
-});
+  });
 
-defineExpose({ focus: () => input.value.focus() });
+  defineEmits(['update:modelValue']);
+
+  const input = ref(null);
+
+  onMounted(() => {
+    if (input.value.hasAttribute('autofocus')) {
+      input.value.focus();
+    }
+  });
+
+  defineExpose({ focus: () => input.value.focus() });
 </script>
 
 <template>
@@ -30,8 +33,9 @@ defineExpose({ focus: () => input.value.focus() });
     <button
       class="text-rose-700 ml-2 focus:ring-4 focus:outline-none font-small rounded-sm text-sm w-full sm:w-auto px-1 py-1 text-center "
       @click="$emit('update:modelValue', '')"
+      type="button"
     >
-     X
+      X
     </button>
   </div>
 </template>

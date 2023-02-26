@@ -101,16 +101,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \App\Http\Requests\TransactionPostRequest $request
@@ -181,27 +171,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Transaction $transaction)
-    {
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Transaction $transaction)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\TransactionPostRequest $request
@@ -211,15 +180,30 @@ class TransactionController extends Controller
     public function update(TransactionPostRequest $request, Transaction $transaction)
     {
         $data = $request->validated();
+        $current_user = Auth::user();
+        /*
         Log::info([
-            'app/Http/Controllers/TransactionController.php:194 trans id' => $transaction->id,
+            'app/Http/Controllers/TransactionController.php:194 trans update request' => $request->all(),
         ]);
+         */
         $transaction->amount = $data['amount'] * 100;
         $transaction->note = $data['note'];
         $transaction->account_id = $data['account_id'];
         $transaction->credit = $data['credit'];
         $transaction->bank_identifier = $data['bank_identifier'];
         $transaction->transaction_date = $data['transaction_date'];
+        $transaction->categories()->detach();
+        foreach (json_decode($data['categories'], true) as $cat_name => $percent) {
+            $cat_model = Category::where('name', '=', $cat_name)->first();
+            if (! $cat_model) {
+                $cat_model = new Category();
+                $cat_model->name = $cat_name;
+                $cat_model->user_id = $current_user->id;
+                $cat_model->save();
+            }
+            $transaction->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+        }
+
         $transaction->save();
         return redirect()
             ->route(
