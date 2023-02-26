@@ -1,7 +1,7 @@
 #!/bin/bash
 
 session_name='budget'
-server_win='server'
+git_win='git'
 dev_win='vim'
 terminal_win='terminal'
 mysql_win='mysql'
@@ -11,7 +11,7 @@ imports_win='imports'
 tmux has-session -t $session_name &> /dev/null
 
 if [ $? != 0 ]; then
-    tmux new-session -s $session_name -n $server_win -d
+    tmux new-session -s $session_name -n $git_win -d
     tmux send-keys "cd app && gstat" Enter
 
     tmux new-window -n $dev_win
@@ -24,7 +24,7 @@ if [ $? != 0 ]; then
     tmux send-keys "sale up" Enter
     tmux select-pane -U
     tmux send-keys "cd app" Enter
-    tmux send-keys "vim -S dev.vim" Enter
+    tmux send-keys "vim "
 
     tmux new-window -n $terminal_win
     tmux send-keys "cd app" Enter

@@ -106,7 +106,6 @@
           :class="{
             'text-green-400': colorText(key, value, item) && item.asset,
             'text-rose-800': colorText(key, value, item) && ! item.asset,
-            'text-gray-400': ! colorText(key, value, item)
           }"
           class="font-semibold text-xl"
         >

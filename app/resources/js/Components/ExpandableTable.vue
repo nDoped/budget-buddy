@@ -36,19 +36,25 @@
   const fieldCount = ref(Object.keys(props.fields).length);
   const maxThWidthClass = computed(() => `max-w-[${1 / fieldCount.value}]`);
 
-  const tableRowCss = () => {
-    return 'border-t';
-  };
-
   const showHideRow = (item, i) => {
-    //let clickedRow = visibleTrRefs.value[i];
     let hiddenRow = hiddenTrRefs.value[i];
-
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
     } else {
       hiddenRow.classList.add("hidden");
     }
+
+    /*
+    if (! hiddenRow.classList.contains("active")) {
+      if (hiddenRow.classList.contains("deactive")) {
+        hiddenRow.classList.remove("deactive");
+      }
+      hiddenRow.classList.add("active");
+    } else {
+      hiddenRow.classList.remove("active");
+      hiddenRow.classList.add("deactive");
+    }
+    */
   };
 
   const setSort = (key) => {
@@ -73,7 +79,6 @@
     const { currentPage, perPage } = pagination;
     const start = (currentPage - 1) * perPage;
     const stop = start + perPage;
-
     return sortedItems.value.slice(start, stop);
   });
 
@@ -86,11 +91,6 @@
   const visibleTrRefs = ref([]);
   const hiddenTrRefs = ref([]);
   onBeforeUpdate(() => {
-    hiddenTrRefs.value.forEach((tr) => {
-      if (! tr.classList.contains("hidden")) {
-    //    tr.classList.add("hidden");
-      }
-    });
     visibleTrRefs.value = []
     hiddenTrRefs.value = []
   });
@@ -108,13 +108,36 @@
       >
         <div class="m-1">
           Results per page
-          <button class="mx-2" @click="perPage = 5">5</button>
-          <button class="mx-2" @click="perPage = 10">10</button>
-          <button class="mx-2" @click="perPage = 20">20</button>
-          <button class="mx-2" @click="perPage = 50">50</button>
+          <button
+            class="mx-2"
+            @click="perPage = 5"
+          >
+            5
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 10"
+          >
+            10
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 20"
+          >
+            20
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 50"
+          >
+            50
+          </button>
         </div>
 
-        <div class="m-1" style="text-align: right">
+        <div
+          class="m-1"
+          style="text-align: right"
+        >
           <div>
             <button
               :disabled="pagination.currentPage <= 1"
@@ -134,11 +157,19 @@
       </div>
     </div>
 
-    <table class="min-w-full table-auto">
+    <table class="min-w-full table-auto text-black bg-zinc-200 dark:text-white dark:bg-slate-800">
       <thead>
         <tr>
-          <template v-for="{ key, label, sortable } in fields" :key="key">
-            <th v-if="sortable" @click="setSort(key)" class="sortable text-xl font-bold" :class="maxThWidthClass">
+          <template
+            v-for="{ key, label, sortable } in fields"
+            :key="key"
+          >
+            <th
+              v-if="sortable"
+              @click="setSort(key)"
+              class="sortable text-xl font-bold"
+              :class="maxThWidthClass"
+            >
               {{ label }}
               <template v-if="sortBy === key">
                 <span v-if="sortDesc === true">↑</span>
@@ -146,26 +177,34 @@
               </template>
             </th>
 
-            <th v-else :class="maxThWidthClass" class="text-xl font-bold">
-              {{ label }}
+            <th
+              v-else
+              :class="maxThWidthClass"
+              class="text-xl font-bold"
+            >
+              <span class="text-zinc-800 dark:text-zinc-200">
+                {{ label }}
+              </span>
             </th>
           </template>
         </tr>
       </thead>
 
       <tbody>
-        <template v-for="(item, i) in paginatedItems" :key="i">
+        <template
+          v-for="(item, i) in paginatedItems"
+          :key="i"
+        >
           <tr
             @click="showHideRow(item, i)"
             :ref="(el) => { visibleTrRefs.push(el) }"
             :id="`visible_row_${i}`"
-            class="hover:opacity-80 focus:bg-slate-400"
-            :class="tableRowCss(item, i)"
+            class="hover:opacity-80 focus:bg-slate-400 border-t border-zinc-900 dark:border-zinc-100"
           >
             <td
               v-for="{ key } in fields"
               :key="key"
-              class="text-center px-2 py-1 text-md font-medium"
+              class="text-center px-2 py-1 text-md font-medium text-zinc-800 dark:text-slate-100"
             >
               <slot
                 name="visible_row"
@@ -214,6 +253,41 @@
   .open_row {
     max-height: 1000px;
     transition: max-height 1s ease-in-out;
+  }
+
+  .outer {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .content-page {
+    position:absolute;
+    z-index: -1;
+    overflow:hidden;
+    right:-50000px;
+    opacity: 0;
+  }
+  /*
+    opacity: 0;
+    transition: opacity 1s linear;
+    opacity: 1;
+    transition: opacity 1s linear;
+  */
+
+  .content-page.active {
+    position: static;
+    height: 100px;
+    opacity: 1;
+    transition: all 2s ease-in-out;
+  }
+
+  .content-page.deactive {
+    position: absolute;
+    right:-50px;
+    z-index: -1;
+    height: 0;
+    opacity: 0;
+    transition: all 2s ease-in-out;
   }
 </style>
 

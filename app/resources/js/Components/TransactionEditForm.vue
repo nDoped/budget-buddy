@@ -8,6 +8,7 @@
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
+  import TextArea from '@/Components/TextArea.vue';
   import TextInput from '@/Components/TextInput.vue';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
@@ -91,7 +92,7 @@
         transBeingDeleted.value = null;
         for (let field in err) {
           toast.error(err[field], {
-            autoClose: 6000,
+            autoClose: 3000,
           });
         }
       }
@@ -119,115 +120,171 @@
               <p>{{ transaction.id }}</p>
             </div>
             <div class="m-4">
-              <InputLabel
-                for="date"
-                value="Transaction Date"
-              />
-              <InputDate
-                id="date"
-                v-model="form.transaction_date"
-              />
-              <InputError
-                :message="form.errors.transaction_date"
-                class="mt-2"
-              />
+              <!-- date -->
+              <div class="m-4">
+                <InputLabel
+                  for="date"
+                  value="Transaction Date"
+                />
+                <InputDate
+                  id="date"
+                  v-model="form.transaction_date"
+                />
+                <InputError
+                  :message="form.errors.transaction_date"
+                  class="mt-2"
+                />
+              </div>
+
+              <!-- amount -->
+              <div class="m-4">
+                <InputLabel
+                  for="amount"
+                  value="Amount"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  v-model="form.amount"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                >
+                <InputError
+                  :message="form.errors.amount"
+                  class="mt-2"
+                />
+              </div>
             </div>
+
 
             <div class="m-4">
-              <InputLabel
-                for="amount"
-                value="Amount"
-              />
-              <input
-                type="number"
-                min="0"
-                step="any"
-                v-model="form.amount"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-              <InputError
-                :message="form.errors.amount"
-                class="mt-2"
-              />
+              <!-- credit/debit -->
+              <div class="m-4">
+                <InputLabel
+                  for="credit"
+                  value="Credit/Debit"
+                />
+                <select
+                  id="credit"
+                  v-model="form.credit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                >
+                  <option :value="true">
+                    Credit
+                  </option>
+                  <option
+                    selected="selected"
+                    :value="false"
+                  >
+                    Debit
+                  </option>
+                </select>
+                <InputError
+                  :message="form.errors.credit"
+                  class="mt-2"
+                />
+              </div>
+
+              <!-- accounts -->
+              <div class="m-4">
+                <InputLabel
+                  for="account"
+                  value="Account"
+                />
+                <select
+                  id="account"
+                  v-model="form.account_id"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                >
+                  <option
+                    value=""
+                    selected
+                    disabled
+                    hidden
+                  >
+                    Select Account...
+                  </option>
+
+                  <option
+                    v-for="account in accounts"
+                    :key="account.id"
+                    :value="account.id"
+                  >
+                    {{ account.name }}
+                  </option>
+                </select>
+
+                <InputError
+                  :message="form.errors.account"
+                  class="mt-2"
+                />
+              </div>
             </div>
 
-            <div class="m-4">
-              <InputLabel
-                for="credit"
-                value="Credit/Debit"
-              />
-              <select
-                id="credit"
-                v-model="form.credit"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            <!-- categories -->
+            <div class="m-4 flex-grow">
+              <div class="m-4 w-full">
+                <InputLabel
+                  for="cats"
+                  value="Categories"
+                />
+                <TextArea
+                  id="cats"
+                  v-model="form.categories"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autofocus
+                  autocomplete="cat"
+                />
+                <InputError
+                  :message="form.errors.categories"
+                  class="mt-2"
+                />
+              </div>
+
+              <template
+                v-for="(percentage, category, i) in transaction.categories"
+                :key="i"
               >
-                <option :value="true">
-                  Credit
-                </option>
-                <option
-                  selected="selected"
-                  :value="false"
-                >
-                  Debit
-                </option>
-              </select>
-              <InputError
-                :message="form.errors.credit"
-                class="mt-2"
-              />
-            </div>
+                <div class="m-4 w-full">
+                  {{ category + ' :: ' + percentage }}
+                  <!--
+                  <InputLabel
+                    for="cat"
+                    value="Category"
+                  />
+                  <TextInput
+                    id="cat"
+                    v-model="form.categories[category]"
+                    type="text"
+                    class="mt-1 block w-full"
+                    autofocus
+                    autocomplete="cat"
+                  />
+                  <InputError
+                    :message="form.errors.categories"
+                    class="mt-2"
+                  />
 
-            <div class="m-4">
-              <InputLabel
-                for="account"
-                value="Account"
-              />
-              <select
-                id="account"
-                v-model="form.account_id"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-                <option
-                  value=""
-                  selected
-                  disabled
-                  hidden
-                >
-                  Select Account...
-                </option>
-
-                <option
-                  v-for="account in accounts"
-                  :key="account.id"
-                  :value="account.id"
-                >
-                  {{ account.name }}
-                </option>
-              </select>
-
-              <InputError
-                :message="form.errors.account"
-                class="mt-2"
-              />
-            </div>
-
-            <div class="m-4 w-full">
-              <InputLabel
-                for="cats"
-                value="Categories"
-              />
-              <TextInput
-                id="cats"
-                v-model="form.categories"
-                type="text"
-                class="mt-1 block w-full"
-                autofocus
-                autocomplete="cat"
-              />
-              <InputError
-                :message="form.errors.categories"
-                class="mt-2"
-              />
+                  <InputLabel
+                    for="percent"
+                    value="Percentage"
+                  />
+                  <TextInput
+                    id="percent"
+                    v-model="form.categories[category].percentage"
+                    type="text"
+                    class="mt-1 block w-full"
+                    autofocus
+                    autocomplete="cat"
+                  />
+                  <InputError
+                    :message="form.errors.categories"
+                    class="mt-2"
+                  />
+                  -->
+                </div>
+              </template>
             </div>
 
             <div class="m-4 w-full">
@@ -322,52 +379,6 @@
                   </DangerButton>
                 </template>
               </ConfirmationModal>
-            </div>
-
-            <div>
-              <template
-                v-for="(percentage, category, i) in transaction.categories"
-                :key="i"
-              >
-                <div class="m-4 w-full">
-                  {{ category + ' :: ' + percentage }}
-                  <!--
-                  <InputLabel
-                    for="cat"
-                    value="Category"
-                  />
-                  <TextInput
-                    id="cat"
-                    v-model="form.categories[category]"
-                    type="text"
-                    class="mt-1 block w-full"
-                    autofocus
-                    autocomplete="cat"
-                  />
-                  <InputError
-                    :message="form.errors.categories"
-                    class="mt-2"
-                  />
-
-                  <InputLabel
-                    for="percent"
-                    value="Percentage"
-                  />
-                  <TextInput
-                    id="percent"
-                    v-model="form.categories[category].percentage"
-                    type="text"
-                    class="mt-1 block w-full"
-                    autofocus
-                    autocomplete="cat"
-                  />
-                  <InputError
-                    :message="form.errors.categories"
-                    class="mt-2"
-                  />
-                  -->
-                </div>
-              </template>
             </div>
           </div>
         </form>

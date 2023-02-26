@@ -72,9 +72,11 @@
       onError: (err) =>  {
         console.error(err.message)
         catBeingDeleted.value = null;
-        toast.error(err.message, {
-          autoClose: 6000,
-        });
+        for (let field in err) {
+          toast.error(err[field], {
+            autoClose: 3000,
+          });
+        }
       }
     });
   }

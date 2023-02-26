@@ -54,13 +54,18 @@ class CategoryController extends Controller
         $request->validate([
             'id' => [ 'required' ],
         ]);
-        $linked_transactions = Category::find($request->id)->transactions();
-        if ($linked_transactions->count() > 0) {
-            return redirect()->back()->withErrors([
-                'message' => 'This category appears on at least 1 transaction and cannot be deleted'
-            ]);
+        $category = Category::find($request->id);
+        if ($category) {
+            $linked_transactions = $category->transactions();
+            if ($linked_transactions->count() > 0) {
+                return redirect()->back()->withErrors([
+                    'message' => 'This category appears on at least 1 transaction and cannot be deleted'
+                ]);
+            }
+            Category::destroy($request->id);
+        } else {
+        return redirect()->back()->withErrors('shit went down');
         }
-        Category::destroy($request->id);
         return redirect()->route('settings.categories');
     }
 }
