@@ -35,7 +35,6 @@ class SettingsController extends Controller
      */
     public function categories(Request $request)
     {
-
         /*
         Log::info([
             'app/Http/Controllers/SettingsController.php:38 request' => $request->all(),
@@ -87,10 +86,11 @@ class SettingsController extends Controller
     {
         $current_user = Auth::user();
         $accts = Account::where('user_id', '=', $current_user->id)->get();
+        $ret = [];
         foreach ($accts as $acct) {
             $type = AccountType::find($acct->type_id);
             $user = User::find($acct->user_id);
-            $acct_data = [
+            $ret[] = [
                 'name' => $acct->name,
                 'type' => $type->name,
                 'asset' => $type->asset,
@@ -99,7 +99,6 @@ class SettingsController extends Controller
                 'initial_balance' => $acct->initial_balance / 100,
                 'owner' => $user->name
             ];
-            $ret[] = $acct_data;
         }
         return $ret;
     }

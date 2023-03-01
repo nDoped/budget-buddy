@@ -106,7 +106,10 @@
         v-if="pagination.totalPages > 1"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
-        <div class="m-1">
+        <div
+          class="m-1"
+          style="text-align: right"
+        >
           Results per page
           <button
             class="mx-2"

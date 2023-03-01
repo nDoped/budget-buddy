@@ -1,61 +1,91 @@
 <script setup>
-  import { watch, ref, onMounted } from 'vue';
+  import {  watch, ref, onMounted } from 'vue';
   import LineChart from '@/Components/Charts/LineChart.vue';
+  import { accountGrowthLinesOptions } from './chartConfig.js'
 
   let props = defineProps({
-    accountGrowthLineData: Object,
+    chartData: {
+      type: Object,
+      default: () => {}
+    }
   });
 
-  const filterTransactionsForm = useForm({});
-  const crunchIt = (data) => {
-    filterTransactionsForm.get(route('dashboard', data.value), {
-      preserveScroll: true,
-      preserveState: true,
-    });
-  }
   const defaultChartStruct = {
-    labels: [],
     datasets: [
       {
-        backgroundColor: [],
-        data: [],
+        label:"Daily Economic Growth",
+        backgroundColor: 'rgb(75, 192, 192)',
+        data: [ ],
+        borderColor: 'rgb(75, 192, 192)',
+        //showLine: false
+      },
+      {
+        label:"Total Economic Growth",
+        backgroundColor: 'rgb(75, 53, 134)',
+        borderColor: 'rgb(75, 53, 134)',
+        data: [ ],
+        //showLine: false
       }
     ],
+    labels: [ ]
   };
-
-  const sortObj = (obj) => {
-    return Object.keys(obj).sort().reduce(function (result, key) {
-      result[key] = obj[key];
-      return result;
-    }, {});
-  };
-
 
   const lineChartData = ref(structuredClone(defaultChartStruct));
-  watch(() => props.accountGrowthLineData, (newData) => {
-    lineChartData.value = structuredClone(defaultChartStruct);
-    for (let id in props.accountGrowthLineData) {
-      console.log(id);
-      console.log(props.accountGrowthLineData[id]);
-      /*
-      lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      lineChartData.value.labels.push(props.categorizedExpenses[id].name);
-       */
+  onMounted(() => {
+
+    for (let date in props.chartData.daily_economic_growth) {
+      let dailyGrowth = props.chartData.daily_economic_growth[date];
+      lineChartData.value.labels.push(date);
+      lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
+
+    for (let date in props.chartData.total_economic_growth) {
+      let dailyGrowth = props.chartData.total_economic_growth[date];
+      lineChartData.value.datasets[1].data.push(dailyGrowth);
+    }
+
+    // force the graph back to an arbitray ending of zero
+    /*
+    lineChartData.value.datasets[0].data.push(0);
+    lineChartData.value.datasets[1].data.push(
+      lineChartData.value.datasets[1].data[
+        lineChartData.value.datasets[1].data.length - 1
+      ]
+    );
+    lineChartData.value.labels.push("End");
+    */
   });
 
-  onMounted(() => {
-    for (let id in sortObj(props.accountGrowthLineData)) {
-      /*
-      lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      lineChartData.value.labels.push(props.categorizedExpenses[id].name);
-       */
+  const refreshChartData = () => {
+    lineChartData.value = structuredClone(defaultChartStruct);
+    for (let date in props.chartData.daily_economic_growth) {
+      let dailyGrowth = props.chartData.daily_economic_growth[date];
+      lineChartData.value.labels.push(date);
+      lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
-  });
+    for (let date in props.chartData.total_economic_growth) {
+      let dailyGrowth = props.chartData.total_economic_growth[date];
+      lineChartData.value.datasets[1].data.push(dailyGrowth);
+    }
+
+    // force the graph back to an arbitray ending of zero
+    /*
+    lineChartData.value.datasets[0].data.push(0);
+    lineChartData.value.datasets[1].data.push(
+      lineChartData.value.datasets[1].data[
+        lineChartData.value.datasets[1].data.length - 1
+      ]
+    );
+    lineChartData.value.labels.push("End");
+    */
+  };
+  watch(() => props.chartData.daily_economic_growth, refreshChartData);
+  watch(() => props.chartData.total_economic_growth, refreshChartData);
 </script>
 
 <template>
-  <LineChart :chartData="lineChartData"/>
+  <LineChart
+    :chart-data="lineChartData"
+    :chart-options="accountGrowthLinesOptions"
+  />
 </template>

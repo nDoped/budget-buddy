@@ -1,4 +1,5 @@
 <script setup>
+  import { ref, onMounted } from 'vue';
   import {
     Chart as ChartJS,
     CategoryScale,
@@ -10,7 +11,6 @@
     Legend
   } from 'chart.js'
   import { Line } from 'vue-chartjs'
-  import { data, lineChartOptions } from './chartConfig.js'
 
   ChartJS.register(
     CategoryScale,
@@ -24,18 +24,23 @@
   let props = defineProps({
     chartData: {
       type: Object,
-      default: data
+      default: () => {}
     },
 
     chartOptions: {
       type: Object,
-      default: lineChartOptions
+      default: () => {}
     }
+  });
+  const mounted = ref(false);
+  onMounted(() => {
+    mounted.value = true;
   });
 </script>
 
 <template>
   <Line
+    v-if="mounted"
     :data="chartData"
     :options="chartOptions"
   />

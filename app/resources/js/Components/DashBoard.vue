@@ -1,8 +1,8 @@
 <script setup>
   import { useForm } from '@inertiajs/vue3'
-  import { inject, watch, ref, onMounted } from 'vue';
+  import { inject, ref } from 'vue';
   import DateFilter from '@/Components/DateFilter.vue';
-  import LineChart from '@/Components/Charts/LineChart.vue';
+  import GrowthLines from '@/Components/Charts/AccountGrowthLines.vue';
   import ExpenseBreakdown from '@/Components/Charts/ExpenseBreakdownPie.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   const formatter = inject('formatter');
@@ -98,49 +98,6 @@
       preserveState: true,
     });
   }
-  const defaultChartStruct = {
-    labels: [],
-    datasets: [
-      {
-        backgroundColor: [],
-        data: [],
-      }
-    ],
-  };
-
-  const sortObj = (obj) => {
-    return Object.keys(obj).sort().reduce(function (result, key) {
-      result[key] = obj[key];
-      return result;
-    }, {});
-  };
-
-
-  const lineChartData = ref(structuredClone(defaultChartStruct));
-  watch(() => props.accountGrowthLineData, () => {
-    lineChartData.value = structuredClone(defaultChartStruct);
-    for (let id in props.accountGrowthLineData) {
-      console.log(id);
-      console.log(props.accountGrowthLineData[id]);
-      /*
-      lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      lineChartData.value.labels.push(props.categorizedExpenses[id].name);
-       */
-    }
-  });
-
-  onMounted(() => {
-    for (let id in sortObj(props.accountGrowthLineData)) {
-      console.log(id);
-      console.log(props.accountGrowthLineData[id]);
-      /*
-      lineChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      lineChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
-      lineChartData.value.labels.push(props.categorizedExpenses[id].name);
-       */
-    }
-  });
 </script>
 
 <template>
@@ -160,20 +117,6 @@
     </div>
   </div>
 
-  <div class="chart-wrapper bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2 md:grid-cols-2">
-      <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
-      </div>
-      <div class="m-5">
-        <LineChart :chart-data="lineChartData" />
-      </div>
-    </div>
-  </div>
-
-  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-zinc-900">
-    <h1> Total Economic Growth: {{ formatter.format(totalEconomicGrowth) }} </h1>
-  </div>
   <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2">
     <div class="p-6">
       <div class="flex items-center flex-col">
@@ -300,7 +243,35 @@
       </div>
     </div>
   </div>
+
+  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-zinc-900">
+    <h1> Total Economic Growth: {{ formatter.format(totalEconomicGrowth) }} </h1>
+  </div>
+
+  <!--
+  <div class="chart-wrapper bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
+    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2 md:grid-cols-2">
+      <div class="m-5">
+        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
+      </div>
+      <div class="m-5">
+        <GrowthLines :chart-data="accountGrowthLineData" />
+      </div>
+    </div>
+  </div>
+  -->
+  <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
+    <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-3">
+      <div class="m-5">
+        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
+      </div>
+      <div class="m-5 col-span-2">
+        <GrowthLines :chart-data="accountGrowthLineData" />
+      </div>
+    </div>
+  </div>
 </template>
+
 <style>
 .chart-wrapper {
   display: inline-block;

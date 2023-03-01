@@ -1,9 +1,13 @@
 <script setup>
   import { watch, ref, onMounted } from 'vue';
   import PieChart from '@/Components/Charts/PieChart.vue';
+  import { expenseBreakdownOptions } from './chartConfig.js'
 
   let props = defineProps({
-    categorizedExpenses: Object,
+    categorizedExpenses: {
+      type: Object,
+      default: () => {}
+    }
   });
 
   const defaultChartStruct = {
@@ -24,7 +28,7 @@
   };
 
   const pieChartData = ref(structuredClone(defaultChartStruct));
-  watch(() => props.categorizedExpenses, (newCats) => {
+  watch(() => props.categorizedExpenses, () => {
     pieChartData.value = structuredClone(defaultChartStruct);
     for (let id in sortObj(props.categorizedExpenses)) {
       pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
@@ -43,7 +47,10 @@
 </script>
 
 <template>
-  <PieChart :chartData="pieChartData" />
+  <PieChart
+    :chart-data="pieChartData"
+    :chart-options="expenseBreakdownOptions"
+  />
 </template>
 <style>
 .chart-wrapper {

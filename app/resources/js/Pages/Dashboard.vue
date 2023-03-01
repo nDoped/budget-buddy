@@ -3,7 +3,20 @@
   import DashBoard from '@/Components/DashBoard.vue';
 
   const props = defineProps({
-    data: Object
+    data: {
+      type: Object,
+      default: () => {
+        return {
+          asset_accounts: Object,
+          debt_accounts: Object,
+          total_economic_growth: Object,
+          category_totals: Object,
+          account_growth_line_data: Object,
+          start: String,
+          end: String
+        }
+      }
+    }
   });
 </script>
 
@@ -15,9 +28,9 @@
           <DashBoard
             :assets="props.data.asset_accounts"
             :debts="props.data.debt_accounts"
-            :totalEconomicGrowth="props.data.total_economic_growth"
-            :categorizedExpenses="props.data.category_totals"
-            :accountGrowthLineData="props.data.account_growth_line_data"
+            :total-economic-growth="props.data.total_economic_growth"
+            :categorized-expenses="props.data.category_totals"
+            :account-growth-line-data="props.data.account_growth_line_data"
             :start="props.data.start"
             :end="props.data.end"
           />
