@@ -6,10 +6,14 @@
   import { useForm } from '@inertiajs/vue3'
   import ExpandableTable from '@/Components/ExpandableTable.vue';
 
-  const props = defineProps({
-      account_types: Object
+  defineProps({
+    accountTypes: {
+      type: Object,
+      default: () => {}
+    }
   });
   function submit() {
+    /* global route */
     form.post(route('account_types.store'), {
       preserveScroll: true,
       onSuccess: () => form.reset(),
@@ -36,17 +40,18 @@
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
           <div class="overflow-hidden">
-          <ExpandableTable
-            class="grow w-full bg-gray-800 text-slate-300"
-            :items="account_types"
-            :fields="fields"
-          >
-            <template #visible_row="{ item , value, key }">
-              <div class="font-semibold text-l">
-                {{ value }}
-              </div>
-            </template>
-          </ExpandableTable>
+            <ExpandableTable
+              class="grow w-full bg-gray-800 text-slate-300"
+              :items="accountTypes"
+              :fields="fields"
+              :expand="false"
+            >
+              <template #visible_row="{ value }">
+                <div class="font-semibold text-l">
+                  {{ value }}
+                </div>
+              </template>
+            </ExpandableTable>
           </div>
         </div>
       </div>

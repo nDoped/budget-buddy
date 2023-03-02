@@ -56,7 +56,6 @@
   });
 
   const hideTr = (hiddenTrRefs, i) => {
-    console.log('transactions cancelRef() handler', hiddenTrRefs, i);
     hiddenTrRefs[i].classList.add("hidden");
   };
 

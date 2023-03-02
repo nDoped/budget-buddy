@@ -12,15 +12,12 @@
     fields: {
       type: Object,
       default: () => {}
+    },
+    expand: {
+      type: Boolean,
+      default: () => true
     }
   });
-
-  watch(
-    () => props.items,
-    (props) => {
-      console.log('expandabletable props watch', props);
-    }
-  );
 
   const sortedItems = computed(() => {
     const { items } = props;
@@ -37,6 +34,9 @@
   const maxThWidthClass = computed(() => `max-w-[${1 / fieldCount.value}]`);
 
   const showHideRow = (item, i) => {
+    if (! props.expand) {
+      return;
+    }
     let hiddenRow = hiddenTrRefs.value[i];
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
@@ -159,6 +159,7 @@
           </tr>
 
           <tr
+            v-if="expand"
             :ref="(el) => { hiddenTrRefs.push(el) }"
             :id="`hidden_row_${i}`"
             class="hidden"

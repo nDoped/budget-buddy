@@ -131,6 +131,7 @@
           class="grow w-full bg-gray-800 text-black"
           :items="debts"
           :fields="fields"
+          :expand="false"
         >
           <template #visible_row="{ item , value, key }">
             <div
@@ -162,6 +163,7 @@
           class="grow w-full bg-gray-800 text-black"
           :items="assets"
           :fields="fields"
+          :expand="false"
         >
           <template #visible_row="{ item , value, key }">
             <div

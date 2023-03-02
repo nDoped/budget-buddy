@@ -136,7 +136,6 @@ export const accountGrowthLinesOptions = {
     y: {
       grid: {
         color: function(ctx) {
-          console.log(ctx);
           if (ctx.tick.value === 0) {
             return 'red';
           }

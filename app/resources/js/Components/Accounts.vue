@@ -74,6 +74,7 @@
               class="grow w-full bg-gray-800 text-slate-300"
               :items="accounts"
               :fields="fields"
+              :expand="false"
             >
               <template #visible_row="{ item , value, key }">
                 <div class="font-semibold text-l">
@@ -124,7 +125,7 @@
                       </option>
 
                       <option
-                        v-for="(type, i) in account_types"
+                        v-for="(type, i) in accountTypes"
                         :key="i"
                         :value="type.id"
                       >

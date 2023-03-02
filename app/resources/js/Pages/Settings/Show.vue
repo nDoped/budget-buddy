@@ -5,7 +5,7 @@
   import SectionBorder from '@/Components/SectionBorder.vue';
   import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
 
-  const props = defineProps({
+  defineProps({
     data: {
       type: Object,
       default: () => {}
@@ -20,12 +20,12 @@
       <SettingsNavMenu />
       <Accounts
         :accounts="data.accounts"
-        :account_types="data.account_types"
+        :account-types="data.account_types"
       />
       <SectionBorder />
 
       <AccountTypes
-        :account_types="data.account_types"
+        :account-types="data.account_types"
       />
     </div>
   </AppLayout>
