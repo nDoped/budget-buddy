@@ -1,11 +1,13 @@
 <script setup>
   import InputDate from '@/Components/InputDate.vue';
   import InputLabel from '@/Components/InputLabel.vue';
+  import Checkbox from '@/Components/Checkbox.vue';
   import { ref, onMounted, watch } from 'vue';
 
   const transStart = ref(props.start);
   const transEnd = ref(props.end);
   const filterData = ref({});
+  const useStartDate = ref(false);
   onMounted(() => {
     transStart.value = props.start;
     transEnd.value = props.end;
@@ -41,6 +43,19 @@
     transStart.value = args[0];
     transEnd.value = args[1];
   });
+
+  watch(() => useStartDate.value, () => {
+    if (useStartDate.value) {
+      transEnd.value = transStart.value;
+    }
+  });
+  watch(() => transStart.value, () => {
+    if (useStartDate.value) {
+      transEnd.value = transStart.value;
+    }
+  });
+
+
   watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => {
     if (newStart && newEnd) {
       filterData.value = {
@@ -72,7 +87,6 @@
       };
     }
   });
-
 </script>
 
 <template>
@@ -99,6 +113,17 @@
         id="transactions_start_date"
         v-model="transEnd"
       />
+      <InputLabel
+        for="use-start-date"
+        class="text-white"
+      >
+        <span class="pr-2">Use Start Date?</span>
+        <Checkbox
+          id="use-start-date"
+          v-model:checked="useStartDate"
+          name="use_start"
+        />
+      </InputLabel>
     </div>
 
     <div class="m-2 mt-7">
@@ -108,7 +133,9 @@
         class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
         @click="filter"
       >
-        <slot />
+        <slot name="range_button_text">
+          Select Range
+        </slot>
       </button>
     </div>
   </div>

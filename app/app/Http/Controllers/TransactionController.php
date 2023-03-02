@@ -77,7 +77,8 @@ class TransactionController extends Controller
             'start' => $start,
             'end' => $end,
             'jsonify_categories' => true,
-            'include_to_range' => false
+            'include_to_range' => false,
+            'order_by' => 'desc'
         ];
         $data = Transaction::fetch_transaction_data_for_current_user($args);
         $data['start'] = $start;

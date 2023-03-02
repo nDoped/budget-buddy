@@ -31,7 +31,8 @@ class DashboardController extends Controller
             'end' => $end,
             'jsonify_categories' => false,
             'include_to_range' => true,
-            'filter_for_expense_breakdown' => true
+            'filter_for_expense_breakdown' => true,
+            'order_by' => 'asc',
         ];
         $trans_data = Transaction::fetch_transaction_data_for_current_user($args);
         $account_data = $this->_fetch_account_data($start, $end);

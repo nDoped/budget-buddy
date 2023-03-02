@@ -33,6 +33,7 @@ class Transaction extends Model
      *      'jsonify_categories' => bool,
      *      'include_to_range' => bool,
      *      'filter_for_expense_breakdown' => bool,
+     *      'order_by' => string,
      *  ];
      * @array $args
      * return array
@@ -43,12 +44,18 @@ class Transaction extends Model
         $end = isset($args['end']) ? $args['end'] : null;
         $return_to_range = isset($args['include_to_range']) ? $args['include_to_range'] : null;
         $jsonify_categories = isset($args['jsonify_categories']) ? $args['jsonify_categories'] : null;
+        $order_by = isset($args['order_by']) ? $args['order_by'] : null;
         $data = [
             'transactions_in_range' => [],
         ];
         if ($return_to_range) {
             $data['transactions_to_range'] = [];
         }
+
+        if ($order_by && ! in_array($order_by, ['asc', 'desc'])) {
+            return $data;
+        }
+
         $current_user = Auth::user();
 
         $transactions_to_range = Transaction::where(function($query) {
@@ -61,7 +68,7 @@ class Transaction extends Model
             $query->select('user_id')
                 ->from('accounts')
                 ->whereColumn('accounts.id', 'transactions.account_id');
-        }, $current_user->id);
+        }, $current_user->id)->orderBy('transaction_date', $order_by);
 
 
 

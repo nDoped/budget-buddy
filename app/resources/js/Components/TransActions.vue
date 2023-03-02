@@ -39,15 +39,15 @@
   }
 
   const fields = ref([
-    { key: 'id', label: 'ID', sortable: true, color_text:false },
-    { key: 'transaction_date', label: 'Transaction Date', sortable: true, color_text:false },
+    { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
+    { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
-    { key: 'amount', label: 'Amount', sortable:true, color_text:true, format:true },
-    { key: 'account', label: 'Account', sortable:true, color_text:false },
-    { key: 'categories', label: 'Categories', sortable:true, color_text:false, stringify:true },
+    { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true, format:true },
+    { key: 'account', label: 'Account', sortable:true, searchable: true, color_text:false },
+    { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false, stringify:true },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
-    { key: 'bank_identifier', label: 'Bank Identifier', sortable:false, color_text:false },
-    { key: 'note', label: 'Note', sortable:false, color_text:false },
+    { key: 'bank_identifier', label: 'Bank Identifier', sortable:false, searchable:true, color_text:false },
+    { key: 'note', label: 'Note', sortable:false, searchable:true, color_text:false },
   ]);
 
   onMounted(() => {
@@ -81,52 +81,52 @@
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
     <TransactionsForm :accounts="accounts" />
 
-    <div class="flex flex-row">
-      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="py-2 min-w-full sm:px-6 lg:px-8">
-          <DateFilter
-            :start="transStart"
-            :end="transEnd"
-            :processing="filterTransactionsForm.processing"
-            @filter="filterEventHandler"
-          >
-            Filter
-          </DateFilter>
-        </div>
-      </div>
-    </div>
-
-    <ExpandableTable
-      v-if="transactions.length > 0"
-      :items="transactions"
-      :fields="fields"
+    <DateFilter
+      :start="transStart"
+      :end="transEnd"
+      :processing="filterTransactionsForm.processing"
+      @filter="filterEventHandler"
     >
-      <template #visible_row="{ item , value, key }">
-        <div
-          :class="{
-            'text-green-400': colorText(key, value, item) && item.asset,
-            'text-rose-800': colorText(key, value, item) && ! item.asset,
-          }"
-          class="font-semibold text-xl"
-        >
-          <div v-if="formatField(key, value, item)">
-            {{ formatter.format(item[key]) }}
-          </div>
-          <div v-else>
-            {{ value }}
-          </div>
-        </div>
+      <template #range_button_text>
+        Filter
       </template>
+    </DateFilter>
 
-      <template #hidden_row="{hidden_tr_refs, item, i}">
-        <TransactionEditForm
-          :accounts="accounts"
-          :transaction="item"
-          @cancel="hideTr(hidden_tr_refs, i)"
-          @success="hideTr(hidden_tr_refs, i)"
-        />
-      </template>
-    </ExpandableTable>
+    <div
+      v-if="transactions.length > 0"
+      class="mt-4"
+    >
+      <ExpandableTable
+        :items="transactions"
+        :fields="fields"
+      >
+        <template #visible_row="{ item , value, key }">
+          <div
+            :class="{
+              'text-green-400': colorText(key, value, item) && item.asset,
+              'text-rose-800': colorText(key, value, item) && ! item.asset,
+            }"
+            class="font-semibold text-xl"
+          >
+            <div v-if="formatField(key, value, item)">
+              {{ formatter.format(item[key]) }}
+            </div>
+            <div v-else>
+              {{ value }}
+            </div>
+          </div>
+        </template>
+
+        <template #hidden_row="{hidden_tr_refs, item, i}">
+          <TransactionEditForm
+            :accounts="accounts"
+            :transaction="item"
+            @cancel="hideTr(hidden_tr_refs, i)"
+            @success="hideTr(hidden_tr_refs, i)"
+          />
+        </template>
+      </ExpandableTable>
+    </div>
 
     <div v-else>
       <p>No transactions found in the given date range</p>

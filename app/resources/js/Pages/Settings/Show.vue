@@ -1,16 +1,15 @@
 <script setup>
-  import { Head, Link } from '@inertiajs/vue3';
   import AppLayout from '@/Layouts/AppLayout.vue';
   import Accounts from '@/Components/Accounts.vue';
   import AccountTypes from '@/Components/AccountTypes.vue';
   import SectionBorder from '@/Components/SectionBorder.vue';
   import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
 
-  import ExpandableTable from '@/Components/ExpandableTable.vue';
-
-
   const props = defineProps({
-    data: Object
+    data: {
+      type: Object,
+      default: () => {}
+    }
   });
 </script>
 
@@ -20,13 +19,13 @@
     <div class="max-w-11xl mx-auto py-10 sm:px-6 lg:px-8">
       <SettingsNavMenu />
       <Accounts
-        :accounts='data.accounts'
-        :account_types='data.account_types'
+        :accounts="data.accounts"
+        :account_types="data.account_types"
       />
       <SectionBorder />
 
       <AccountTypes
-        :account_types='data.account_types'
+        :account_types="data.account_types"
       />
     </div>
   </AppLayout>

@@ -98,68 +98,6 @@
 
 <template>
   <div>
-    <div
-      v-if="items.length > 0"
-      class="overflow-x-auto sm:-mx-6 lg:-mx-8"
-    >
-      <div
-        v-if="pagination.totalPages > 1"
-        class="py-2 min-w-full sm:px-6 lg:px-8"
-      >
-        <div
-          class="m-1"
-          style="text-align: right"
-        >
-          Results per page
-          <button
-            class="mx-2"
-            @click="perPage = 5"
-          >
-            5
-          </button>
-          <button
-            class="mx-2"
-            @click="perPage = 10"
-          >
-            10
-          </button>
-          <button
-            class="mx-2"
-            @click="perPage = 20"
-          >
-            20
-          </button>
-          <button
-            class="mx-2"
-            @click="perPage = 50"
-          >
-            50
-          </button>
-        </div>
-
-        <div
-          class="m-1"
-          style="text-align: right"
-        >
-          <div>
-            <button
-              :disabled="pagination.currentPage <= 1"
-              @click="pagination.currentPage--"
-            >
-              &lt;&lt;
-            </button>
-            Page {{ pagination.currentPage }} of {{ pagination.totalPages }}
-            <button
-              :disabled="pagination.currentPage >= pagination.totalPages"
-              @click="pagination.currentPage++"
-            >
-              &gt;&gt;
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <table class="min-w-full table-auto text-black bg-zinc-200 dark:text-white dark:bg-slate-800">
       <thead>
         <tr>
@@ -239,6 +177,69 @@
         </template>
       </tbody>
     </table>
+
+    <div
+      v-if="items.length > 0"
+      class="overflow-x-auto sm:-mx-6 lg:-mx-8"
+    >
+      <div
+        v-if="pagination.totalPages > 1"
+        class="py-2 min-w-full sm:px-6 lg:px-8"
+      >
+        <div
+          class="m-1"
+          style="text-align: right"
+        >
+          Results per page
+          <button
+            class="mx-2"
+            @click="perPage = 5"
+          >
+            5
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 10"
+          >
+            10
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 20"
+          >
+            20
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 50"
+          >
+            50
+          </button>
+        </div>
+
+        <div
+          class="m-1"
+          style="text-align: right"
+        >
+          <div>
+            <button
+              :disabled="pagination.currentPage <= 1"
+              @click="pagination.currentPage--"
+            >
+              &lt;&lt;
+            </button>
+            Page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+            <button
+              :disabled="pagination.currentPage >= pagination.totalPages"
+              @click="pagination.currentPage++"
+            >
+              &gt;&gt;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
