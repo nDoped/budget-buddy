@@ -90,7 +90,7 @@
 </script>
 
 <template>
-  <div class="flex flex-row">
+  <div class="flex flex-col sm:flex-row ">
     <div class="m-2">
       <InputLabel
         for="transaction_start_date"
@@ -130,7 +130,7 @@
       <button
         :class="{ 'opacity-25': processing }"
         :disabled="processing"
-        class="text-white bg-gray-600  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
+        class="text-white bg-gray-600 max-w-xsm focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
         @click="filter"
       >
         <slot name="range_button_text">

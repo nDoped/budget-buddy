@@ -93,7 +93,7 @@
 
     <div
       v-if="transactions.length > 0"
-      class="mt-4"
+      class="mt-4 overflow-x-auto"
     >
       <ExpandableTable
         :items="transactions"
