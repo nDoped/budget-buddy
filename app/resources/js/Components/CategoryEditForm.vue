@@ -10,15 +10,19 @@
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
   import { toast } from 'vue3-toastify';
-  import 'vue3-toastify/dist/index.css';
+  //import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['success', 'cancel']);
 
-  watch(() => props.category, () => {
-    form.name = props.category.name;
-    form.color = props.category.color;
-    form.include_in_expense_breakdown = (props.category.include_in_expense_breakdown) ? true : false;
-  });
+  watch(
+    () => props.category,
+    () => {
+      form.name = props.category.name;
+      form.color = props.category.color;
+      form.include_in_expense_breakdown = (props.category.include_in_expense_breakdown) ? true : false;
+      deleteCategoryForm.id = props.category.id;
+    }
+  );
 
   const props = defineProps({
     category: {

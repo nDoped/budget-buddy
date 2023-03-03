@@ -1,11 +1,12 @@
 <script setup>
-  import InputLabel from '@/Components/InputLabel.vue';
   import { ref, inject } from 'vue';
+  import { toast } from 'vue3-toastify';
+  import { useForm } from '@inertiajs/vue3'
   import InputError from '@/Components/InputError.vue';
+  import InputLabel from '@/Components/InputLabel.vue';
   import TextInput from '@/Components/TextInput.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   import AccountUrlLink from '@/Components/AccountUrlLink.vue';
-  import { useForm } from '@inertiajs/vue3'
   const formatter = inject('formatter');
 
   defineProps({
@@ -18,13 +19,6 @@
       default: () => {}
     }
   });
-  function submit() {
-    /* global route */
-    form.post(route('accounts.store'), {
-      preserveScroll: true,
-      onSuccess: () => form.reset(),
-    });
-  }
 
   const hasUrl = (key) => {
     let test = fields.value.find(field => field.key === key );
@@ -51,6 +45,11 @@
     { key: 'url', label: 'URL' }
   ]);
 
+  const success = () => {
+    toast.success('Account Created!');
+    form.reset();
+  };
+
   const form = useForm({
     name: null,
     type: null,
@@ -58,6 +57,13 @@
     interest_rate: null,
     initial_balance: null,
   });
+  function submit() {
+    /* global route */
+    form.post(route('accounts.store'), {
+      preserveScroll: true,
+      onSuccess: success,
+    });
+  }
 </script>
 
 <template>

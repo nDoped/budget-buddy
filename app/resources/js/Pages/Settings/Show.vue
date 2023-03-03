@@ -16,7 +16,7 @@
 
 <template>
   <AppLayout title="Settings - Accounts">
-    <div class="max-w-11xl mx-auto py-10 sm:px-6 lg:px-8">
+    <div class="max-w-8xl mx-auto py-10 sm:px-6 lg:px-8">
       <SettingsNavMenu />
       <Accounts
         :accounts="data.accounts"

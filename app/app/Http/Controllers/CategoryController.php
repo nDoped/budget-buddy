@@ -55,6 +55,9 @@ class CategoryController extends Controller
             'id' => [ 'required' ],
         ]);
         $category = Category::find($request->id);
+        Log::info([
+            'app/Http/Controllers/CategoryController.php:57 key' => $category->id,
+        ]);
         if ($category) {
             $linked_transactions = $category->transactions();
             if ($linked_transactions->count() > 0) {

@@ -131,6 +131,27 @@ class SettingsController extends Controller
     }
 
     /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store_category(Request $request)
+    {
+        $current_user = Auth::user();
+        $request->validate([
+            'name' => [ 'required', 'max:50' ],
+        ]);
+        $cat = new Category();
+        $cat->name = $request->name;
+        $cat->hex_color = $request->color;
+        $cat->user_id = $current_user->id;
+        $cat->include_in_expense_breakdown = $request->include_in_expense_breakdown;
+        $cat->save();
+        return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
+    }
+
+    /**
      * Get the error messages for the defined validation rules.
      *
      * @return array

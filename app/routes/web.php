@@ -47,4 +47,5 @@ Route::middleware([
     Route::post('/settings/store_account', [ SettingsController::class, 'store_account' ])->name('accounts.store');
     Route::post('/settings/store_account_type', [ SettingsController::class, 'store_account_type' ])->name('account_types.store');
     Route::get('/settings/categories', [ SettingsController::class, 'categories' ])->name('settings.categories');
+    Route::post('/settings/store_category', [ SettingsController::class, 'store_category' ])->name('categories.store');
 });

@@ -4,9 +4,10 @@
   import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   import CategoryEditForm from '@/Components/CategoryEditForm.vue';
+  import CategoryForm from '@/Components/CategoryForm.vue';
   //const formatter = inject('formatter');
 
-  const props = defineProps({
+  defineProps({
     categories: {
       type: Array,
       default: () => {}
@@ -24,23 +25,33 @@
     hiddenTrRefs[i].classList.add("hidden");
   };
 
-  const colorBg = (key, value, item) => {
+  const colorBg = (key) => {
     let test = fields.value.find(field => field.key === key );
     if (test.color_bg) {
-
-      //console.log(item);
-      //return "backgroundColor: `#${item.color}`";
       return true;
-      //return styleObject;
     }
     return false;
+
   };
+
+  const cellBackground = (item) => {
+    return `background-color: ${item.color}`
+  }
 </script>
 
 <template>
   <AppLayout title="Settings - Categories">
-    <div class="max-w-11xl mx-auto py-10 sm:px-6 lg:px-8">
+    <div class="max-w-8xl mx-auto py-10 sm:px-6 lg:px-8">
       <SettingsNavMenu />
+
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+          <div class="overflow-hidden">
+            <CategoryForm />
+          </div>
+        </div>
+      </div>
+
       <div class="overflow-hidden">
         <ExpandableTable
           :items="categories"
@@ -49,7 +60,9 @@
         >
           <template #visible_row="{ item , value, key }">
             <div v-if="colorBg(key, value, item)">
-              <span :class="`bg-[${item.color}]`">{{ value }}</span>
+              <span :style="cellBackground(item)">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              </span>
             </div>
           </template>
 
