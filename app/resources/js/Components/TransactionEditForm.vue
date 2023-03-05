@@ -49,9 +49,9 @@
   };
 
   const catsJsonStr = ref(JSON.stringify(props.transaction.categories));
-  const success = (created) => {
+  const success = (deleted) => {
     transBeingDeleted.value = null;
-    toast.success((created) ? 'Transaction Updated!' : 'Transaction Deleted!');
+    toast.success((deleted) ? 'Transaction Deleted!' : 'Transaction Updated!');
     emit('success');
   };
 
@@ -62,7 +62,7 @@
     /* global route */
     deleteTransactionForm.delete(route('transactions.destroy', {id: transBeingDeleted.value}), {
       preserveScroll: true,
-      onSuccess: () => success(false),
+      onSuccess: () => success(true),
       onError: (err) =>  {
         console.error(err.message)
         transBeingDeleted.value = null;
@@ -86,7 +86,7 @@
   function submit() {
     form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
-      onSuccess: () => success(true),
+      onSuccess: () => success(false),
       onError: (err) =>  {
         console.error(err)
         transBeingDeleted.value = null;

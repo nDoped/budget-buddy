@@ -35,11 +35,6 @@ class SettingsController extends Controller
      */
     public function categories(Request $request)
     {
-        /*
-        Log::info([
-            'app/Http/Controllers/SettingsController.php:38 request' => $request->all(),
-        ]);
-         */
         $cats = [];
         $current_user = Auth::user();
         $cat_itty = Category::where('user_id', '=', $current_user->id)

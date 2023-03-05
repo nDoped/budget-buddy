@@ -10,7 +10,7 @@
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
   import { toast } from 'vue3-toastify';
-  //import 'vue3-toastify/dist/index.css';
+  import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['success', 'cancel']);
 
@@ -64,7 +64,6 @@
   const form = useForm({
     name: props.category.name,
     color: props.category.color,
-    id: props.category.id,
     include_in_expense_breakdown: (props.category.include_in_expense_breakdown) ? true : false
   });
 

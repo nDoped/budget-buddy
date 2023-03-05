@@ -41,12 +41,6 @@ class TransactionPostRequest extends FormRequest
     {
         $ret = [];
         $route_name = Route::currentRouteName();
-        /*
-        Log::info([
-          'app/Http/Requests/TransactionPostRequest.php:48 request' => $request->all(),
-          'app/Http/Requests/TransactionPostRequest.php:48 route' => $route_name
-        ]);
-         */
         switch ($route_name) {
         case 'transactions.destroy':
             $ret = [
@@ -94,11 +88,6 @@ class TransactionPostRequest extends FormRequest
             }
             break;
         }
-        /*
-        Log::info([
-          'app/Http/Requests/TransactionPostRequest.php:101 rules' => $ret,
-        ]);
-         */
         return $ret;
     }
 }

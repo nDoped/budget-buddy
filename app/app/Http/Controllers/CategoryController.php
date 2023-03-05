@@ -23,23 +23,18 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $cat
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $cat)
+    public function update(Request $request, Category $category)
     {
         $request->validate([
             'name' => [ 'required', 'max:50' ],
             'color' => [ 'required' ],
         ]);
 
-        /*
-        Log::info([
-          'app/Http/Controllers/CategoryController.php:82 all' => $request->all(),
-        ]);
-         */
-        $cat = Category::find($request->id);
-        $cat->name = $request->name;
-        $cat->hex_color = $request->color;
-        $cat->include_in_expense_breakdown = $request->include_in_expense_breakdown;
-        $cat->save();
+
+        $category->name = $request->name;
+        $category->hex_color = $request->color;
+        $category->include_in_expense_breakdown = $request->include_in_expense_breakdown;
+        $category->save();
         return redirect()->route('settings.categories');
     }
 
@@ -55,9 +50,6 @@ class CategoryController extends Controller
             'id' => [ 'required' ],
         ]);
         $category = Category::find($request->id);
-        Log::info([
-            'app/Http/Controllers/CategoryController.php:57 key' => $category->id,
-        ]);
         if ($category) {
             $linked_transactions = $category->transactions();
             if ($linked_transactions->count() > 0) {
@@ -67,7 +59,7 @@ class CategoryController extends Controller
             }
             Category::destroy($request->id);
         } else {
-        return redirect()->back()->withErrors('shit went down');
+            return redirect()->back()->withErrors('shit went down');
         }
         return redirect()->route('settings.categories');
     }
