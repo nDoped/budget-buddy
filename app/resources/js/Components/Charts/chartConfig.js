@@ -43,7 +43,7 @@ export const accountGrowthLinesOptions = {
   maintainAspectRatio: false,
   plugins:{
     title: {
-      text: 'Net Growth Values',
+      text: 'Net Growths',
       display: true
     },
 
@@ -159,7 +159,7 @@ export const expenseBreakdownOptions = {
       display: false
     },
     title: {
-      text: 'Breakdown of expenses',
+      text: 'Expense Breakdown',
       display: true
     },
     datalabels: {

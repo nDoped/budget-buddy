@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -11,8 +10,6 @@ use App\Http\Requests\TransactionPostRequest;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
-use App\Models\AccountType;
-use App\Models\User;
 
 class TransactionController extends Controller
 {
@@ -21,7 +18,7 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request) : \Inertia\Response
     {
         $start = $request->start;
         $end = $request->end;
@@ -107,7 +104,7 @@ class TransactionController extends Controller
      * @param  \App\Http\Requests\TransactionPostRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function store(TransactionPostRequest $request)
+    public function store(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
         $current_user = Auth::user();
@@ -178,7 +175,7 @@ class TransactionController extends Controller
      * @param  \App\Models\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function update(TransactionPostRequest $request, Transaction $transaction)
+    public function update(TransactionPostRequest $request, Transaction $transaction) : \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
         $current_user = Auth::user();
@@ -219,7 +216,7 @@ class TransactionController extends Controller
      * @param  \App\Http\Requests\TransactionPostRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TransactionPostRequest $request)
+    public function destroy(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
         Log::info([

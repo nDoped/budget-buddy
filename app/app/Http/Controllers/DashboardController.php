@@ -8,11 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
-use App\Models\Account;
 
 class DashboardController extends Controller
 {
-    public function dashboard(Request $request)
+    public function dashboard(Request $request) : \Inertia\Response
     {
         $show_all = $request->show_all;
         $start = $request->start;
@@ -35,7 +34,7 @@ class DashboardController extends Controller
             'order_by' => 'asc',
         ];
         $trans_data = Transaction::fetch_transaction_data_for_current_user($args);
-        $account_data = $this->_fetch_account_data($start, $end);
+        $account_data = $this->_fetch_account_data();
 
         foreach ($trans_data['transactions_to_range'] as $trans) {
             $acct = $account_data[$trans['account_id']];
@@ -202,7 +201,7 @@ class DashboardController extends Controller
             ],
         ];
         $total_eco_growth = 0;
-        foreach ($account_data as $id => $acct) {
+        foreach ($account_data as $acct) {
             $start_balance_raw = $acct['init_balance_raw'] + $acct['pre_range_net_growth'];
             $acct['start_balance'] = $start_balance_raw / 100;
 
@@ -249,7 +248,10 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function _fetch_account_data($transactions)
+    /*
+     * @return array
+     */
+    private function _fetch_account_data() : array
     {
         $ret = [];
         $current_user = Auth::user();
@@ -271,8 +273,6 @@ class DashboardController extends Controller
                 'end_balance' => 0
             ];
         }
-
-        //Log::info($ret);
         return $ret;
     }
 }

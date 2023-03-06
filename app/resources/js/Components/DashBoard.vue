@@ -1,5 +1,5 @@
 <script setup>
-  import { useForm } from '@inertiajs/vue3'
+  import { useForm } from '@inertiajs/vue3';
   import { inject, ref } from 'vue';
   import AccountUrlLink from '@/Components/AccountUrlLink.vue';
   import DateFilter from '@/Components/DateFilter.vue';
@@ -69,6 +69,7 @@
     }
     return false;
   };
+
   const textColor = (item, value, highlight) => {
     let ret = 'text-slate-400';
     if (! highlight) {
@@ -202,7 +203,6 @@
       </div>
     </div>
   </div>
-  -->
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
     <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-3">
       <div class="m-5">
@@ -210,6 +210,22 @@
       </div>
       <div class="m-5 col-span-2">
         <GrowthLines :chart-data="accountGrowthLineData" />
+      </div>
+    </div>
+  </div>
+  -->
+
+  <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
+    <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-1">
+      <div class="m-5 col-span-2">
+        <GrowthLines :chart-data="accountGrowthLineData" />
+      </div>
+    </div>
+  </div>
+  <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
+    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2">
+      <div class="m-5">
+        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
       </div>
     </div>
   </div>
