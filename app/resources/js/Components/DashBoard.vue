@@ -4,6 +4,7 @@
   import AccountUrlLink from '@/Components/AccountUrlLink.vue';
   import DateFilter from '@/Components/DateFilter.vue';
   import GrowthLines from '@/Components/Charts/AccountGrowthLines.vue';
+  import AccountBalanceLine from '@/Components/Charts/AccountBalanceLine.vue';
   import ExpenseBreakdown from '@/Components/Charts/ExpenseBreakdownPie.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   const formatter = inject('formatter');
@@ -105,7 +106,7 @@
 <template>
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
     <div
-      class="max-w-xl overflow-hidden"
+      class="max-w-xl"
       style="text-align: left"
     >
       <DateFilter
@@ -121,9 +122,9 @@
     </div>
   </div>
 
-  <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2">
+  <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 sm:grid-cols-2">
     <div class="p-6">
-      <div class="flex items-center flex-col">
+      <div class="flex items-center flex-col overflow-x-auto">
         <div class="text-3xl text-bold">
           Debts
         </div>
@@ -132,7 +133,6 @@
           class="grow w-full bg-gray-800 text-black"
           :items="debts"
           :fields="fields"
-          :expand="false"
         >
           <template #visible_row="{ item , value, key }">
             <div
@@ -151,12 +151,16 @@
               </template>
             </div>
           </template>
+
+          <template #hidden_row="{hidden_tr_refs, item, i}">
+            <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
+          </template>
         </ExpandableTable>
       </div>
     </div>
 
     <div class="p-6 border-t border-gray-200 md:border-t-0 md:border-l">
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center overflow-x-auto">
         <div class="text-3xl text-bold">
           Assets
         </div>
@@ -164,7 +168,6 @@
           class="grow w-full bg-gray-800 text-black"
           :items="assets"
           :fields="fields"
-          :expand="false"
         >
           <template #visible_row="{ item , value, key }">
             <div
@@ -182,6 +185,10 @@
                 <AccountUrlLink :url="item['url']" />
               </template>
             </div>
+          </template>
+
+          <template #hidden_row="{hidden_tr_refs, item, i}">
+            <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
           </template>
         </ExpandableTable>
       </div>
@@ -191,29 +198,6 @@
   <div class="p-6 bg-zinc-300 dark:text-white dark:bg-zinc-900">
     <h1> Total Economic Growth: {{ formatter.format(totalEconomicGrowth) }} </h1>
   </div>
-
-  <!--
-  <div class="chart-wrapper bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2 md:grid-cols-2">
-      <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
-      </div>
-      <div class="m-5">
-        <GrowthLines :chart-data="accountGrowthLineData" />
-      </div>
-    </div>
-  </div>
-  <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
-    <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-3">
-      <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
-      </div>
-      <div class="m-5 col-span-2">
-        <GrowthLines :chart-data="accountGrowthLineData" />
-      </div>
-    </div>
-  </div>
-  -->
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
     <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-1">

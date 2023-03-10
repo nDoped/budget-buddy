@@ -3,27 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use App\Http\Requests\TransactionPostRequest;
-use App\Models\Account;
 use App\Models\Category;
-use App\Models\Transaction;
-use App\Models\AccountType;
-use App\Models\User;
 
 class CategoryController extends Controller
 {
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @param  \App\Models\Category  $cat
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, Category $category) : \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'name' => [ 'required', 'max:50' ],
@@ -41,10 +32,10 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Http\Requests\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request)
+    public function destroy(Request $request) : \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'id' => [ 'required' ],

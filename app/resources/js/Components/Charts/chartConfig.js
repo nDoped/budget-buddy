@@ -43,7 +43,6 @@ export const accountGrowthLinesOptions = {
   maintainAspectRatio: false,
   plugins:{
     title: {
-      text: 'Net Growths',
       display: true
     },
 
