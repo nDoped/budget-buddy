@@ -61,6 +61,7 @@
       lineChartData.value.labels.push(
         new Date(date)
           .toLocaleString('us-en', {
+            timeZone: "utc",
             weekday: "short",
             year: "numeric",
             month: "numeric",
