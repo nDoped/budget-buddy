@@ -29,7 +29,7 @@
     });
   }
 
-  let props = defineProps({
+  defineProps({
     accounts: {
       type: Array,
       default: () => []
@@ -180,41 +180,72 @@
             </div>
 
             <div class="m-4 w-full">
-              <InputLabel for="categories" value="Categories" />
-              <TextInput
-                  id="note"
-                  v-model="form.categories"
-                  type="text"
-                  class="mt-1 block w-full"
-                  autofocus
-                  autocomplete="note"
+              <InputLabel
+                for="categories"
+                value="Categories"
               />
-              <InputError :message="form.errors.categories" class="mt-2" />
+              <TextInput
+                id="note"
+                v-model="form.categories"
+                type="text"
+                class="mt-1 block w-full"
+                autofocus
+                autocomplete="note"
+              />
+              <InputError
+                :message="form.errors.categories"
+                class="mt-2"
+              />
             </div>
           </div>
 
           <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
             <div class="m-6">
-              <InputLabel for="recurring" value="Make this a recurring transaction?"/>
-              <Checkbox id="recurring" v-model:checked="form.recurring" name="recurring"/>
-              <InputError class="mt-2" :message="form.errors.recurring" />
+              <InputLabel
+                for="recurring"
+                value="Make this a recurring transaction?"
+              />
+              <Checkbox
+                id="recurring"
+                v-model:checked="form.recurring"
+                name="recurring"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.recurring"
+              />
 
               <template v-if="form.recurring">
                 <div class="m-4">
-                  <InputLabel for="frequency" value="Frequency"/>
+                  <InputLabel
+                    for="frequency"
+                    value="Frequency"
+                  />
                   <select
                     required
                     id="frequency"
                     v-model="form.frequency"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
                   >
-                    <option value="" selected disabled hidden>Select Frequency...</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="biweekly">Bi-Weekly</option>
+                    <option
+                      value=""
+                      selected
+                      disabled
+                      hidden
+                    >
+                      Select Frequency...
+                    </option>
+                    <option value="monthly">
+                      Monthly
+                    </option>
+                    <option value="biweekly">
+                      Bi-Weekly
+                    </option>
                   </select>
-                  <InputError :message="form.errors.frequency" class="mt-2" />
-
+                  <InputError
+                    :message="form.errors.frequency"
+                    class="mt-2"
+                  />
                 </div>
 
                 <div class="m-4">
@@ -235,38 +266,70 @@
             </div>
 
             <div class="m-6">
-              <InputLabel for="trans_buddy" value="Create a transaction buddy?"/>
-              <Checkbox id="trans_buddy" v-model:checked="form.trans_buddy" name="trans_buddy"/>
-              <InputError class="mt-2" :message="form.errors.trans_buddy" />
+              <InputLabel
+                for="trans_buddy"
+                value="Create a transaction buddy?"
+              />
+              <Checkbox
+                id="trans_buddy"
+                v-model:checked="form.trans_buddy"
+                name="trans_buddy"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.trans_buddy"
+              />
 
               <template v-if="form.trans_buddy">
                 <div class="m-4">
-                  <InputLabel for="trans_buddy_account" value="Buddy Account" />
+                  <InputLabel
+                    for="trans_buddy_account"
+                    value="Buddy Account"
+                  />
                   <select
                     id="trans_buddy_account"
                     v-model="form.trans_buddy_account"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
                   >
-                    <option value="" selected disabled hidden>Select a Buddy...</option>
-                    <option v-for="account in accounts" :value="account.id">
+                    <option
+                      value=""
+                      selected
+                      disabled
+                      hidden
+                    >
+                      Select a Buddy...
+                    </option>
+                    <option
+                      v-for="account in accounts"
+                      :key="account + ':' + account.id"
+                      :value="account.id"
+                    >
                       {{ account.name }}
                     </option>
                   </select>
-                  <InputError :message="form.errors.trans_buddy_account" class="mt-2" />
+                  <InputError
+                    :message="form.errors.trans_buddy_account"
+                    class="mt-2"
+                  />
                 </div>
 
                 <div class="m-4">
-                  <InputLabel for="trans_buddy_note" value="Buddy Note" />
-                  <TextInput
-                      id="trans_buddy_note"
-                      v-model="form.trans_buddy_note"
-                      type="text"
-                      class="mt-1 block w-full"
-                      autofocus
-                      autocomplete="note"
+                  <InputLabel
+                    for="trans_buddy_note"
+                    value="Buddy Note"
                   />
-                  <InputError :message="form.errors.trans_buddy_note" class="mt-2" />
+                  <TextInput
+                    id="trans_buddy_note"
+                    v-model="form.trans_buddy_note"
+                    type="text"
+                    class="mt-1 block w-full"
+                    autofocus
+                    autocomplete="note"
+                  />
+                  <InputError
+                    :message="form.errors.trans_buddy_note"
+                    class="mt-2"
+                  />
                 </div>
               </template>
             </div>

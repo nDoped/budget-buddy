@@ -115,6 +115,7 @@ class TransactionController extends Controller
         $trans->transaction_date = $data['transaction_date'];
         $trans->note = $data['note'];
         $trans->save();
+        $trans_buddy = null;
         if ($data['trans_buddy']) {
             $trans_buddy = $trans->replicate();
             $trans_buddy->credit = ! $trans->credit;
@@ -123,27 +124,24 @@ class TransactionController extends Controller
             $trans_buddy->save();
         }
 
+        $recurring_transactions = [];
+        $recurring_buddy_transactions = [];
         if ($data['recurring']) {
             $duration = ($data['frequency'] === 'monthly') ? 'P1M' : 'P14D';
             $d = new \DateTime($data['transaction_date']);
             $next_date = $d->add(new \DateInterval($duration));
-            Log::info([
-                'app/Http/Controllers/TransactionController.php:135 next' => $next_date->format('Y-m-d'),
-                'app/Http/Controllers/TransactionController.php:135 end' => $data['recurring_end_date']
-            ]);
             while ($next_date->format('Y-m-d') <= $data['recurring_end_date']) {
                 $recurring_trans = $trans->replicate();
                 $recurring_trans->transaction_date = $next_date->format(\DateTime::ATOM);
                 $recurring_trans->save();
-                if ($data['trans_buddy']) {
+                $recurring_transactions[] = $recurring_trans;
+                if ($trans_buddy) {
                     $recurring_buddy = $trans_buddy->replicate();
                     $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
                     $recurring_buddy->save();
+                    $recurring_buddy_transactions[] = $recurring_buddy;
                 }
                 $next_date = $next_date->add(new \DateInterval($duration));
-                Log::info([
-                    'app/Http/Controllers/TransactionController.php:135 next' => $next_date->format(\DateTime::ATOM),
-                ]);
             }
         }
 
@@ -158,6 +156,16 @@ class TransactionController extends Controller
                     $cat_model->save();
                 }
                 $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+
+                if ($trans_buddy) {
+                    $trans_buddy->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+                }
+                foreach ($recurring_transactions as $rec_trans) {
+                    $rec_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+                }
+                foreach ($recurring_buddy_transactions as $rec_bud_trans) {
+                    $rec_bud_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+                }
             }
         }
 

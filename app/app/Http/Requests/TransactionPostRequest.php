@@ -84,7 +84,7 @@ class TransactionPostRequest extends FormRequest
                     $to_merge_buddy['trans_buddy_note'][] = 'nullable';
                 }
 
-
+                $ret = array_merge($ret, $to_merge_recurring, $to_merge_buddy);
             }
             break;
         }
