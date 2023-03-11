@@ -152,7 +152,7 @@
             </div>
           </template>
 
-          <template #hidden_row="{hidden_tr_refs, item, i}">
+          <template #hidden_row="{item}">
             <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
           </template>
         </ExpandableTable>
@@ -187,7 +187,7 @@
             </div>
           </template>
 
-          <template #hidden_row="{hidden_tr_refs, item, i}">
+          <template #hidden_row="{ item }">
             <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
           </template>
         </ExpandableTable>

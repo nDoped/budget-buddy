@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 
@@ -237,6 +236,7 @@ class DashboardController extends Controller
             $end_balance_raw = $start_balance_raw + $in_range_net_growth_raw;
             $acct['end_balance'] = $end_balance_raw / 100;
 
+            $acct['overdrawn_or_overpaid'] = false;
 
             $daily_balance_line_graph_data = [];
             $running_balance = $start_balance_raw;
@@ -246,6 +246,9 @@ class DashboardController extends Controller
                     $daily_balance_line_graph_data[$trans_date] += $running_balance;
                 } else {
                     $daily_balance_line_graph_data[$trans_date] = $running_balance;
+                }
+                if ($running_balance <= 0) {
+                    $acct['overdrawn_or_overpaid'] = true;
                 }
             }
 

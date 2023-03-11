@@ -33,6 +33,16 @@
   const fieldCount = ref(Object.keys(props.fields).length);
   const maxThWidthClass = computed(() => `max-w-[${1 / fieldCount.value}]`);
 
+  const getSpecialRowClasses = (item) => {
+    if (item.overdrawn_or_overpaid) {
+      if (item.asset) {
+        return 'border-l-8 border-solid border-l-red-800';
+      } else {
+        return 'border-l-8 border-solid border-l-green-800';
+      }
+    }
+  };
+
   const showHideRow = (item, i) => {
     if (! props.expand) {
       return;
@@ -140,7 +150,8 @@
             @click="showHideRow(item, i)"
             :ref="(el) => { visibleTrRefs.push(el) }"
             :id="`visible_row_${i}`"
-            class="hover:opacity-80 focus:bg-slate-400 border-t border-zinc-900 dark:border-zinc-100"
+            class="hover:opacity-80 focus:bg-slate-400 border-t"
+            :class="getSpecialRowClasses(item)"
           >
             <td
               v-for="{ key } in fields"
@@ -163,6 +174,7 @@
             :ref="(el) => { hiddenTrRefs.push(el) }"
             :id="`hidden_row_${i}`"
             class="hidden"
+            :class="getSpecialRowClasses(item)"
           >
             <td :colspan="fieldCount">
               <slot
