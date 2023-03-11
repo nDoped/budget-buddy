@@ -35,7 +35,16 @@
 
     for (let date in props.chartData.daily_economic_growth) {
       let dailyGrowth = props.chartData.daily_economic_growth[date];
-      lineChartData.value.labels.push(date);
+      lineChartData.value.labels.push(
+        new Date(date)
+          .toLocaleString('us-en', {
+            timeZone: "utc",
+            weekday: "short",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+          })
+      );
       lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
 
@@ -43,41 +52,27 @@
       let dailyGrowth = props.chartData.total_economic_growth[date];
       lineChartData.value.datasets[1].data.push(dailyGrowth);
     }
-
-    // force the graph back to an arbitray ending of zero
-    /*
-    lineChartData.value.datasets[0].data.push(0);
-    lineChartData.value.datasets[1].data.push(
-      lineChartData.value.datasets[1].data[
-        lineChartData.value.datasets[1].data.length - 1
-      ]
-    );
-    lineChartData.value.labels.push("End");
-    */
   });
 
   const refreshChartData = () => {
     lineChartData.value = structuredClone(defaultChartStruct);
     for (let date in props.chartData.daily_economic_growth) {
       let dailyGrowth = props.chartData.daily_economic_growth[date];
-      lineChartData.value.labels.push(date);
+      lineChartData.value.labels.push(
+        new Date(date)
+          .toLocaleString('us-en', {
+            weekday: "short",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+          })
+      );
       lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
     for (let date in props.chartData.total_economic_growth) {
       let dailyGrowth = props.chartData.total_economic_growth[date];
       lineChartData.value.datasets[1].data.push(dailyGrowth);
     }
-
-    // force the graph back to an arbitray ending of zero
-    /*
-    lineChartData.value.datasets[0].data.push(0);
-    lineChartData.value.datasets[1].data.push(
-      lineChartData.value.datasets[1].data[
-        lineChartData.value.datasets[1].data.length - 1
-      ]
-    );
-    lineChartData.value.labels.push("End");
-    */
   };
   watch(() => props.chartData.daily_economic_growth, refreshChartData);
   watch(() => props.chartData.total_economic_growth, refreshChartData);

@@ -27,7 +27,21 @@
   onMounted(() => {
     for (let date in props.chartData) {
       let dailyGrowth = props.chartData[date];
-      lineChartData.value.labels.push(date);
+      if (date !== 'Start') {
+        lineChartData.value.labels.push(
+          new Date(date)
+            .toLocaleString('us-en', {
+              timeZone: "utc",
+              weekday: "short",
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+            })
+        );
+
+      } else {
+        lineChartData.value.labels.push(date);
+      }
       lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
   });
@@ -36,10 +50,25 @@
     lineChartData.value = structuredClone(defaultChartStruct);
     for (let date in props.chartData) {
       let dailyGrowth = props.chartData[date];
-      lineChartData.value.labels.push(date);
+      if (date !== 'Start') {
+        lineChartData.value.labels.push(
+          new Date(date)
+            .toLocaleString('us-en', {
+              timeZone: "utc",
+              weekday: "short",
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+            })
+        );
+
+      } else {
+        lineChartData.value.labels.push(date);
+      }
       lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
   };
+
   watch(() => props.chartData, refreshChartData);
 </script>
 

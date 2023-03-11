@@ -42,7 +42,7 @@
     { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
-    { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true, format:true },
+    { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true },
     { key: 'account', label: 'Account', sortable:true, searchable: true, color_text:false },
     { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false, stringify:true },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
@@ -59,12 +59,18 @@
     hiddenTrRefs[i].classList.add("hidden");
   };
 
-  const formatField = (key) => {
-    let test = fields.value.find(field => field.key === key );
-    if (test.format) {
-      return true;
+  const formatDate = (key) => {
+    if (key !== 'transaction_date') {
+      return false;
     }
-    return false;
+    return true;
+  };
+
+  const formatMoney = (key) => {
+    if (key !== 'amount') {
+      return false;
+    }
+    return true;
   };
 
   const colorText = (key) => {
@@ -105,11 +111,25 @@
               'text-green-400': colorText(key, value, item) && item.asset,
               'text-rose-800': colorText(key, value, item) && ! item.asset,
             }"
-            class="font-semibold text-xl"
+            class="font-medium text-sm"
           >
-            <div v-if="formatField(key, value, item)">
+            <div v-if="formatMoney(key, value, item)">
               {{ formatter.format(item[key]) }}
             </div>
+
+            <div v-else-if="formatDate(key, value, item)">
+              {{
+                new Date(item[key])
+                  .toLocaleString('us-en', {
+                    timeZone: "utc",
+                    weekday: "short",
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                  })
+              }}
+            </div>
+
             <div v-else>
               {{ value }}
             </div>
