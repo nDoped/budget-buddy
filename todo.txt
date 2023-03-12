@@ -1,0 +1,13 @@
+* Fix Categories
+* Search on transactions
+* Link recurring transactions together
+  - End goal is that editing or deleting a recurring transactions will offer to apply the same edit/deletion to all subsequent transactions
+* Link buddy transactions together
+  - End goal is that editing or deleting a buddy transactions will offer to apply the same edit/deletion to its buddy trans
+* Build reciept analyzer
+* Insurance tracking tool
+* Fix ExpandableTable bug that removes pagination if a higher "Results per Page" is selected
+  - Highlight currently selected "Results per page"
+  - Include total trans count
+* Include slot on DateFilter to provide a link
+  - The idea being if you're on the dashboard with a range selected, you can click the link and be taken to the transactions page with the same date range
