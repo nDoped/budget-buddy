@@ -57,7 +57,7 @@ class TransactionPostRequest extends FormRequest
                 'credit' => [ 'required', 'boolean' ],
                 'bank_identifier' => [ 'nullable', 'string' ],
                 'note' => [ 'nullable', 'string'],
-                'categories' => [ 'nullable', 'json'],
+                'categories' => [ 'nullable' ],
             ];
 
             if ($route_name === 'transactions.store') {

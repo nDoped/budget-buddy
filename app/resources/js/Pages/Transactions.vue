@@ -19,6 +19,7 @@
         <div class="bg-slate-700 overflow-hidden shadow-xl sm:rounded-lg">
           <TransActions
             :transactions="data.transactions_in_range"
+            :categories="data.categories"
             :accounts="data.accounts"
             :start="data.start"
             :end="data.end"

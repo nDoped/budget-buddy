@@ -1,19 +1,32 @@
 <script setup>
+  import {
+    ref
+  } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';
   import InputDate from '@/Components/InputDate.vue';
   import InputError from '@/Components/InputError.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
+  import TransactionCategory from '@/Components/TransactionCategory.vue';
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
+  const transCatCounter = ref(0);
   function submit() {
+    if (categoriesInvalid.value === true) {
+      toast.error("Transaction category percentages must sum to 100%", {
+        autoClose: 3000,
+      });
+      return;
+    }
+
     /* global route */
     form.post(route('transactions.store'), {
       preserveScroll: true,
       onSuccess: () => {
+        transCatCounter.value++;
         form.reset();
         toast.success('Transaction Created!');
       },
@@ -34,6 +47,10 @@
       type: Array,
       default: () => []
     },
+    categories: {
+      type: Array,
+      default: () => []
+    },
     startDate: {
       type: String,
       default: () => ''
@@ -51,7 +68,7 @@
     account_id: '',
     note: null,
     bank_identifier: null,
-    categories: '{ "CategoryName": 100 }',
+    categories: [],
     recurring_end_date: null,
     recurring: false,
     trans_buddy: false,
@@ -59,6 +76,19 @@
     trans_buddy_note: null,
     frequency: "monthly",
   });
+
+  const categoriesInvalid = ref(false);
+  const updateCategories = (newCats) => {
+    categoriesInvalid.value = false;
+    form.categories = [];
+    newCats.value.forEach(c => form.categories.push(c));
+  };
+
+  const setCategoriesInvalid = () => {
+    categoriesInvalid.value = true;
+    form.categories = [];
+  };
+
 </script>
 
 <template>
@@ -66,140 +96,139 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-slate-500 overflow-hidden shadow-sm sm:rounded-lg">
         <form @submit.prevent="submit">
-          <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
+          <div class="flex flex-wrap bg-slate-500 border-b border-gray-200">
             <div class="m-4">
-              <InputLabel
-                for="date"
-                value="Transaction Date"
-              />
-              <InputDate
-                id="date"
-                v-model="form.transaction_date"
-              />
-              <InputError
-                :message="form.errors.transaction_date"
-                class="mt-2"
-              />
-            </div>
+              <!-- date -->
+              <div class="m-4">
+                <InputLabel
+                  for="new-transaction-date"
+                  value="Transaction Date"
+                />
+                <InputDate
+                  id="new-transaction-date"
+                  v-model="form.transaction_date"
+                />
+                <InputError
+                  :message="form.errors.transaction_date"
+                  class="mt-2"
+                />
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                for="amount"
-                value="Amount"
-              />
-              <input
-                type="number"
-                min="0"
-                step="any"
-                v-model="form.amount"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-              <InputError
-                :message="form.errors.amount"
-                class="mt-2"
-              />
-            </div>
-
-            <div class="m-4">
-              <InputLabel
-                for="credit"
-                value="Credit/Debit"
-              />
-              <select
-                id="credit"
-                v-model="form.credit"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-                <option :value="true">
-                  Credit
-                </option>
-
-                <option
-                  selected="selected"
-                  :value="false"
+              <!-- amount -->
+              <div class="m-4">
+                <InputLabel
+                  for="amount"
+                  value="Amount"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  v-model="form.amount"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 >
-                  Debit
-                </option>
-              </select>
-              <InputError
-                :message="form.errors.credit"
-                class="mt-2"
-              />
+                <InputError
+                  :message="form.errors.amount"
+                  class="mt-2"
+                />
+              </div>
             </div>
 
             <div class="m-4">
-              <InputLabel
-                for="account"
-                value="Account"
-              />
-              <select
-                id="account"
-                v-model="form.account_id"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-                <option
-                  value=""
-                  selected
-                  disabled
-                  hidden
+              <!-- credit/debit -->
+              <div class="m-4">
+                <InputLabel
+                  for="credit"
+                  value="Credit/Debit"
+                />
+                <select
+                  id="credit"
+                  v-model="form.credit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 >
-                  Select Account...
-                </option>
+                  <option :value="true">
+                    Credit
+                  </option>
 
-                <option
-                  v-for="account in accounts"
-                  :value="account.id"
-                  :key="account.id"
+                  <option
+                    selected="selected"
+                    :value="false"
+                  >
+                    Debit
+                  </option>
+                </select>
+                <InputError
+                  :message="form.errors.credit"
+                  class="mt-2"
+                />
+              </div>
+
+              <div class="m-4">
+                <InputLabel
+                  for="account"
+                  value="Account"
+                />
+                <select
+                  id="account"
+                  v-model="form.account_id"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 >
-                  {{ account.name }}
-                </option>
-              </select>
-              <InputError
-                :message="form.errors.account_id"
-                class="mt-2"
-              />
+                  <option
+                    value=""
+                    selected
+                    disabled
+                    hidden
+                  >
+                    Select Account...
+                  </option>
+
+                  <option
+                    v-for="account in accounts"
+                    :value="account.id"
+                    :key="account.id"
+                  >
+                    {{ account.name }}
+                  </option>
+                </select>
+                <InputError
+                  :message="form.errors.account_id"
+                  class="mt-2"
+                />
+              </div>
             </div>
 
-            <div class="m-4 w-full">
-              <InputLabel
-                for="note"
-                value="Note"
-              />
-              <TextInput
-                id="note"
-                v-model="form.note"
-                type="text"
-                class="mt-1 block w-full"
-                autofocus
-                autocomplete="note"
-              />
-              <InputError
-                :message="form.errors.note"
-                class="mt-2"
-              />
-            </div>
-
-            <div class="m-4 w-full">
-              <InputLabel
-                for="categories"
-                value="Categories"
-              />
-              <TextInput
-                id="note"
-                v-model="form.categories"
-                type="text"
-                class="mt-1 block w-full"
-                autofocus
-                autocomplete="note"
-              />
-              <InputError
-                :message="form.errors.categories"
-                class="mt-2"
-              />
+            <div class="m-4 grow">
+              <div class="m-4">
+                <InputLabel
+                  for="note"
+                  value="Note"
+                />
+                <TextInput
+                  id="note"
+                  v-model="form.note"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autofocus
+                  autocomplete="note"
+                />
+                <InputError
+                  :message="form.errors.note"
+                  class="mt-2"
+                />
+              </div>
             </div>
           </div>
 
-          <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
+          <div class="m-4 bg-slate-500 ">
+            <TransactionCategory
+              :available-categories="categories"
+              :key="transCatCounter"
+              @category-update="updateCategories"
+              @invalid-category-state="setCategoriesInvalid"
+            />
+          </div>
+
+          <div class="flex flex-wrap bg-slate-500 border-t border-b border-gray-200">
             <div class="m-6">
               <InputLabel
                 for="recurring"
@@ -235,13 +264,16 @@
                     >
                       Select Frequency...
                     </option>
+
                     <option value="monthly">
                       Monthly
                     </option>
+
                     <option value="biweekly">
                       Bi-Weekly
                     </option>
                   </select>
+
                   <InputError
                     :message="form.errors.frequency"
                     class="mt-2"

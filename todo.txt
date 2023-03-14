@@ -4,7 +4,11 @@
   - End goal is that editing or deleting a recurring transactions will offer to apply the same edit/deletion to all subsequent transactions
 * Link buddy transactions together
   - End goal is that editing or deleting a buddy transactions will offer to apply the same edit/deletion to its buddy trans
-* Build reciept analyzer
+* Build receipt analyzer
+* Fix totals graph
+  - Either remove the totals row and figure out a better way to integrate a totals row with ExpandableTable
+  - Or include balance graph data for the totals of both debt and asset accounts
+  - Leaning towards the latter, although the former might be useful elsewhere
 * Insurance tracking tool
 * Fix ExpandableTable bug that removes pagination if a higher "Results per Page" is selected
   - Highlight currently selected "Results per page"

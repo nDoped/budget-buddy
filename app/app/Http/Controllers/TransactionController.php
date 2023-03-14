@@ -57,7 +57,6 @@ class TransactionController extends Controller
             $start = $end = null;
 
         } else if ($start || $end) {
-
             if ($start && $end) {
                 session([ 'filter_start_date' => $start ]);
                 session([ 'filter_end_date' => $end ]);
@@ -73,13 +72,13 @@ class TransactionController extends Controller
         $args = [
             'start' => $start,
             'end' => $end,
-            'jsonify_categories' => true,
             'include_to_range' => false,
             'order_by' => 'desc'
         ];
         $data = Transaction::fetch_transaction_data_for_current_user($args);
         $data['start'] = $start;
         $data['end'] = $end;
+        $data['categories'] = $this->_fetch_categories();
         $current_user = Auth::user();
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
         foreach ($accounts as $acct) {
@@ -88,14 +87,27 @@ class TransactionController extends Controller
                 'name' => $acct->name,
             ];
         }
-        /*
-        Log::info([
-            'app/Http/Controllers/TransactionController.php:86 data' => $data,
-        ]);
-         */
         return Inertia::render('Transactions', [
             'data' => $data,
         ]);
+    }
+
+    private function _fetch_categories() : array
+    {
+        $cats = [];
+        $current_user = Auth::user();
+        $cat_itty = Category::where('user_id', '=', $current_user->id)
+            ->orderBy('name')
+            ->get();
+        foreach ($cat_itty as $cat) {
+            $cats[] = [
+                'name' => $cat->name,
+                'cat_id' => $cat->id,
+                'include_in_expense_breakdown_text' => ($cat->include_in_expense_breakdown) ? "Yes" : "No",
+                'color' => $cat->hex_color,
+            ];
+        }
+        return $cats;
     }
 
     /**
@@ -145,27 +157,19 @@ class TransactionController extends Controller
             }
         }
 
-        if ($data['categories']) {
-            $cats = json_decode($data['categories'], true);
-            foreach ($cats as $cat => $percent) {
-                $cat_model = Category::where('name', '=', $cat)->first();
-                if (! $cat_model) {
-                    $cat_model = new Category();
-                    $cat_model->name = $cat;
-                    $cat_model->user_id = $current_user->id;
-                    $cat_model->save();
-                }
-                $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+        foreach ($data['categories'] as $cat) {
+            $cat_model = Category::find($cat['cat_id']);
+            $percent = $cat['percent'];
+            $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
 
-                if ($trans_buddy) {
-                    $trans_buddy->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-                }
-                foreach ($recurring_transactions as $rec_trans) {
-                    $rec_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-                }
-                foreach ($recurring_buddy_transactions as $rec_bud_trans) {
-                    $rec_bud_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-                }
+            if ($trans_buddy) {
+                $trans_buddy->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+            }
+            foreach ($recurring_transactions as $rec_trans) {
+                $rec_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+            }
+            foreach ($recurring_buddy_transactions as $rec_bud_trans) {
+                $rec_bud_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
             }
         }
 
@@ -187,11 +191,6 @@ class TransactionController extends Controller
     {
         $data = $request->validated();
         $current_user = Auth::user();
-        /*
-        Log::info([
-            'app/Http/Controllers/TransactionController.php:194 trans update request' => $request->all(),
-        ]);
-         */
         $transaction->amount = $data['amount'] * 100;
         $transaction->note = $data['note'];
         $transaction->account_id = $data['account_id'];
@@ -199,14 +198,9 @@ class TransactionController extends Controller
         $transaction->bank_identifier = $data['bank_identifier'];
         $transaction->transaction_date = $data['transaction_date'];
         $transaction->categories()->detach();
-        foreach (json_decode($data['categories'], true) as $cat_name => $percent) {
-            $cat_model = Category::where('name', '=', $cat_name)->first();
-            if (! $cat_model) {
-                $cat_model = new Category();
-                $cat_model->name = $cat_name;
-                $cat_model->user_id = $current_user->id;
-                $cat_model->save();
-            }
+        foreach ($data['categories'] as $cat) {
+            $cat_model = Category::find($cat['cat_id']);
+            $percent = $cat['percent'];
             $transaction->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
         }
 
@@ -227,9 +221,6 @@ class TransactionController extends Controller
     public function destroy(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
-        Log::info([
-            'app/Http/Controllers/TransactionController.php:219 destroy data' => $data,
-        ]);
         Transaction::destroy($data['id']);
         return redirect()
             ->route(

@@ -1,5 +1,9 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import {
+    ref,
+    toRaw,
+    watch
+  } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';
   import InputDate from '@/Components/InputDate.vue';
@@ -7,28 +11,14 @@
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
+  //import SectionBorder from '@/Components/SectionBorder.vue';
   import DangerButton from '@/Components/DangerButton.vue';
+  import TransactionCategory from '@/Components/TransactionCategory.vue';
   import TextArea from '@/Components/TextArea.vue';
-  import TextInput from '@/Components/TextInput.vue';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['success', 'cancel']);
-
-  watch(
-    () => props.transaction,
-    () => {
-      form.transaction_date = props.transaction.transaction_date;
-      form.amount = props.transaction.amount;
-      form.credit = props.transaction.asset;
-      form.account_id = props.transaction.account_id;
-      form.note = props.transaction.note;
-      deleteTransactionForm.id = props.transaction.id;
-      form.bank_identifier = props.transaction.bank_identifier;
-      catsJsonStr.value = JSON.stringify(props.transaction.categories);
-      form.categories = catsJsonStr.value;
-    }
-  );
 
   let props = defineProps({
     accounts: {
@@ -39,6 +29,11 @@
     transaction: {
       type: Object,
       default: () => {}
+    },
+
+    categories: {
+      type: Array,
+      default: () => []
     }
   });
 
@@ -48,7 +43,6 @@
     transBeingDeleted.value = props.transaction.id;
   };
 
-  const catsJsonStr = ref(JSON.stringify(props.transaction.categories));
   const success = (deleted) => {
     transBeingDeleted.value = null;
     toast.success((deleted) ? 'Transaction Deleted!' : 'Transaction Updated!');
@@ -80,10 +74,31 @@
     account_id: props.transaction.account_id,
     note: props.transaction.note,
     bank_identifier: props.transaction.bank_identifier,
-    categories: catsJsonStr.value
+    categories: props.transaction.categories
   });
 
+  watch(
+    () => props.transaction,
+    () => {
+      form.transaction_date = props.transaction.transaction_date;
+      form.amount = props.transaction.amount;
+      form.credit = props.transaction.asset;
+      form.account_id = props.transaction.account_id;
+      form.note = props.transaction.note;
+      deleteTransactionForm.id = props.transaction.id;
+      form.bank_identifier = props.transaction.bank_identifier;
+      form.categories = props.transaction.categories;
+    }
+  );
+
   function submit() {
+    if (categoriesInvalid.value === true) {
+      toast.error("Transaction category percentages must sum to 100%", {
+        autoClose: 3000,
+      });
+      return;
+    }
+
     form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
       onSuccess: () => success(false),
@@ -99,23 +114,37 @@
     });
   }
 
-  /*
-  onMounted(() => {
-    console.log('on mount',props.transaction);
-    console.log('on mount', props.transaction.categories);
-  });
-  */
+  let ogCats = structuredClone(toRaw(props.categories));
+  const categoriesInvalid = ref(false);
+  const updateCategories = (newCats) => {
+    categoriesInvalid.value = false;
+    form.categories = [];
+    newCats.value.forEach(c => form.categories.push(c));
+  };
+
+  const setCategoriesInvalid = () => {
+    categoriesInvalid.value = true;
+    form.categories = [];
+  };
+
+  const transCatCounter = ref(0);
+  const cancel = () => {
+    form.categories = structuredClone(ogCats);
+    // force TransactionCategory to reset incase any data changes were made
+    transCatCounter.value++;
+    emit('cancel');
+  };
 </script>
 
 <template>
   <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <div class="bg-slate-500 overflow-hidden shadow-sm sm:rounded-lg">
+      <div class="bg-slate-500 overflow-x-auto shadow-sm sm:rounded-lg">
         <form
           @submit.prevent="submit"
           :key="transaction.id"
         >
-          <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
+          <div class="flex flex-wrap p-6 ">
             <div class="m-4">
               <p>{{ transaction.id }}</p>
             </div>
@@ -221,109 +250,55 @@
               </div>
             </div>
 
-            <!-- categories -->
-            <div class="m-4 flex-grow">
-              <div class="m-4 w-full">
+            <div class="m-4 grow">
+              <div class="m-4">
                 <InputLabel
-                  for="cats"
-                  value="Categories"
+                  for="note"
+                  value="Note"
                 />
                 <TextArea
-                  id="cats"
-                  v-model="form.categories"
-                  type="text"
+                  id="note"
+                  v-model="form.note"
                   class="mt-1 block w-full"
                   autofocus
-                  autocomplete="cat"
+                  autocomplete="note"
                 />
                 <InputError
-                  :message="form.errors.categories"
+                  :message="form.errors.note"
                   class="mt-2"
                 />
               </div>
 
-              <template
-                v-for="(percentage, category, i) in transaction.categories"
-                :key="i"
-              >
-                <div class="m-4 w-full">
-                  {{ category + ' :: ' + percentage }}
-                  <!--
-                  <InputLabel
-                    for="cat"
-                    value="Category"
-                  />
-                  <TextInput
-                    id="cat"
-                    v-model="form.categories[category]"
-                    type="text"
-                    class="mt-1 block w-full"
-                    autofocus
-                    autocomplete="cat"
-                  />
-                  <InputError
-                    :message="form.errors.categories"
-                    class="mt-2"
-                  />
-
-                  <InputLabel
-                    for="percent"
-                    value="Percentage"
-                  />
-                  <TextInput
-                    id="percent"
-                    v-model="form.categories[category].percentage"
-                    type="text"
-                    class="mt-1 block w-full"
-                    autofocus
-                    autocomplete="cat"
-                  />
-                  <InputError
-                    :message="form.errors.categories"
-                    class="mt-2"
-                  />
-                  -->
-                </div>
-              </template>
+              <div class="m-4">
+                <InputLabel
+                  for="bank_ident"
+                  value="Bank Identifier"
+                />
+                <TextArea
+                  id="bank_ident"
+                  v-model="form.bank_identifier"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autofocus
+                  autocomplete="bank_ident"
+                />
+                <InputError
+                  :message="form.errors.bank_identifier"
+                  class="mt-2"
+                />
+              </div>
             </div>
+          </div>
 
-            <div class="m-4 w-full">
-              <InputLabel
-                for="bank_ident"
-                value="Bank Identifier"
-              />
-              <TextInput
-                id="bank_ident"
-                v-model="form.bank_identifier"
-                type="text"
-                class="mt-1 block w-full"
-                autofocus
-                autocomplete="bank_ident"
-              />
-              <InputError
-                :message="form.errors.bank_identifier"
-                class="mt-2"
-              />
-            </div>
-
-            <div class="m-4 w-full">
-              <InputLabel
-                for="note"
-                value="Note"
-              />
-              <TextInput
-                id="note"
-                v-model="form.note"
-                type="text"
-                class="mt-1 block w-full"
-                autofocus
-                autocomplete="note"
-              />
-              <InputError
-                :message="form.errors.note"
-                class="mt-2"
-              />
-            </div>
+          <!-- categories -->
+          <div class="m-4 bg-slate-500 border-t border-b border-gray-200">
+            <TransactionCategory
+              :categories="props.transaction.categories"
+              :available-categories="props.categories"
+              :key="transCatCounter"
+              @category-update="updateCategories"
+              @invalid-category-state="setCategoriesInvalid"
+            />
           </div>
 
           <div class="flex flex-wrap p-6 bg-slate-500 border-gray-200">
@@ -338,7 +313,7 @@
               </PrimaryButton>
 
               <SecondaryButton
-                @click="$emit('cancel')"
+                @click="cancel"
                 class="ml-3"
               >
                 Cancel

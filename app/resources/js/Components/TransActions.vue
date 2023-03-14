@@ -13,6 +13,10 @@
       type: Array,
       default: () => []
     },
+    categories: {
+      type: Array,
+      default: () => []
+    },
     accounts: {
       type: Array,
       default: () => []
@@ -44,7 +48,7 @@
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true },
     { key: 'account', label: 'Account', sortable:true, searchable: true, color_text:false },
-    { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false, stringify:true },
+    { key: 'category_display_string', label: 'Categories', sortable:true, searchable: true, color_text:false },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
     { key: 'bank_identifier', label: 'Bank Identifier', sortable:false, searchable:true, color_text:false },
     { key: 'note', label: 'Note', sortable:false, searchable:true, color_text:false },
@@ -84,7 +88,10 @@
 
 <template>
   <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
-    <TransactionsForm :accounts="accounts" />
+    <TransactionsForm
+      :accounts="accounts"
+      :categories="categories"
+    />
 
     <DateFilter
       :start="transStart"
@@ -140,6 +147,7 @@
           <TransactionEditForm
             :accounts="accounts"
             :transaction="item"
+            :categories="categories"
             @cancel="hideTr(hidden_tr_refs, i)"
             @success="hideTr(hidden_tr_refs, i)"
           />
