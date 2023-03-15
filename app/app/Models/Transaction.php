@@ -136,16 +136,6 @@ class Transaction extends Model
                     'value' => $cat_value / 100
                 ];
             }
-            $category_display_string = '';
-            $i = 1;
-            $cat_cnt = count($categories);
-            foreach ($categories as $cat) {
-                $category_display_string .= $cat['name'] . '::' . $cat['percent'] . '%';
-                if ($i < $cat_cnt) {
-                    $category_display_string .= ', ';
-                }
-                $i++;
-            }
 
             $data['transactions_in_range'][] = [
                 'amount_raw' => $trans->amount,
@@ -160,7 +150,6 @@ class Transaction extends Model
                 'bank_identifier' => $trans->bank_identifier,
                 'id' => $trans->id,
                 'categories' => $categories,
-                'category_display_string' => $category_display_string
             ];
         }
         foreach ($cat_totals as $id => &$cat_data) {

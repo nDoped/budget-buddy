@@ -48,7 +48,7 @@
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true },
     { key: 'account', label: 'Account', sortable:true, searchable: true, color_text:false },
-    { key: 'category_display_string', label: 'Categories', sortable:true, searchable: true, color_text:false },
+    { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
     { key: 'bank_identifier', label: 'Bank Identifier', sortable:false, searchable:true, color_text:false },
     { key: 'note', label: 'Note', sortable:false, searchable:true, color_text:false },
@@ -63,18 +63,22 @@
     hiddenTrRefs[i].classList.add("hidden");
   };
 
-  const formatDate = (key) => {
-    if (key !== 'transaction_date') {
-      return false;
-    }
-    return true;
-  };
+  const fetchCatString = (cats) => {
+    let ret = '';
+    let catCnt = cats.length;
+    if (catCnt === 1) {
+      ret += `<span style='border-bottom: solid ${cats[0].color}'>`;
+      ret += `${cats[0].name}`;
+      ret += '</span>';
 
-  const formatMoney = (key) => {
-    if (key !== 'amount') {
-      return false;
+    } else {
+      cats.forEach((c) => {
+        ret += `<span style='border-bottom: solid ${c.color}'>`;
+        ret += ` ${c.name} : ${c.percent}%`;
+        ret += '</span><br/>';
+      });
     }
-    return true;
+    return ret;
   };
 
   const colorText = (key) => {
@@ -120,11 +124,11 @@
             }"
             class="font-medium text-sm"
           >
-            <div v-if="formatMoney(key, value, item)">
+            <div v-if="key === 'amount'">
               {{ formatter.format(item[key]) }}
             </div>
 
-            <div v-else-if="formatDate(key, value, item)">
+            <div v-else-if="key === 'transaction_date'">
               {{
                 new Date(item[key])
                   .toLocaleString('us-en', {
@@ -136,6 +140,12 @@
                   })
               }}
             </div>
+
+            <div
+              v-else-if="key === 'categories'"
+              class="w-full"
+              v-html="fetchCatString(value)"
+            />
 
             <div v-else>
               {{ value }}
