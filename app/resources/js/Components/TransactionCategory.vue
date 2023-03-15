@@ -23,8 +23,8 @@
       default: () => []
     }
   });
-  const catsRef = ref(structuredClone(toRaw(props.categories)));
 
+  const catsRef = ref(structuredClone(toRaw(props.categories)));
   watch(
     () => props.categories,
     () => {
@@ -50,9 +50,16 @@
       } else {
         percentError.value = "Percentages must sum to 100%. You are under by " + Math.round(((100 - p) + Number.EPSILON) * 100) / 100;
       }
-    });
+    }
+  );
 
-
+  const catSelectBorder = (cat) => {
+    return `border: solid ${cat.color}`;
+  };
+  const uuid = crypto.randomUUID();
+  const getUuid = (el, i) => {
+    return `${el}-${i}-${uuid}`;
+  };
   const catChange = (e, i) => {
     if (e) {
       let newCatId = e.target.value;
@@ -61,7 +68,9 @@
       if (catsRef.value[i].name !== newCat.name) {
         catsRef.value[i].name = newCat.name;
       }
+      document.getElementById(getUuid('category-select', i)).style.cssText = catSelectBorder(newCat);
     }
+
     if (percentTotal.value === 100 || catsRef.value.length === 0) {
       emit('category-update', catsRef);
     } else {
@@ -97,13 +106,14 @@
         class="m-4"
       >
         <InputLabel
-          :for="'category-select-' + i "
+          :for="getUuid('category-select', i)"
           value="Category"
         />
         <select
-          :id="'category-select-' + i "
+          :id="getUuid('category-select', i)"
           v-model="category.cat_id"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          :style="catSelectBorder(category)"
           @input="catChange($event, i)"
         >
           <option
@@ -116,12 +126,12 @@
         </select>
 
         <InputLabel
-          :for="'category-percent-' + i"
+          :for="getUuid('category-percent', i)"
           value="Percentage of Transaction Total"
           class="mt-3"
         />
         <input
-          :id="'category-percent-' + i"
+          :id="getUuid('category-percent', i)"
           type="number"
           min=".1"
           step=".1"
