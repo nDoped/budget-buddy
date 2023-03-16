@@ -24,6 +24,21 @@
     }
   });
 
+  const filteredCats = computed(() => {
+    return props.availableCategories.filter((ac) => {
+      return ! catsRef.value.find(cr => cr.cat_id == ac.cat_id);
+    });
+  });
+  const fetchFilteredCatsOptions = (cat) => {
+    let ret = [ ...filteredCats.value, cat ];
+    ret.sort(function(a, b) {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
+    return ret;
+  };
+
   const catsRef = ref(structuredClone(toRaw(props.categories)));
   watch(
     () => props.categories,
@@ -69,6 +84,18 @@
         catsRef.value[i].name = newCat.name;
       }
       document.getElementById(getUuid('category-select', i)).style.cssText = catSelectBorder(newCat);
+      document.getElementById(getUuid('category-percent', i)).style.cssText = catSelectBorder(newCat);
+    }
+
+    if (! i && catsRef.value.length) {
+      let selectEl = document.getElementById(getUuid('category-select', catsRef.value.length - 1));
+      let percentEl = document.getElementById(getUuid('category-percent', catsRef.value.length - 1));
+      if (selectEl) {
+        selectEl.style.cssText = catSelectBorder(catsRef.value[catsRef.value.length - 1]);
+      }
+      if (percentEl) {
+        percentEl.style.cssText = catSelectBorder(catsRef.value[catsRef.value.length - 1]);
+      }
     }
 
     if (percentTotal.value === 100 || catsRef.value.length === 0) {
@@ -85,8 +112,9 @@
 
   const addCategory = () => {
     catsRef.value.push({
-      cat_id: props.availableCategories[0].cat_id,
-      name: props.availableCategories[0].name,
+      cat_id: filteredCats.value[0].cat_id,
+      name: filteredCats.value[0].name,
+      color: filteredCats.value[0].color,
       percent: 100
     });
     catChange();
@@ -109,6 +137,7 @@
           :for="getUuid('category-select', i)"
           value="Category"
         />
+
         <select
           :id="getUuid('category-select', i)"
           v-model="category.cat_id"
@@ -117,7 +146,7 @@
           @input="catChange($event, i)"
         >
           <option
-            v-for="cat in availableCategories"
+            v-for="cat in fetchFilteredCatsOptions(category)"
             :key="category + cat.cat_id"
             :value="cat.cat_id"
           >
@@ -137,6 +166,7 @@
           step=".1"
           v-model="category.percent"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          :style="catSelectBorder(category)"
           @input="catChange()"
         >
         <DangerButton

@@ -1,4 +1,5 @@
 * Search on transactions
+* App-wide change log
 * Link recurring transactions together
   - End goal is that editing or deleting a recurring transactions will offer to apply the same edit/deletion to all subsequent transactions
 * Link buddy transactions together
