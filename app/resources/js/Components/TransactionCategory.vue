@@ -87,17 +87,6 @@
       document.getElementById(getUuid('category-percent', i)).style.cssText = catSelectBorder(newCat);
     }
 
-    if (! i && catsRef.value.length) {
-      let selectEl = document.getElementById(getUuid('category-select', catsRef.value.length - 1));
-      let percentEl = document.getElementById(getUuid('category-percent', catsRef.value.length - 1));
-      if (selectEl) {
-        selectEl.style.cssText = catSelectBorder(catsRef.value[catsRef.value.length - 1]);
-      }
-      if (percentEl) {
-        percentEl.style.cssText = catSelectBorder(catsRef.value[catsRef.value.length - 1]);
-      }
-    }
-
     if (percentTotal.value === 100 || catsRef.value.length === 0) {
       emit('category-update', catsRef);
     } else {

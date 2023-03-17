@@ -1,29 +1,3 @@
-export const data = {
-  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-  datasets: [
-    {
-      label: 'Data One',
-      backgroundColor: '#f87979',
-      data: [40, 39, 10, 40, 39, 80, 40]
-    },
-    {
-      label: 'Data Two',
-      backgroundColor: '#fffff',
-      data: [22, 10, 90, 88, 43, 66, 25]
-    }
-  ]
-}
-
-export const pieData = {
-  labels: ['VueJs', 'EmberJs', 'ReactJs', 'AngularJs'],
-  datasets: [
-    {
-      backgroundColor: ['#41B883', '#E46651', '#00D8FF', '#DD1B16'],
-      data: [40, 20, 80, 10]
-    }
-  ]
-}
-
 export const accountGrowthLinesOptions = {
   responsive: true,
 
@@ -146,24 +120,84 @@ export const accountGrowthLinesOptions = {
 
 export const expenseBreakdownOptions = {
   responsive: true,
-  tooltips: {
-    enabled: false
-  },
   maintainAspectRatio: false,
   //borderColor: 'rgb(19, 21, 22)',
   borderColor: false,
   border: false,
+  //onHover: (e, ctx) => {
+  //  console.log({
+  //      'resources/js/Components/Charts/chartConfig.js:131 onHover' : e,
+  //  });
+  //},
   plugins:{
+    tooltip: {
+      callbacks: {
+        label: function(ctx) {
+          let sum = 0;
+          let dataArr = ctx.chart.data.datasets[0].data;
+          let value = dataArr[ctx.dataIndex];
+          dataArr.map(data => {
+            sum += data;
+          });
+          let percentage = (value * 100 / sum).toFixed(2)+"%";
+          let displayVal = new Intl.NumberFormat(
+            'en-US',
+            { style: 'currency', currency: 'USD' }
+          ).format(value);
+          let ret = [ `${displayVal} - ${percentage}` ];
+          let transactions = ctx.chart.data.datasets[0].transactions[ctx.dataIndex];
+          transactions.forEach((t) => {
+            let catVal = new Intl.NumberFormat(
+              'en-US',
+              { style: 'currency', currency: 'USD' }
+            ).format(t['cat_value']);
+            let date = new Intl.DateTimeFormat('en-US').format(new Date(t['date']));
+
+            ret.push(`Transaction ${t['id']} on ${date} for ${catVal}`);
+          });
+
+          return ret
+        }
+      }
+    },
+
     legend: {
       display: false
     },
+
     title: {
       text: 'Expense Breakdown',
       display: true
     },
+
     datalabels: {
+      display: false
+    /*
       anchor: 'end',
       align: 'start',
+      listeners: {
+        enter: (ctx, event) => {
+          console.log({
+              'resources/js/Components/Charts/chartConfig.js:143 enter' : event,
+          });
+          // Receives `enter` events for any labels of any dataset. Indices of the
+          // clicked label are: `context.datasetIndex` and `context.dataIndex`.
+          // For example, we can modify keep track of the hovered state and
+          // return `true` to update the label and re-render the chart.
+          ctx.hovered = true;
+          return true;
+        },
+
+        leave: (ctx, event) => {
+          // Receives `leave` events for any labels of any dataset.
+          console.log({
+            'resources/js/Components/Charts/chartConfig.js:143 leave' : event,
+          });
+          ctx.hovered = false;
+          return true;
+        }
+      },
+
       display: (ctx) => {
         let sum = 0;
         let dataArr = ctx.chart.data.datasets[0].data;
@@ -173,8 +207,8 @@ export const expenseBreakdownOptions = {
         let value = dataArr[ctx.dataIndex];
         let percentage = value * 100 / sum
         return percentage > 4;
-
       },
+
       formatter: (value, ctx) => {
         let sum = 0;
         let dataArr = ctx.chart.data.datasets[0].data;
@@ -184,9 +218,12 @@ export const expenseBreakdownOptions = {
         let labelArr = ctx.chart.data.labels;
         let percentage = (value * 100 / sum).toFixed(2)+"%";
         let displayVal = value.toFixed(2);
-        return [ `${labelArr[ctx.dataIndex]}`, `$${displayVal}`,   `${percentage}` ];
+        return ctx.active ?
+          [ `${labelArr[ctx.dataIndex]}`, `$${displayVal}`,   `${percentage}` ]
+          : null;
       },
       color: '#000000'
+    */
     }
   },
   elements: {

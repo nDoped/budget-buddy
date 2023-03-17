@@ -115,16 +115,30 @@ class Transaction extends Model
                 // ..idk..i guess i wanted percentages to be extremely precise...
                 // they're stored as 10e4 in the db, so divide by
                 // 10000 to get its numerical value
-                $cat_value = $trans->amount *  ($percent / 10000);
+                $cat_value = $trans->amount * ($percent / 10000);
 
                 if (isset($cat_totals[$cat->id])) {
                     $cat_totals[$cat->id]['value'] += $cat_value;
+                    $cat_totals[$cat->id]['transactions'][] = [
+                        'id' => $trans->id,
+                        'date' => $trans->transaction_date,
+                        'cat_value' => $cat_value / 100,
+                        'trans_total' => $trans->amount / 100,
+                    ];
 
                 } else {
                     $cat_totals[$cat->id] = [
                         'name' => $cat->name,
                         'value' => $cat_value,
-                        'color' => $cat->hex_color
+                        'color' => $cat->hex_color,
+                        'transactions' => [
+                            [
+                                'id' => $trans->id,
+                                'date' => $trans->transaction_date,
+                                'cat_value' => $cat_value / 100,
+                                'trans_total' => $trans->amount / 100,
+                            ]
+                        ]
                     ];
                 }
 

@@ -1,5 +1,9 @@
 <script setup>
-  import { watch, ref, onMounted } from 'vue';
+  import {
+    watch,
+    ref,
+    onMounted
+  } from 'vue';
   import PieChart from '@/Components/Charts/PieChart.vue';
   import { expenseBreakdownOptions } from './chartConfig.js'
 
@@ -16,6 +20,7 @@
       {
         backgroundColor: [],
         data: [],
+        transactions: []
       }
     ],
   };
@@ -33,6 +38,7 @@
     for (let id in sortObj(props.categorizedExpenses)) {
       pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
       pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
+      pieChartData.value.datasets[0].transactions.push(props.categorizedExpenses[id].transactions);
       pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
   });
@@ -41,6 +47,7 @@
     for (let id in sortObj(props.categorizedExpenses)) {
       pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
       pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].color);
+      pieChartData.value.datasets[0].transactions.push(props.categorizedExpenses[id].transactions);
       pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
   });

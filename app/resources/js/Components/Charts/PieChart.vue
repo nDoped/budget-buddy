@@ -10,7 +10,7 @@
   import ChartDataLabels from 'chartjs-plugin-datalabels';
 
   ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
-  let props = defineProps({
+  defineProps({
     chartData: {
       type: Object,
       default: () => {}
