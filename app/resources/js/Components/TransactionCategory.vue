@@ -111,7 +111,14 @@
 </script>
 
 <template>
-  <div class="">
+    <div class="m-4 flex flex-row-reverse">
+      <PrimaryButton
+        type="button"
+        @click="addCategory"
+      >
+        Add a Cat
+      </PrimaryButton>
+    </div>
     <InputError :message="percentError" />
     <div
       class="flex flex-wrap bg-slate-500"
@@ -168,13 +175,4 @@
       </div>
     </div>
 
-    <div class="m-4 flex-grow">
-      <PrimaryButton
-        type="button"
-        @click="addCategory"
-      >
-        Add a Cat
-      </PrimaryButton>
-    </div>
-  </div>
 </template>

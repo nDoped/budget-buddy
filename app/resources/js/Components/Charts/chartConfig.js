@@ -151,8 +151,14 @@ export const expenseBreakdownOptions = {
               'en-US',
               { style: 'currency', currency: 'USD' }
             ).format(t['cat_value']);
-            let date = new Intl.DateTimeFormat('en-US').format(new Date(t['date']));
-
+            let date = new Date(t['date'])
+              .toLocaleString('us-en', {
+                timeZone: "utc",
+                weekday: "short",
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+            });
             ret.push(`Transaction ${t['id']} on ${date} for ${catVal}`);
           });
 
