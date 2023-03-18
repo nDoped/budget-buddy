@@ -8,11 +8,11 @@
         v-for="(stat,index) in stats"
         :key="index"
       >
-        <div class="flex flex-col overflow-hidden rounded-lg px-4 py-5 shadow sm:p-6">
+        <div class="flex flex-col overflow-hidden bg-zinc-500 dark:bg-slate-900 rounded-lg px-4 py-5 shadow sm:p-6">
           <dt class="order-last truncate text-sm font-medium text-surface-500">
             {{ stat.title }}
           </dt>
-          <dd class="mb-1 text-3xl font-semibold text-primary-600">
+          <dd class="mb-1 text-3xl bg-zinc-500 dark:bg-slate-900 font-semibold text-primary-600">
             <span class="tabular-nums">{{ stat.value }}</span>
           </dd>
         </div>

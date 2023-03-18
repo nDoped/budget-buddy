@@ -192,7 +192,7 @@
     </div>
   </div>
 
-  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-zinc-900">
+  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
     <StatsComponent :stats="dashboardStats" :last="rangeDisplay"/>
   </div>
 
