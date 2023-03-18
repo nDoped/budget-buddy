@@ -1,15 +1,20 @@
 <script setup>
   import { useForm } from '@inertiajs/vue3';
-  import { inject, ref } from 'vue';
+  import {
+    inject,
+    computed,
+    ref
+  } from 'vue';
   import AccountUrlLink from '@/Components/AccountUrlLink.vue';
   import DateFilter from '@/Components/DateFilter.vue';
   import GrowthLines from '@/Components/Charts/AccountGrowthLines.vue';
   import AccountBalanceLine from '@/Components/Charts/AccountBalanceLine.vue';
   import ExpenseBreakdown from '@/Components/Charts/ExpenseBreakdownPie.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
+  import StatsComponent from '@/Components/StatsComponent.vue';
   const formatter = inject('formatter');
 
-  defineProps({
+  const props = defineProps({
     assets: {
       type: Object,
       default: () => {}
@@ -18,9 +23,21 @@
       type: Object,
       default: () => {}
     },
-    categorizedExpenses: {
+    extraExpenseBreakdown: {
       type: Object,
       default: () => {}
+    },
+    recurringExpenseBreakdown: {
+      type: Object,
+      default: () => {}
+    },
+    totalExtraExpenses: {
+      type: Number,
+      default: () => 0
+    },
+    totalRecurringExpenses: {
+      type: Number,
+      default: () => 0
     },
     accountGrowthLineData: {
       type: Object,
@@ -38,6 +55,59 @@
       type: String,
       default: () => ''
     }
+  });
+
+  const rangeDisplay = computed(() => {
+    let ret = '';
+    let start = (props.start) ?
+      new Date(props.start)
+        .toLocaleString('us-en', {
+          timeZone: "utc",
+          weekday: "short",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        })
+      : null;
+
+    let end = (props.end) ?
+      new Date(props.end)
+        .toLocaleString('us-en', {
+          timeZone: "utc",
+          weekday: "short",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        })
+      : null;
+
+    if (start && end) {
+      ret = `Showing data from ${start} to ${end}`;
+    } else if (start) {
+      ret = `Showing data from ${start} until the end of time`;
+    } else if (end) {
+      ret = `Showing data from the beginning of time until ${end}`;
+    } else {
+      ret = 'Showing everything';
+    }
+    return ret;
+  });
+
+  const dashboardStats = computed(() => {
+    return [
+      {
+        title: 'Total Extra Expenses',
+        value: formatter.format(props.totalExtraExpenses)
+      },
+      {
+        title: 'Total Recurring Expenses',
+        value: formatter.format(props.totalRecurringExpenses)
+      },
+      {
+        title: 'Total Economic Growth',
+        value: formatter.format(props.totalEconomicGrowth)
+      },
+    ];
   });
 
   const fields = ref([
@@ -122,6 +192,10 @@
     </div>
   </div>
 
+  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-zinc-900">
+    <StatsComponent :stats="dashboardStats" :last="rangeDisplay"/>
+  </div>
+
   <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 sm:grid-cols-2">
     <div class="p-6">
       <div class="flex items-center flex-col overflow-x-auto">
@@ -195,9 +269,6 @@
     </div>
   </div>
 
-  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-zinc-900">
-    <h1> Total Economic Growth: {{ formatter.format(totalEconomicGrowth) }} </h1>
-  </div>
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
     <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-1">
@@ -209,7 +280,10 @@
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
     <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2">
       <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="categorizedExpenses" />
+        <ExpenseBreakdown :categorized-expenses="extraExpenseBreakdown" title="Extra Expenses"/>
+      </div>
+      <div class="m-5">
+        <ExpenseBreakdown :categorized-expenses="recurringExpenseBreakdown" title="Recurring Expenses"/>
       </div>
     </div>
   </div>

@@ -29,7 +29,6 @@ class DashboardController extends Controller
             'end' => $end,
             'jsonify_categories' => false,
             'include_to_range' => true,
-            'filter_for_expense_breakdown' => true,
             'order_by' => 'asc',
         ];
         $trans_data = Transaction::fetch_transaction_data_for_current_user($args);
@@ -280,7 +279,10 @@ class DashboardController extends Controller
         $debt_accts[] = $total_net_growth['debts'];
         $data['start'] = $start;
         $data['end'] = $end;
-        $data['category_totals'] = $trans_data['category_totals'];
+        $data['extra_expense_breakdown'] = $trans_data['extra_expense_breakdown'];
+        $data['recurring_expense_breakdown'] = $trans_data['recurring_expense_breakdown'];
+        $data['total_extra_expenses'] = $trans_data['total_extra_expenses'];
+        $data['total_recurring_expenses'] = $trans_data['total_recurring_expenses'];
         $data['total_economic_growth'] = $total_eco_growth;
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;

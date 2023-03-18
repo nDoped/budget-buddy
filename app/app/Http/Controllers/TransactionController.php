@@ -103,7 +103,7 @@ class TransactionController extends Controller
             $cats[] = [
                 'name' => $cat->name,
                 'cat_id' => $cat->id,
-                'include_in_expense_breakdown_text' => ($cat->include_in_expense_breakdown) ? "Yes" : "No",
+                'extra_expense' => ($cat->extra_expense) ? "Yes" : "No",
                 'color' => $cat->hex_color,
             ];
         }

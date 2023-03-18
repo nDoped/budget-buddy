@@ -19,7 +19,8 @@
     () => {
       form.name = props.category.name;
       form.color = props.category.color;
-      form.include_in_expense_breakdown = (props.category.include_in_expense_breakdown) ? true : false;
+      form.extra_expense = (props.category.extra_expense) ? true : false;
+      form.recurring_expense = (props.category.recurring_expense) ? true : false;
       deleteCategoryForm.id = props.category.id;
     }
   );
@@ -64,7 +65,8 @@
   const form = useForm({
     name: props.category.name,
     color: props.category.color,
-    include_in_expense_breakdown: (props.category.include_in_expense_breakdown) ? true : false
+    extra_expense: (props.category.extra_expense) ? true : false,
+    recurring_expense: (props.category.recurring_expense) ? true : false
   });
 
   function submit() {
@@ -84,11 +86,10 @@
     });
   }
 
-  /*
-    onMounted(() => {
-      console.log('on mount',props.category);
-    });
-   */
+  const uuid = crypto.randomUUID();
+  const getUuid = (el, i) => {
+    return `${el}-${uuid}`;
+  };
 </script>
 
 <template>
@@ -107,11 +108,11 @@
             </div>
             <div class="m-4">
               <InputLabel
-                for="name"
+                :for="getUuid('cat-name')"
                 value="Name"
               />
               <TextInput
-                id="name"
+                :id="getUuid('cat-name')"
                 v-model="form.name"
                 type="text"
                 class="mt-1 block w-full"
@@ -126,10 +127,11 @@
 
             <div class="m-4">
               <InputLabel
-                for="color"
+                :for="getUuid('cat-color')"
                 value="color"
               />
               <input
+                :id="getUuid('cat-color')"
                 type="color"
                 v-model="form.color"
               >
@@ -141,17 +143,33 @@
 
             <div class="m-4">
               <InputLabel
-                for="include_in_br"
-                value="Show this category in the expense breakdown piechart?"
+                :for="getUuid('extra-expense')"
+                value="Extra Expense?"
               />
               <Checkbox
-                id="include_in_br"
-                v-model:checked="form.include_in_expense_breakdown"
-                name="include_in_expense_breakdown"
+                :id="getUuid('extra-expense')"
+                v-model:checked="form.extra_expense"
+                name="extra_expense"
               />
               <InputError
                 class="mt-2"
-                :message="form.errors.include_in_expense_breakdown"
+                :message="form.errors.extra_expense"
+              />
+            </div>
+
+            <div class="m-4">
+              <InputLabel
+                :for="getUuid('recurring-expense')"
+                value="Recurring Expense?"
+              />
+              <Checkbox
+                :id="getUuid('recurring-expense')"
+                v-model:checked="form.recurring_expense"
+                name="recurring_expense"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.recurring_expense"
               />
             </div>
           </div>

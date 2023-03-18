@@ -31,7 +31,6 @@ class Transaction extends Model
      *      'start' => bool,
      *      'end' => bool,
      *      'include_to_range' => bool,
-     *      'filter_for_expense_breakdown' => bool,
      *      'order_by' => string,
      *  ];
      * @array $args
@@ -98,48 +97,74 @@ class Transaction extends Model
           $transactions_in_range = $transactions_in_range->where('transaction_date', '<=', $end);
         }
 
-        $cat_totals = [];
+        $extra_expense_breakdown = [];
+        $recurring_expense_breakdown = [];
+        $total_extra_expenses = 0;
+        $total_recurring_expenses = 0;
         foreach ($transactions_in_range->get() as $trans) {
             $acct = $trans->account;
             $type = AccountType::find($acct->type_id);
             $categories = [];
             foreach ($trans->categories as $cat) {
-
-                if (isset($args['filter_for_expense_breakdown']) && $args['filter_for_expense_breakdown']) {
-                    if (! $cat->include_in_expense_breakdown) {
-                        continue;
-                    }
-                }
-
                 $percent = $cat->pivot->percentage;
                 // ..idk..i guess i wanted percentages to be extremely precise...
                 // they're stored as 10e4 in the db, so divide by
                 // 10000 to get its numerical value
                 $cat_value = $trans->amount * ($percent / 10000);
 
-                if (isset($cat_totals[$cat->id])) {
-                    $cat_totals[$cat->id]['value'] += $cat_value;
-                    $cat_totals[$cat->id]['transactions'][] = [
-                        'id' => $trans->id,
-                        'date' => $trans->transaction_date,
-                        'cat_value' => $cat_value / 100,
-                        'trans_total' => $trans->amount / 100,
-                    ];
+                if ($cat->extra_expense) {
+                    $total_extra_expenses += $cat_value;
+                    if (isset($extra_expense_breakdown[$cat->id])) {
+                        $extra_expense_breakdown[$cat->id]['value'] += $cat_value;
+                        $extra_expense_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
 
-                } else {
-                    $cat_totals[$cat->id] = [
-                        'name' => $cat->name,
-                        'value' => $cat_value,
-                        'color' => $cat->hex_color,
-                        'transactions' => [
-                            [
-                                'id' => $trans->id,
-                                'date' => $trans->transaction_date,
-                                'cat_value' => $cat_value / 100,
-                                'trans_total' => $trans->amount / 100,
+                    } else {
+                        $extra_expense_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
                             ]
-                        ]
-                    ];
+                        ];
+                    }
+
+                } else if ($cat->recurring_expense) {
+                    $total_recurring_expenses += $cat_value;
+                    if (isset($recurring_expense_breakdown[$cat->id])) {
+                        $recurring_expense_breakdown[$cat->id]['value'] += $cat_value;
+                        $recurring_expense_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $recurring_expense_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
                 }
 
                 $categories[] =  [
@@ -166,10 +191,17 @@ class Transaction extends Model
                 'categories' => $categories,
             ];
         }
-        foreach ($cat_totals as $id => &$cat_data) {
+
+        foreach ($extra_expense_breakdown as $id => &$cat_data) {
             $cat_data['value'] = $cat_data['value'] / 100;
         }
-        $data['category_totals'] = $cat_totals;
+        foreach ($recurring_expense_breakdown as $id => &$cat_data) {
+            $cat_data['value'] = $cat_data['value'] / 100;
+        }
+        $data['extra_expense_breakdown'] = $extra_expense_breakdown;
+        $data['recurring_expense_breakdown'] = $recurring_expense_breakdown;
+        $data['total_extra_expenses'] =  $total_extra_expenses / 100;
+        $data['total_recurring_expenses'] =  $total_recurring_expenses / 100;
 
         return $data;
     }

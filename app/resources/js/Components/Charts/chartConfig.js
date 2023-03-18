@@ -121,16 +121,11 @@ export const accountGrowthLinesOptions = {
 export const expenseBreakdownOptions = {
   responsive: true,
   maintainAspectRatio: false,
-  //borderColor: 'rgb(19, 21, 22)',
   borderColor: false,
   border: false,
-  //onHover: (e, ctx) => {
-  //  console.log({
-  //      'resources/js/Components/Charts/chartConfig.js:131 onHover' : e,
-  //  });
-  //},
   plugins:{
     tooltip: {
+      position: 'nearest',
       callbacks: {
         label: function(ctx) {
           let sum = 0;
@@ -178,7 +173,7 @@ export const expenseBreakdownOptions = {
 
     datalabels: {
       display: false
-    /*
+      /*
       anchor: 'end',
       align: 'start',
       listeners: {
@@ -229,7 +224,7 @@ export const expenseBreakdownOptions = {
           : null;
       },
       color: '#000000'
-    */
+      */
     }
   },
   elements: {

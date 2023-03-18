@@ -10,7 +10,8 @@
           asset_accounts: Object,
           debt_accounts: Object,
           total_economic_growth: Object,
-          category_totals: Object,
+          extra_expense_breakdown: Object,
+          recurring_expense_breakdown: Object,
           account_growth_line_data: Object,
           start: String,
           end: String
@@ -29,7 +30,10 @@
             :assets="props.data.asset_accounts"
             :debts="props.data.debt_accounts"
             :total-economic-growth="props.data.total_economic_growth"
-            :categorized-expenses="props.data.category_totals"
+            :extra-expense-breakdown="props.data.extra_expense_breakdown"
+            :recurring-expense-breakdown="props.data.recurring_expense_breakdown"
+            :total-extra-expenses="props.data.total_extra_expenses"
+            :total-recurring-expenses="props.data.total_recurring_expenses"
             :account-growth-line-data="props.data.account_growth_line_data"
             :start="props.data.start"
             :end="props.data.end"

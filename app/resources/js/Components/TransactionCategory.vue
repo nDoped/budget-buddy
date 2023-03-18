@@ -111,68 +111,67 @@
 </script>
 
 <template>
-    <div class="m-4 flex flex-row-reverse">
-      <PrimaryButton
-        type="button"
-        @click="addCategory"
-      >
-        Add a Cat
-      </PrimaryButton>
-    </div>
-    <InputError :message="percentError" />
-    <div
-      class="flex flex-wrap bg-slate-500"
-      :class="{'border border-red-700': percentError}"
+  <div class="m-4 flex flex-row-reverse">
+    <PrimaryButton
+      type="button"
+      @click="addCategory"
     >
-      <div
-        v-for="(category, i) in catsRef"
-        :key="i"
-        class="m-4"
+      Add a Cat
+    </PrimaryButton>
+  </div>
+  <InputError :message="percentError" />
+  <div
+    class="flex flex-wrap bg-slate-500"
+    :class="{'border border-red-700': percentError}"
+  >
+    <div
+      v-for="(category, i) in catsRef"
+      :key="i"
+      class="m-4"
+    >
+      <InputLabel
+        :for="getUuid('category-select', i)"
+        value="Category"
+      />
+
+      <select
+        :id="getUuid('category-select', i)"
+        v-model="category.cat_id"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        :style="catSelectBorder(category)"
+        @input="catChange($event, i)"
       >
-        <InputLabel
-          :for="getUuid('category-select', i)"
-          value="Category"
-        />
+        <option
+          v-for="cat in fetchFilteredCatsOptions(category)"
+          :key="category + cat.cat_id"
+          :value="cat.cat_id"
+        >
+          {{ cat.name }}
+        </option>
+      </select>
 
-        <select
-          :id="getUuid('category-select', i)"
-          v-model="category.cat_id"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          :style="catSelectBorder(category)"
-          @input="catChange($event, i)"
-        >
-          <option
-            v-for="cat in fetchFilteredCatsOptions(category)"
-            :key="category + cat.cat_id"
-            :value="cat.cat_id"
-          >
-            {{ cat.name }}
-          </option>
-        </select>
-
-        <InputLabel
-          :for="getUuid('category-percent', i)"
-          value="Percentage of Transaction Total"
-          class="mt-3"
-        />
-        <input
-          :id="getUuid('category-percent', i)"
-          type="number"
-          min=".1"
-          step=".1"
-          v-model="category.percent"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          :style="catSelectBorder(category)"
-          @input="catChange()"
-        >
-        <DangerButton
-          class="max-h-1 max-w-1"
-          type="button"
-          @click="removeCategory(category, i)"
-        >
-          Remove
-        </DangerButton>
-      </div>
+      <InputLabel
+        :for="getUuid('category-percent', i)"
+        value="Percentage of Transaction Total"
+        class="mt-3"
+      />
+      <input
+        :id="getUuid('category-percent', i)"
+        type="number"
+        min=".1"
+        step=".1"
+        v-model="category.percent"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        :style="catSelectBorder(category)"
+        @input="catChange()"
+      >
+      <DangerButton
+        class="max-h-1 max-w-1"
+        type="button"
+        @click="removeCategory(category, i)"
+      >
+        Remove
+      </DangerButton>
     </div>
-
+  </div>
 </template>

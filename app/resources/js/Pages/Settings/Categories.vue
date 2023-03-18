@@ -17,7 +17,8 @@
   const fields = ref([
     { key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
-    { key: 'include_in_expense_breakdown_text', label: 'Show in expense breakdown chart?', sortable: true },
+    { key: 'extra_expense_text', label: 'Extra Expense?', sortable: true },
+    { key: 'recurring_expense_text', label: 'Recurring Expense?', sortable: true },
     { key: 'color', label: 'Color', sortable: true, color_bg:true },
   ]);
 

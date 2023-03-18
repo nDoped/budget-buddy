@@ -137,7 +137,7 @@ class ImportData extends Command
                         $cat_model = new Category();
                         $cat_model->name = $cat;
                         if (preg_match('/^Utility.*$|^Recurring.*$|^Rent$|^Interest.*$|^Security Deposit.*$|^Salary.*|Account Adjustment|^Interest.*$|^Refund.*$/', $cat)) {
-                            $cat_model->include_in_expense_breakdown = false;
+                            $cat_model->extra_expense = false;
                         }
                         $cat_model->user_id = $user_id;
                         if (isset($this->cat_colors[$cat_model->name])) {

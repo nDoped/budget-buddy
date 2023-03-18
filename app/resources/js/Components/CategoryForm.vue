@@ -16,7 +16,8 @@
   const form = useForm({
     name: null,
     color: '#000000',
-    include_in_expense_breakdown: true
+    extra_expense: true,
+    recurring_expense: false
   });
   function submit() {
     /* global route */
@@ -71,17 +72,33 @@
 
       <div class="m-4">
         <InputLabel
-          for="include_in_br"
-          value="Show this category in the expense breakdown piechart?"
+          for="extra_expense"
+          value="Extra Expense?"
         />
         <Checkbox
-          id="include_in_br"
-          v-model:checked="form.include_in_expense_breakdown"
-          name="include_in_expense_breakdown"
+          id="extra_expense"
+          v-model:checked="form.extra_expense"
+          name="extra_expense"
         />
         <InputError
           class="mt-2"
-          :message="form.errors.include_in_expense_breakdown"
+          :message="form.errors.extra_expense"
+        />
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="recurring_expense"
+          value="Recurring Expense?"
+        />
+        <Checkbox
+          id="recurring_expense"
+          v-model:checked="form.recurring_expense"
+          name="recurring_expense"
+        />
+        <InputError
+          class="mt-2"
+          :message="form.errors.recurring_expense"
         />
       </div>
     </div>

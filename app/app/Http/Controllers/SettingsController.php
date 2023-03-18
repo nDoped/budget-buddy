@@ -44,8 +44,10 @@ class SettingsController extends Controller
             $cats[] = [
                 'name' => $cat->name,
                 'id' => $cat->id,
-                'include_in_expense_breakdown' => $cat->include_in_expense_breakdown,
-                'include_in_expense_breakdown_text' => ($cat->include_in_expense_breakdown) ? "Yes" : "No",
+                'extra_expense' => $cat->extra_expense,
+                'extra_expense_text' => ($cat->extra_expense) ? "Yes" : "No",
+                'recurring_expense' => $cat->recurring_expense,
+                'recurring_expense_text' => ($cat->recurring_expense) ? "Yes" : "No",
                 'color' => $cat->hex_color,
             ];
 
@@ -141,7 +143,8 @@ class SettingsController extends Controller
         $cat->name = $request->name;
         $cat->hex_color = $request->color;
         $cat->user_id = $current_user->id;
-        $cat->include_in_expense_breakdown = $request->include_in_expense_breakdown;
+        $cat->extra_expense = $request->extra_expense;
+        $cat->recurring_expense = $request->recurring_expense;
         $cat->save();
         return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
     }

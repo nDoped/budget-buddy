@@ -6,11 +6,16 @@
   } from 'vue';
   import PieChart from '@/Components/Charts/PieChart.vue';
   import { expenseBreakdownOptions } from './chartConfig.js'
+  import cloneDeep from 'lodash/cloneDeep';
 
   let props = defineProps({
     categorizedExpenses: {
       type: Object,
       default: () => {}
+    },
+    title: {
+      type: String,
+      default: () => "Here's some data"
     }
   });
 
@@ -43,6 +48,7 @@
     }
   });
 
+  const options = cloneDeep(expenseBreakdownOptions);
   onMounted(() => {
     for (let id in sortObj(props.categorizedExpenses)) {
       pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
@@ -50,13 +56,14 @@
       pieChartData.value.datasets[0].transactions.push(props.categorizedExpenses[id].transactions);
       pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
+    options.plugins.title.text = props.title;
   });
 </script>
 
 <template>
   <PieChart
     :chart-data="pieChartData"
-    :chart-options="expenseBreakdownOptions"
+    :chart-options="options"
   />
 </template>
 <style>
