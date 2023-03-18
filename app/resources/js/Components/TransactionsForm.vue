@@ -63,7 +63,7 @@
 
   const form = useForm({
     transaction_date: (new Date()).toISOString().slice(0, 10),
-    amount: 0,
+    amount: null,
     credit: false,
     account_id: '',
     note: null,
@@ -354,7 +354,6 @@
                     v-model="form.trans_buddy_note"
                     type="text"
                     class="mt-1 block w-full"
-                    autofocus
                     autocomplete="note"
                   />
                   <InputError
