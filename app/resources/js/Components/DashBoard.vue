@@ -199,7 +199,7 @@
     />
   </div>
 
-  <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 sm:grid-cols-2">
+  <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 xl:grid-cols-2">
     <div class="p-6">
       <div class="flex items-center flex-col overflow-x-auto">
         <div class="text-3xl text-bold">
