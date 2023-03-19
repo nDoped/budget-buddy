@@ -24,12 +24,77 @@ class CategoryController extends Controller
 
         $category->name = $request->name;
         $category->hex_color = $request->color;
-        $category->extra_expense = $request->extra_expense;
-        $category->recurring_expense = $request->recurring_expense;
-        $category->housing_expense = $request->housing_expense;
-        $category->utility_expense = $request->utility_expense;
-        $category->primary_income = $request->primary_income;
-        $category->extra_income = $request->extra_income;
+        switch ($request->category_type) {
+        case 'extra_expense':
+            $category->extra_expense = true;
+            $category->primary_income = false;
+            $category->secondary_income = false;
+            $category->regular_expense = false;
+            $category->recurring_expense = false;
+            $category->housing_expense = false;
+            $category->utility_expense = false;
+            break;
+
+        case 'regular_expense':
+            $category->regular_expense = true;
+            $category->primary_income = false;
+            $category->secondary_income = false;
+            $category->extra_expense = false;
+            $category->recurring_expense = false;
+            $category->housing_expense = false;
+            $category->utility_expense = false;
+            break;
+
+        case 'recurring_expense':
+            $category->recurring_expense = true;
+            $category->primary_income = false;
+            $category->secondary_income = false;
+            $category->regular_expense = false;
+            $category->extra_expense = false;
+            $category->housing_expense = false;
+            $category->utility_expense = false;
+            break;
+
+        case 'housing_expense':
+            $category->housing_expense = true;
+            $category->primary_income = false;
+            $category->secondary_income = false;
+            $category->regular_expense = false;
+            $category->recurring_expense = false;
+            $category->extra_expense = false;
+            $category->utility_expense = false;
+            break;
+
+        case 'utility_expense':
+            $category->utility_expense = true;
+            $category->primary_income = false;
+            $category->secondary_income = false;
+            $category->regular_expense = false;
+            $category->recurring_expense = false;
+            $category->extra_expense = false;
+            $category->housing_expense = false;
+            break;
+
+        case 'primary_income':
+            $category->primary_income = true;
+            $category->secondary_income = false;
+            $category->regular_expense = false;
+            $category->recurring_expense = false;
+            $category->extra_expense = false;
+            $category->housing_expense = false;
+            $category->utility_expense = false;
+            break;
+
+        case 'secondary_income':
+            $category->secondary_income = true;
+            $category->primary_income = false;
+            $category->regular_expense = false;
+            $category->recurring_expense = false;
+            $category->extra_expense = false;
+            $category->housing_expense = false;
+            $category->utility_expense = false;
+            break;
+        }
         $category->save();
         return redirect()->route('settings.categories');
     }

@@ -1,5 +1,9 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import {
+    ref,
+    onMounted,
+    watch
+  } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
@@ -14,27 +18,62 @@
 
   const emit = defineEmits(['success', 'cancel']);
 
-  watch(
-    () => props.category,
-    () => {
-      form.name = props.category.name;
-      form.color = props.category.color;
-      form.extra_expense = (props.category.extra_expense) ? true : false;
-      form.recurring_expense = (props.category.recurring_expense) ? true : false;
-      form.housing_expense = (props.category.housing_expense) ? true : false;
-      form.utility_expense = (props.category.utility_expense) ? true : false;
-      form.primary_income = (props.category.primary_income) ? true : false;
-      form.extra_income = (props.category.extra_income) ? true : false;
-      deleteCategoryForm.id = props.category.id;
-    }
-  );
-
   const props = defineProps({
     category: {
       type: Object,
       default: () => {}
     }
   });
+
+  const form = useForm({
+    name: props.category.name,
+    color: props.category.color,
+    category_type: null
+  });
+
+  const setFormCategoryType = () => {
+    if (props.category.extra_expense) {
+      form.category_type = 'extra_expense';
+
+    } else if (props.category.regular_expense) {
+      form.category_type = 'regular_expense';
+
+    } else if (props.category.recurring_expense) {
+      form.category_type = 'recurring_expense';
+
+    } else if (props.category.housing_expense) {
+      form.category_type = 'housing_expense';
+
+    } else if (props.category.utility_expense) {
+      form.category_type = 'utility_expense';
+
+    } else if (props.category.primary_income) {
+      form.category_type = 'primary_income';
+
+    } else if (props.category.secondary_income) {
+      form.category_type = 'secondary_income';
+
+    } else {
+      form.category_type = null;
+    }
+  };
+
+  onMounted(setFormCategoryType);
+
+  watch(
+    () => props.category,
+    () => {
+      form.name = props.category.name;
+      form.color = props.category.color;
+      setFormCategoryType();
+      deleteCategoryForm.id = props.category.id;
+    }
+  );
+
+  const cancel = () => {
+    setFormCategoryType();
+    emit('cancel');
+  };
 
   const catBeingDeleted = ref(null);
 
@@ -65,17 +104,6 @@
       }
     });
   };
-
-  const form = useForm({
-    name: props.category.name,
-    color: props.category.color,
-    extra_expense: (props.category.extra_expense) ? true : false,
-    recurring_expense: (props.category.recurring_expense) ? true : false,
-    housing_expense: (props.category.housing_expense) ? true : false,
-    utility_expense: (props.category.utility_expense) ? true : false,
-    primary_income: (props.category.primary_income) ? true : false,
-    extra_income: (props.category.extra_income) ? true : false
-  });
 
   function submit() {
     /* global route */
@@ -108,140 +136,135 @@
           @submit.prevent="submit"
           :key="category.id"
         >
-          <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
-            <div class="m-4">
-              <p>
-                {{ category.id }}
-              </p>
-            </div>
-            <div class="m-4">
-              <InputLabel
-                :for="getUuid('cat-name')"
-                value="Name"
-              />
-              <TextInput
-                :id="getUuid('cat-name')"
-                v-model="form.name"
-                type="text"
-                class="mt-1 block w-full"
-                autofocus
-                autocomplete="bank_ident"
-              />
-              <InputError
-                :message="form.errors.name"
-                class="mt-2"
-              />
-            </div>
+          <div class="flex flex-col p-6 bg-slate-500 border-b border-gray-200">
+            <div class="flex flex-row">
+              <div class="m-4">
+                <p>
+                  {{ category.id }}
+                </p>
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                :for="getUuid('cat-color')"
-                value="color"
-              />
-              <input
-                :id="getUuid('cat-color')"
-                type="color"
-                v-model="form.color"
-              >
-              <InputError
-                :message="form.errors.color"
-                class="mt-2"
-              />
-            </div>
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('cat-name')"
+                  value="Name"
+                />
+                <TextInput
+                  :id="getUuid('cat-name')"
+                  v-model="form.name"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autofocus
+                  autocomplete="bank_ident"
+                />
+                <InputError
+                  :message="form.errors.name"
+                  class="mt-2"
+                />
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                :for="getUuid('extra-expense')"
-                value="Extra Expense?"
-              />
-              <Checkbox
-                :id="getUuid('extra-expense')"
-                v-model:checked="form.extra_expense"
-                name="extra_expense"
-              />
-              <InputError
-                class="mt-2"
-                :message="form.errors.extra_expense"
-              />
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('cat-color')"
+                  value="color"
+                />
+                <input
+                  :id="getUuid('cat-color')"
+                  type="color"
+                  v-model="form.color"
+                >
+              </div>
             </div>
 
-            <div class="m-4">
-              <InputLabel
-                :for="getUuid('recurring-expense')"
-                value="Recurring Expense?"
-              />
-              <Checkbox
-                :id="getUuid('recurring-expense')"
-                v-model:checked="form.recurring_expense"
-                name="recurring_expense"
-              />
-              <InputError
-                class="mt-2"
-                :message="form.errors.recurring_expense"
-              />
-            </div>
+            <div class="flex flex-row">
+              <div class="m-4">
+                <InputLabel
+                  value="Primary Income?"
+                />
+                <input
+                  :id="getUuid('primary-income')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="primary_income"
+                >
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                :for="getUuid('housing-expense')"
-                value="Housing Expense?"
-              />
-              <Checkbox
-                :id="getUuid('housing-expense')"
-                v-model:checked="form.housing_expense"
-                name="housing_expense"
-              />
-              <InputError
-                class="mt-2"
-                :message="form.errors.housing_expense"
-              />
-            </div>
+              <div class="m-4">
+                <InputLabel
+                  value="Secondary Income?"
+                />
+                <input
+                  :id="getUuid('secondary-income')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="secondary_income"
+                >
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                :for="getUuid('utility-expense')"
-                value="Utility?"
-              />
-              <Checkbox
-                :id="getUuid('utility-expense')"
-                v-model:checked="form.utility_expense"
-                name="utility_expense"
-              />
-              <InputError
-                class="mt-2"
-                :message="form.errors.utility_expense"
-              />
-            </div>
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('regular-expense')"
+                  value="Regular Expense?"
+                />
+                <input
+                  :id="getUuid('regular-expense')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="regular_expense"
+                >
+              </div>
 
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('recurring-expense')"
+                  value="Recurring Expense?"
+                />
+                <input
+                  :id="getUuid('recurring-expense')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="recurring_expense"
+                >
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                value="Primary Income?"
-              />
-              <Checkbox
-                :id="getUuid('primary-income')"
-                v-model:checked="form.primary_income"
-                name="primary_income"
-              />
-              <InputError
-                class="mt-2"
-                :message="form.errors.primary_income"
-              />
-            </div>
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('extra-expense')"
+                  value="Extra Expense?"
+                />
+                <input
+                  :id="getUuid('extra-expense')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="extra_expense"
+                >
+              </div>
 
-            <div class="m-4">
-              <InputLabel
-                value="Extra Income?"
-              />
-              <Checkbox
-                :id="getUuid('extra-income')"
-                v-model:checked="form.extra_income"
-                name="extra_income"
-              />
-              <InputError
-                class="mt-2"
-                :message="form.errors.extra_income"
-              />
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('housing-expense')"
+                  value="Housing?"
+                />
+                <input
+                  :id="getUuid('housing-expense')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="housing_expense"
+                >
+              </div>
+
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('utility-expense')"
+                  value="Utility?"
+                />
+                <input
+                  :id="getUuid('utility-expense')"
+                  v-model="form.category_type"
+                  type="radio"
+                  value="utility_expense"
+                >
+              </div>
             </div>
           </div>
 
@@ -256,7 +279,7 @@
             </PrimaryButton>
 
             <SecondaryButton
-              @click="$emit('cancel')"
+              @click="cancel"
               class="ml-3"
             >
               Cancel

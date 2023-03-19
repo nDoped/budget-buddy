@@ -97,18 +97,21 @@ class Transaction extends Model
           $transactions_in_range = $transactions_in_range->where('transaction_date', '<=', $end);
         }
 
-        $extra_expense_breakdown = [];
+        $primary_income_breakdown = [];
+        $secondary_income_breakdown = [];
+        $regular_expense_breakdown = [];
         $recurring_expense_breakdown = [];
+        $extra_expense_breakdown = [];
         $housing_expense_breakdown = [];
         $utility_expense_breakdown = [];
-        $primary_income_breakdown = [];
-        $extra_income_breakdown = [];
-        $total_extra_expenses = 0;
+
+        $total_primary_income = 0;
+        $total_secondary_income = 0;
+        $total_regular_expenses = 0;
         $total_recurring_expenses = 0;
+        $total_extra_expenses = 0;
         $total_housing_expenses = 0;
         $total_utility_expenses = 0;
-        $total_primary_income = 0;
-        $total_extra_income = 0;
         foreach ($transactions_in_range->get() as $trans) {
             $acct = $trans->account;
             $type = AccountType::find($acct->type_id);
@@ -120,11 +123,12 @@ class Transaction extends Model
                 // 10000 to get its numerical value
                 $cat_value = $trans->amount * ($percent / 10000);
 
-                if ($cat->extra_expense) {
-                    $total_extra_expenses += $cat_value;
-                    if (isset($extra_expense_breakdown[$cat->id])) {
-                        $extra_expense_breakdown[$cat->id]['value'] += $cat_value;
-                        $extra_expense_breakdown[$cat->id]['transactions'][] = [
+
+                if ($cat->primary_income) {
+                    $total_primary_income += $cat_value;
+                    if (isset($primary_income_breakdown[$cat->id])) {
+                        $primary_income_breakdown[$cat->id]['value'] += $cat_value;
+                        $primary_income_breakdown[$cat->id]['transactions'][] = [
                             'id' => $trans->id,
                             'date' => $trans->transaction_date,
                             'cat_value' => $cat_value / 100,
@@ -132,7 +136,61 @@ class Transaction extends Model
                         ];
 
                     } else {
-                        $extra_expense_breakdown[$cat->id] = [
+                        $primary_income_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
+
+                } else if ($cat->secondary_income) {
+                    $total_secondary_income += $cat_value;
+                    if (isset($secondary_income_breakdown[$cat->id])) {
+                        $secondary_income_breakdown[$cat->id]['value'] += $cat_value;
+                        $secondary_income_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $secondary_income_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
+
+                } else if ($cat->regular_expense) {
+                    $total_regular_expenses += $cat_value;
+                    if (isset($regular_expense_breakdown[$cat->id])) {
+                        $regular_expense_breakdown[$cat->id]['value'] += $cat_value;
+                        $regular_expense_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $regular_expense_breakdown[$cat->id] = [
                             'name' => $cat->name,
                             'value' => $cat_value,
                             'color' => $cat->hex_color,
@@ -160,6 +218,33 @@ class Transaction extends Model
 
                     } else {
                         $recurring_expense_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
+
+                } else if ($cat->extra_expense) {
+                    $total_extra_expenses += $cat_value;
+                    if (isset($extra_expense_breakdown[$cat->id])) {
+                        $extra_expense_breakdown[$cat->id]['value'] += $cat_value;
+                        $extra_expense_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $extra_expense_breakdown[$cat->id] = [
                             'name' => $cat->name,
                             'value' => $cat_value,
                             'color' => $cat->hex_color,
@@ -227,61 +312,6 @@ class Transaction extends Model
                             ]
                         ];
                     }
-
-
-                } else if ($cat->primary_income) {
-                    $total_primary_income += $cat_value;
-                    if (isset($primary_income_breakdown[$cat->id])) {
-                        $primary_income_breakdown[$cat->id]['value'] += $cat_value;
-                        $primary_income_breakdown[$cat->id]['transactions'][] = [
-                            'id' => $trans->id,
-                            'date' => $trans->transaction_date,
-                            'cat_value' => $cat_value / 100,
-                            'trans_total' => $trans->amount / 100,
-                        ];
-
-                    } else {
-                        $primary_income_breakdown[$cat->id] = [
-                            'name' => $cat->name,
-                            'value' => $cat_value,
-                            'color' => $cat->hex_color,
-                            'transactions' => [
-                                [
-                                    'id' => $trans->id,
-                                    'date' => $trans->transaction_date,
-                                    'cat_value' => $cat_value / 100,
-                                    'trans_total' => $trans->amount / 100,
-                                ]
-                            ]
-                        ];
-                    }
-
-                } else if ($cat->extra_income) {
-                    $total_extra_income += $cat_value;
-                    if (isset($extra_income_breakdown[$cat->id])) {
-                        $extra_income_breakdown[$cat->id]['value'] += $cat_value;
-                        $extra_income_breakdown[$cat->id]['transactions'][] = [
-                            'id' => $trans->id,
-                            'date' => $trans->transaction_date,
-                            'cat_value' => $cat_value / 100,
-                            'trans_total' => $trans->amount / 100,
-                        ];
-
-                    } else {
-                        $extra_income_breakdown[$cat->id] = [
-                            'name' => $cat->name,
-                            'value' => $cat_value,
-                            'color' => $cat->hex_color,
-                            'transactions' => [
-                                [
-                                    'id' => $trans->id,
-                                    'date' => $trans->transaction_date,
-                                    'cat_value' => $cat_value / 100,
-                                    'trans_total' => $trans->amount / 100,
-                                ]
-                            ]
-                        ];
-                    }
                 }
 
                 $categories[] =  [
@@ -312,6 +342,9 @@ class Transaction extends Model
         foreach ($extra_expense_breakdown as $id => &$cat_data) {
             $cat_data['value'] = $cat_data['value'] / 100;
         }
+        foreach ($regular_expense_breakdown as $id => &$cat_data) {
+            $cat_data['value'] = $cat_data['value'] / 100;
+        }
         foreach ($recurring_expense_breakdown as $id => &$cat_data) {
             $cat_data['value'] = $cat_data['value'] / 100;
         }
@@ -324,21 +357,23 @@ class Transaction extends Model
         foreach ($primary_income_breakdown as $id => &$cat_data) {
             $cat_data['value'] = $cat_data['value'] / 100;
         }
-        foreach ($extra_income_breakdown as $id => &$cat_data) {
+        foreach ($secondary_income_breakdown as $id => &$cat_data) {
             $cat_data['value'] = $cat_data['value'] / 100;
         }
         $data['extra_expense_breakdown'] = $extra_expense_breakdown;
+        $data['regular_expense_breakdown'] = $regular_expense_breakdown;
         $data['recurring_expense_breakdown'] = $recurring_expense_breakdown;
         $data['housing_expense_breakdown'] = $housing_expense_breakdown;
         $data['utility_expense_breakdown'] = $utility_expense_breakdown;
         $data['primary_income_breakdown'] = $primary_income_breakdown;
-        $data['extra_income_breakdown'] = $extra_income_breakdown;
+        $data['secondary_income_breakdown'] = $secondary_income_breakdown;
         $data['total_extra_expenses'] =  $total_extra_expenses / 100;
+        $data['total_regular_expenses'] =  $total_regular_expenses / 100;
         $data['total_recurring_expenses'] =  $total_recurring_expenses / 100;
         $data['total_housing_expenses'] =  $total_housing_expenses / 100;
         $data['total_utility_expenses'] =  $total_utility_expenses / 100;
         $data['total_primary_income'] =  $total_primary_income / 100;
-        $data['total_extra_income'] =  $total_extra_income / 100;
+        $data['total_secondary_income'] =  $total_secondary_income / 100;
         return $data;
     }
 }

@@ -45,17 +45,12 @@ class SettingsController extends Controller
                 'name' => $cat->name,
                 'id' => $cat->id,
                 'extra_expense' => $cat->extra_expense,
-                'extra_expense_text' => ($cat->extra_expense) ? "Yes" : "No",
+                'regular_expense' => $cat->regular_expense,
                 'recurring_expense' => $cat->recurring_expense,
-                'recurring_expense_text' => ($cat->recurring_expense) ? "Yes" : "No",
                 'housing_expense' => $cat->housing_expense,
-                'housing_expense_text' => ($cat->housing_expense) ? "Yes" : "No",
                 'utility_expense' => $cat->utility_expense,
-                'utility_expense_text' => ($cat->utility_expense) ? "Yes" : "No",
                 'primary_income' => $cat->primary_income,
-                'primary_income_text' => ($cat->primary_income) ? "Yes" : "No",
-                'extra_income' => $cat->extra_income,
-                'extra_income_text' => ($cat->extra_income) ? "Yes" : "No",
+                'secondary_income' => $cat->secondary_income,
                 'color' => $cat->hex_color,
             ];
 
@@ -151,12 +146,35 @@ class SettingsController extends Controller
         $cat->name = $request->name;
         $cat->hex_color = $request->color;
         $cat->user_id = $current_user->id;
-        $cat->extra_expense = $request->extra_expense;
-        $cat->recurring_expense = $request->recurring_expense;
-        $cat->housing_expense = $request->housing_expense;
-        $cat->utility_expense = $request->utility_expense;
-        $cat->primary_income = $request->primary_income;
-        $cat->extra_income = $request->extra_income;
+        switch ($request->category_type) {
+        case 'extra_expense':
+            $cat->extra_expense = true;
+            break;
+
+        case 'regular_expense':
+            $cat->regular_expense = true;
+            break;
+
+        case 'recurring_expense':
+            $cat->recurring_expense = true;
+            break;
+
+        case 'housing_expense':
+            $cat->housing_expense = true;
+            break;
+
+        case 'utility_expense':
+            $cat->utility_expense = true;
+            break;
+
+        case 'primary_income':
+            $cat->primary_income = true;
+            break;
+
+        case 'secondary_income':
+            $cat->secondary_income = true;
+            break;
+        }
         $cat->save();
         return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
     }

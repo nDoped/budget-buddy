@@ -1,12 +1,10 @@
 <script setup>
-  import {  ref } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import { toast } from 'vue3-toastify';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import TextInput from '@/Components/TextInput.vue';
-  import Checkbox from '@/Components/Checkbox.vue';
 
   const success = () => {
     toast.success('Category Created!');
@@ -16,12 +14,7 @@
   const form = useForm({
     name: null,
     color: '#000000',
-    extra_expense: true,
-    recurring_expense: false,
-    housing_expense: false,
-    utility_expense: false,
-    primary_income: false,
-    extra_income: false
+    category_type: null,
   });
   function submit() {
     /* global route */
@@ -75,18 +68,41 @@
 
       <div class="m-4">
         <InputLabel
-          for="extra_expense"
-          value="Extra Expense?"
+          for="primary_income"
+          value="Primary Income?"
         />
-        <Checkbox
-          id="extra_expense"
-          v-model:checked="form.extra_expense"
-          name="extra_expense"
+        <input
+          id="primary_income"
+          v-model="form.category_type"
+          value="primary_income"
+          type="radio"
+        >
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="secondary_income"
+          value="Secondary Income?"
         />
-        <InputError
-          class="mt-2"
-          :message="form.errors.extra_expense"
+        <input
+          id="secondary_income"
+          v-model="form.category_type"
+          value="secondary_income"
+          type="radio"
+        >
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="regular_expense"
+          value="Regular Expense?"
         />
+        <input
+          id="regular_expense"
+          v-model="form.category_type"
+          value="regular_expense"
+          type="radio"
+        >
       </div>
 
       <div class="m-4">
@@ -94,31 +110,38 @@
           for="recurring_expense"
           value="Recurring Expense?"
         />
-        <Checkbox
+        <input
           id="recurring_expense"
-          v-model:checked="form.recurring_expense"
-          name="recurring_expense"
+          v-model="form.category_type"
+          value="recurring_expense"
+          type="radio"
+        >
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="extra_expense"
+          value="Extra Expense?"
         />
-        <InputError
-          class="mt-2"
-          :message="form.errors.recurring_expense"
-        />
+        <input
+          id="extra_expense"
+          v-model="form.category_type"
+          value="extra_expense"
+          type="radio"
+        >
       </div>
 
       <div class="m-4">
         <InputLabel
           for="housing_expense"
-          value="Housing Expense?"
+          value="Housing?"
         />
-        <Checkbox
+        <input
           id="housing_expense"
-          v-model:checked="form.housing_expense"
-          name="housing_expense"
-        />
-        <InputError
-          class="mt-2"
-          :message="form.errors.housing_expense"
-        />
+          v-model="form.category_type"
+          value="housing_expense"
+          type="radio"
+        >
       </div>
 
       <div class="m-4">
@@ -126,48 +149,12 @@
           for="utility_expense"
           value="Utility?"
         />
-        <Checkbox
+        <input
           id="utility_expense"
-          v-model:checked="form.utility_expense"
-          name="utility_expense"
-        />
-        <InputError
-          class="mt-2"
-          :message="form.errors.utility_expense"
-        />
-      </div>
-
-
-      <div class="m-4">
-        <InputLabel
-          for="primary_income"
-          value="Primary Income?"
-        />
-        <Checkbox
-          id="primary_income"
-          v-model:checked="form.primary_income"
-          name="primary_income"
-        />
-        <InputError
-          class="mt-2"
-          :message="form.errors.primary_income"
-        />
-      </div>
-
-      <div class="m-4">
-        <InputLabel
-          for="extra_income"
-          value="Extra Income?"
-        />
-        <Checkbox
-          id="extra_income"
-          v-model:checked="form.extra_income"
-          name="extra_income"
-        />
-        <InputError
-          class="mt-2"
-          :message="form.errors.extra_income"
-        />
+          v-model="form.category_type"
+          value="utility_expense"
+          type="radio"
+        >
       </div>
     </div>
 

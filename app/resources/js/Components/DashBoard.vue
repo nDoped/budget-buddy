@@ -27,6 +27,10 @@
       type: Object,
       default: () => {}
     },
+    regularExpenseBreakdown: {
+      type: Object,
+      default: () => {}
+    },
     recurringExpenseBreakdown: {
       type: Object,
       default: () => {}
@@ -43,11 +47,15 @@
       type: Object,
       default: () => {}
     },
-    extraIncomeBreakdown: {
+    secondaryIncomeBreakdown: {
       type: Object,
       default: () => {}
     },
     totalExtraExpenses: {
+      type: Number,
+      default: () => 0
+    },
+    totalRegularExpenses: {
       type: Number,
       default: () => 0
     },
@@ -67,7 +75,7 @@
       type: Number,
       default: () => 0
     },
-    totalExtraIncome: {
+    totalSecondaryIncome: {
       type: Number,
       default: () => 0
     },
@@ -177,26 +185,18 @@
       });
     }
 
-    if (props.totalExtraIncome) {
+    if (props.totalSecondaryIncome) {
       ret.push({
-        title: 'Extra Income',
-        value: formatter.format(props.totalExtraIncome),
+        title: 'Secondary Income',
+        value: formatter.format(props.totalSecondaryIncome),
         class: 'text-green-400'
       });
     }
 
-    if (props.totalHousingExpenses) {
+    if (props.totalRegularExpenses) {
       ret.push({
-        title: 'Housing',
-        value: formatter.format(props.totalHousingExpenses),
-        class: 'text-red-400'
-      });
-    }
-
-    if (props.totalUtilityExpenses) {
-      ret.push({
-        title: 'Utilities',
-        value: formatter.format(props.totalUtilityExpenses),
+        title: 'Regular Expenses',
+        value: formatter.format(props.totalRegularExpenses),
         class: 'text-red-400'
       });
     }
@@ -216,6 +216,23 @@
         class: 'text-red-400'
       });
     }
+
+    if (props.totalHousingExpenses) {
+      ret.push({
+        title: 'Housing',
+        value: formatter.format(props.totalHousingExpenses),
+        class: 'text-red-400'
+      });
+    }
+
+    if (props.totalUtilityExpenses) {
+      ret.push({
+        title: 'Utilities',
+        value: formatter.format(props.totalUtilityExpenses),
+        class: 'text-red-400'
+      });
+    }
+
     return ret;
   });
 
@@ -408,32 +425,22 @@
       </div>
 
       <div
-        v-if="! Array.isArray(extraIncomeBreakdown)"
+        v-if="! Array.isArray(secondaryIncomeBreakdown)"
         class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
-          :categorized-expenses="extraIncomeBreakdown"
-          title="Extra Income"
+          :categorized-expenses="secondaryIncomeBreakdown"
+          title="Secondary Income"
         />
       </div>
 
       <div
-        v-if="! Array.isArray(housingExpenseBreakdown)"
+        v-if="! Array.isArray(regularExpenseBreakdown)"
         class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
-          :categorized-expenses="housingExpenseBreakdown"
-          title="Housing"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(utilityExpenseBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="utilityExpenseBreakdown"
-          title="Utilities"
+          :categorized-expenses="regularExpenseBreakdown"
+          title="Regular Expenses"
         />
       </div>
 
@@ -454,6 +461,26 @@
         <ExpenseBreakdown
           :categorized-expenses="extraExpenseBreakdown"
           title="Extra Expenses"
+        />
+      </div>
+
+      <div
+        v-if="! Array.isArray(housingExpenseBreakdown)"
+        class="m-2 h-[32rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="housingExpenseBreakdown"
+          title="Housing"
+        />
+      </div>
+
+      <div
+        v-if="! Array.isArray(utilityExpenseBreakdown)"
+        class="m-2 h-[32rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="utilityExpenseBreakdown"
+          title="Utilities"
         />
       </div>
     </div>
