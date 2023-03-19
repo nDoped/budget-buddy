@@ -12,7 +12,10 @@
           <dt class="order-last truncate text-sm font-medium text-surface-500">
             {{ stat.title }}
           </dt>
-          <dd class="mb-1 text-3xl bg-zinc-500 dark:bg-slate-900 font-semibold text-primary-600">
+          <dd
+            class="mb-1 text-3xl bg-zinc-500 dark:bg-slate-900 font-semibold text-primary-600"
+            :class="stat.class"
+          >
             <span class="tabular-nums">{{ stat.value }}</span>
           </dd>
         </div>

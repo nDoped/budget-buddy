@@ -131,48 +131,59 @@
     if (props.totalPrimaryIncome) {
       ret.push({
         title: 'Primary Income',
-        value: formatter.format(props.totalPrimaryIncome)
+        value: formatter.format(props.totalPrimaryIncome),
+        class: 'text-green-400'
       });
     }
 
     if (props.totalExtraIncome) {
       ret.push({
         title: 'Extra Income',
-        value: formatter.format(props.totalExtraIncome)
+        value: formatter.format(props.totalExtraIncome),
+        class: 'text-green-400'
       });
     }
 
     if (props.totalHousingExpenses) {
       ret.push({
         title: 'Housing',
-        value: formatter.format(props.totalHousingExpenses)
+        value: formatter.format(props.totalHousingExpenses),
+        class: 'text-red-400'
       });
     }
 
     if (props.totalUtilityExpenses) {
       ret.push({
         title: 'Utilities',
-        value: formatter.format(props.totalUtilityExpenses)
+        value: formatter.format(props.totalUtilityExpenses),
+        class: 'text-red-400'
       });
     }
 
     if (props.totalRecurringExpenses) {
       ret.push({
         title: 'Recurring Expenses',
-        value: formatter.format(props.totalRecurringExpenses)
+        value: formatter.format(props.totalRecurringExpenses),
+        class: 'text-red-400'
       });
     }
 
     if (props.totalExtraExpenses) {
       ret.push({
         title: 'Extra Expenses',
-        value: formatter.format(props.totalExtraExpenses)
+        value: formatter.format(props.totalExtraExpenses),
+        class: 'text-red-400'
       });
     }
     if (props.totalEconomicGrowth) {
+      let statClass = 'text-green-400';
+      if (props.totalEconomicGrowth <= 0) {
+        statClass =  'text-red-400';
+      }
       ret.push({
         title: 'Economic Growth',
-        value: formatter.format(props.totalEconomicGrowth)
+        value: formatter.format(props.totalEconomicGrowth),
+        class: statClass
       });
     }
     return ret;
@@ -349,10 +360,10 @@
   </div>
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1  md:grid-cols-2">
+    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       <div
         v-if="! Array.isArray(primaryIncomeBreakdown)"
-        class="m-2 h-[40rem]"
+        class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
           :categorized-expenses="primaryIncomeBreakdown"
@@ -362,7 +373,7 @@
 
       <div
         v-if="! Array.isArray(extraIncomeBreakdown)"
-        class="m-2 h-[40rem]"
+        class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
           :categorized-expenses="extraIncomeBreakdown"
@@ -372,7 +383,7 @@
 
       <div
         v-if="! Array.isArray(housingExpenseBreakdown)"
-        class="m-2 h-[40rem]"
+        class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
           :categorized-expenses="housingExpenseBreakdown"
@@ -382,7 +393,7 @@
 
       <div
         v-if="! Array.isArray(utilityExpenseBreakdown)"
-        class="m-2 h-[40rem]"
+        class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
           :categorized-expenses="utilityExpenseBreakdown"
@@ -392,7 +403,7 @@
 
       <div
         v-if="! Array.isArray(recurringExpenseBreakdown)"
-        class="m-2 h-[40rem]"
+        class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
           :categorized-expenses="recurringExpenseBreakdown"
@@ -402,7 +413,7 @@
 
       <div
         v-if="! Array.isArray(extraExpenseBreakdown)"
-        class="m-2 h-[40rem]"
+        class="m-2 h-[32rem]"
       >
         <ExpenseBreakdown
           :categorized-expenses="extraExpenseBreakdown"
