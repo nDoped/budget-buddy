@@ -193,7 +193,10 @@
   </div>
 
   <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
-    <StatsComponent :stats="dashboardStats" :last="rangeDisplay"/>
+    <StatsComponent
+      :stats="dashboardStats"
+      :last="rangeDisplay"
+    />
   </div>
 
   <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 sm:grid-cols-2">
@@ -277,13 +280,17 @@
       </div>
     </div>
   </div>
-  <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-2">
+
+  <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
+    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1  md:grid-cols-2 lg:grid-cols-3">
       <div class="m-5">
         <ExpenseBreakdown :categorized-expenses="extraExpenseBreakdown" title="Extra Expenses"/>
       </div>
       <div class="m-5">
         <ExpenseBreakdown :categorized-expenses="recurringExpenseBreakdown" title="Recurring Expenses"/>
+      </div>
+      <div class="m-5">
+        <ExpenseBreakdown :categorized-expenses="recurringExpenseBreakdown" title="This will be primary income"/>
       </div>
     </div>
   </div>
