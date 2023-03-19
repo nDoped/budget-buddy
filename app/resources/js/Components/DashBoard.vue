@@ -125,6 +125,47 @@
     return ret;
   });
 
+  const dashboardStatsTotals = computed(() => {
+    let ret = [];
+    // kinda hacky and depends on the asset and debt accounts having a totals
+    // row...which i might refactor, but it's late and this will work
+    let assetGrowth = props.assets[props.assets.length - 1].in_range_net_growth;
+    let statClass = 'text-green-400';
+    if (assetGrowth <= 0) {
+      statClass =  'text-red-400';
+    }
+    ret.push({
+      title: 'Asset Growth',
+      value: formatter.format(assetGrowth),
+      class: statClass
+    });
+
+    let debtGrowth = props.debts[props.debts.length - 1].in_range_net_growth;
+    statClass = 'text-green-400';
+    if (debtGrowth > 0) {
+      statClass =  'text-red-400';
+    }
+    ret.push({
+      title: 'Debt Growth',
+      value: formatter.format(debtGrowth),
+      class: statClass
+    });
+
+    if (props.totalEconomicGrowth) {
+      let statClass = 'text-green-400';
+      if (props.totalEconomicGrowth <= 0) {
+        statClass =  'text-red-400';
+      }
+      ret.push({
+        title: 'Economic Growth',
+        value: formatter.format(props.totalEconomicGrowth),
+        class: statClass
+      });
+    }
+    return ret;
+  });
+
+
   const dashboardStats = computed(() => {
     let ret = [];
 
@@ -173,17 +214,6 @@
         title: 'Extra Expenses',
         value: formatter.format(props.totalExtraExpenses),
         class: 'text-red-400'
-      });
-    }
-    if (props.totalEconomicGrowth) {
-      let statClass = 'text-green-400';
-      if (props.totalEconomicGrowth <= 0) {
-        statClass =  'text-red-400';
-      }
-      ret.push({
-        title: 'Economic Growth',
-        value: formatter.format(props.totalEconomicGrowth),
-        class: statClass
       });
     }
     return ret;
@@ -275,6 +305,12 @@
     <StatsComponent
       :stats="dashboardStats"
       :last="rangeDisplay"
+    />
+  </div>
+  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
+    <StatsComponent
+      :stats="dashboardStatsTotals"
+      last=""
     />
   </div>
 
