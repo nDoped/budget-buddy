@@ -281,8 +281,16 @@ class DashboardController extends Controller
         $data['end'] = $end;
         $data['extra_expense_breakdown'] = $trans_data['extra_expense_breakdown'];
         $data['recurring_expense_breakdown'] = $trans_data['recurring_expense_breakdown'];
+        $data['housing_expense_breakdown'] = $trans_data['housing_expense_breakdown'];
+        $data['utility_expense_breakdown'] = $trans_data['utility_expense_breakdown'];
+        $data['primary_income_breakdown'] = $trans_data['primary_income_breakdown'];
+        $data['extra_income_breakdown'] = $trans_data['extra_income_breakdown'];
         $data['total_extra_expenses'] = $trans_data['total_extra_expenses'];
         $data['total_recurring_expenses'] = $trans_data['total_recurring_expenses'];
+        $data['total_housing_expenses'] = $trans_data['total_housing_expenses'];
+        $data['total_utility_expenses'] = $trans_data['total_utility_expenses'];
+        $data['total_primary_income'] = $trans_data['total_primary_income'];
+        $data['total_extra_income'] = $trans_data['total_extra_income'];
         $data['total_economic_growth'] = $total_eco_growth;
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;

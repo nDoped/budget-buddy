@@ -99,8 +99,16 @@ class Transaction extends Model
 
         $extra_expense_breakdown = [];
         $recurring_expense_breakdown = [];
+        $housing_expense_breakdown = [];
+        $utility_expense_breakdown = [];
+        $primary_income_breakdown = [];
+        $extra_income_breakdown = [];
         $total_extra_expenses = 0;
         $total_recurring_expenses = 0;
+        $total_housing_expenses = 0;
+        $total_utility_expenses = 0;
+        $total_primary_income = 0;
+        $total_extra_income = 0;
         foreach ($transactions_in_range->get() as $trans) {
             $acct = $trans->account;
             $type = AccountType::find($acct->type_id);
@@ -165,6 +173,115 @@ class Transaction extends Model
                             ]
                         ];
                     }
+
+                } else if ($cat->housing_expense) {
+                    $total_housing_expenses += $cat_value;
+                    if (isset($housing_expense_breakdown[$cat->id])) {
+                        $housing_expense_breakdown[$cat->id]['value'] += $cat_value;
+                        $housing_expense_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $housing_expense_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
+
+                } else if ($cat->utility_expense) {
+                    $total_utility_expenses += $cat_value;
+                    if (isset($utility_expense_breakdown[$cat->id])) {
+                        $utility_expense_breakdown[$cat->id]['value'] += $cat_value;
+                        $utility_expense_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $utility_expense_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
+
+
+                } else if ($cat->primary_income) {
+                    $total_primary_income += $cat_value;
+                    if (isset($primary_income_breakdown[$cat->id])) {
+                        $primary_income_breakdown[$cat->id]['value'] += $cat_value;
+                        $primary_income_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $primary_income_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
+
+                } else if ($cat->extra_income) {
+                    $total_extra_income += $cat_value;
+                    if (isset($extra_income_breakdown[$cat->id])) {
+                        $extra_income_breakdown[$cat->id]['value'] += $cat_value;
+                        $extra_income_breakdown[$cat->id]['transactions'][] = [
+                            'id' => $trans->id,
+                            'date' => $trans->transaction_date,
+                            'cat_value' => $cat_value / 100,
+                            'trans_total' => $trans->amount / 100,
+                        ];
+
+                    } else {
+                        $extra_income_breakdown[$cat->id] = [
+                            'name' => $cat->name,
+                            'value' => $cat_value,
+                            'color' => $cat->hex_color,
+                            'transactions' => [
+                                [
+                                    'id' => $trans->id,
+                                    'date' => $trans->transaction_date,
+                                    'cat_value' => $cat_value / 100,
+                                    'trans_total' => $trans->amount / 100,
+                                ]
+                            ]
+                        ];
+                    }
                 }
 
                 $categories[] =  [
@@ -198,11 +315,30 @@ class Transaction extends Model
         foreach ($recurring_expense_breakdown as $id => &$cat_data) {
             $cat_data['value'] = $cat_data['value'] / 100;
         }
+        foreach ($housing_expense_breakdown as $id => &$cat_data) {
+            $cat_data['value'] = $cat_data['value'] / 100;
+        }
+        foreach ($utility_expense_breakdown as $id => &$cat_data) {
+            $cat_data['value'] = $cat_data['value'] / 100;
+        }
+        foreach ($primary_income_breakdown as $id => &$cat_data) {
+            $cat_data['value'] = $cat_data['value'] / 100;
+        }
+        foreach ($extra_income_breakdown as $id => &$cat_data) {
+            $cat_data['value'] = $cat_data['value'] / 100;
+        }
         $data['extra_expense_breakdown'] = $extra_expense_breakdown;
         $data['recurring_expense_breakdown'] = $recurring_expense_breakdown;
+        $data['housing_expense_breakdown'] = $housing_expense_breakdown;
+        $data['utility_expense_breakdown'] = $utility_expense_breakdown;
+        $data['primary_income_breakdown'] = $primary_income_breakdown;
+        $data['extra_income_breakdown'] = $extra_income_breakdown;
         $data['total_extra_expenses'] =  $total_extra_expenses / 100;
         $data['total_recurring_expenses'] =  $total_recurring_expenses / 100;
-
+        $data['total_housing_expenses'] =  $total_housing_expenses / 100;
+        $data['total_utility_expenses'] =  $total_utility_expenses / 100;
+        $data['total_primary_income'] =  $total_primary_income / 100;
+        $data['total_extra_income'] =  $total_extra_income / 100;
         return $data;
     }
 }

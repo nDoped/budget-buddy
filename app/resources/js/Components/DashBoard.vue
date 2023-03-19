@@ -31,11 +31,43 @@
       type: Object,
       default: () => {}
     },
+    housingExpenseBreakdown: {
+      type: Object,
+      default: () => {}
+    },
+    utilityExpenseBreakdown: {
+      type: Object,
+      default: () => {}
+    },
+    primaryIncomeBreakdown: {
+      type: Object,
+      default: () => {}
+    },
+    extraIncomeBreakdown: {
+      type: Object,
+      default: () => {}
+    },
     totalExtraExpenses: {
       type: Number,
       default: () => 0
     },
+    totalHousingExpenses: {
+      type: Number,
+      default: () => 0
+    },
+    totalUtilityExpenses: {
+      type: Number,
+      default: () => 0
+    },
     totalRecurringExpenses: {
+      type: Number,
+      default: () => 0
+    },
+    totalPrimaryIncome: {
+      type: Number,
+      default: () => 0
+    },
+    totalExtraIncome: {
       type: Number,
       default: () => 0
     },
@@ -94,20 +126,56 @@
   });
 
   const dashboardStats = computed(() => {
-    return [
-      {
-        title: 'Total Extra Expenses',
-        value: formatter.format(props.totalExtraExpenses)
-      },
-      {
-        title: 'Total Recurring Expenses',
+    let ret = [];
+
+    if (props.totalPrimaryIncome) {
+      ret.push({
+        title: 'Primary Income',
+        value: formatter.format(props.totalPrimaryIncome)
+      });
+    }
+
+    if (props.totalExtraIncome) {
+      ret.push({
+        title: 'Extra Income',
+        value: formatter.format(props.totalExtraIncome)
+      });
+    }
+
+    if (props.totalHousingExpenses) {
+      ret.push({
+        title: 'Housing',
+        value: formatter.format(props.totalHousingExpenses)
+      });
+    }
+
+    if (props.totalUtilityExpenses) {
+      ret.push({
+        title: 'Utilities',
+        value: formatter.format(props.totalUtilityExpenses)
+      });
+    }
+
+    if (props.totalRecurringExpenses) {
+      ret.push({
+        title: 'Recurring Expenses',
         value: formatter.format(props.totalRecurringExpenses)
-      },
-      {
-        title: 'Total Economic Growth',
+      });
+    }
+
+    if (props.totalExtraExpenses) {
+      ret.push({
+        title: 'Extra Expenses',
+        value: formatter.format(props.totalExtraExpenses)
+      });
+    }
+    if (props.totalEconomicGrowth) {
+      ret.push({
+        title: 'Economic Growth',
         value: formatter.format(props.totalEconomicGrowth)
-      },
-    ];
+      });
+    }
+    return ret;
   });
 
   const fields = ref([
@@ -272,34 +340,75 @@
     </div>
   </div>
 
-
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">
     <div class="w-full h-full bg-slate-700 bg-opacity-75 grid grid-cols-1">
-      <div class="m-5 col-span-2">
+      <div class="m-2 col-span-2">
         <GrowthLines :chart-data="accountGrowthLineData" />
       </div>
     </div>
   </div>
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1  md:grid-cols-2 lg:grid-cols-3">
-      <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="extraExpenseBreakdown" title="Extra Expenses"/>
+    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1  md:grid-cols-2">
+      <div
+        v-if="! Array.isArray(primaryIncomeBreakdown)"
+        class="m-2 h-[40rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="primaryIncomeBreakdown"
+          title="Primary Income"
+        />
       </div>
-      <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="recurringExpenseBreakdown" title="Recurring Expenses"/>
+
+      <div
+        v-if="! Array.isArray(extraIncomeBreakdown)"
+        class="m-2 h-[40rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="extraIncomeBreakdown"
+          title="Extra Income"
+        />
       </div>
-      <div class="m-5">
-        <ExpenseBreakdown :categorized-expenses="recurringExpenseBreakdown" title="This will be primary income"/>
+
+      <div
+        v-if="! Array.isArray(housingExpenseBreakdown)"
+        class="m-2 h-[40rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="housingExpenseBreakdown"
+          title="Housing"
+        />
+      </div>
+
+      <div
+        v-if="! Array.isArray(utilityExpenseBreakdown)"
+        class="m-2 h-[40rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="utilityExpenseBreakdown"
+          title="Utilities"
+        />
+      </div>
+
+      <div
+        v-if="! Array.isArray(recurringExpenseBreakdown)"
+        class="m-2 h-[40rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="recurringExpenseBreakdown"
+          title="Recurring Expenses"
+        />
+      </div>
+
+      <div
+        v-if="! Array.isArray(extraExpenseBreakdown)"
+        class="m-2 h-[40rem]"
+      >
+        <ExpenseBreakdown
+          :categorized-expenses="extraExpenseBreakdown"
+          title="Extra Expenses"
+        />
       </div>
     </div>
   </div>
 </template>
-
-<style>
-.chart-wrapper {
-  display: inline-block;
-  position: relative;
-  width: 100%;
-}
-</style>

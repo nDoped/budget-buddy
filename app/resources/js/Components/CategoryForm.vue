@@ -17,7 +17,11 @@
     name: null,
     color: '#000000',
     extra_expense: true,
-    recurring_expense: false
+    recurring_expense: false,
+    housing_expense: false,
+    utility_expense: false,
+    primary_income: false,
+    extra_income: false
   });
   function submit() {
     /* global route */
@@ -46,7 +50,6 @@
           v-model="form.name"
           type="text"
           class="mt-1 block w-full"
-          autofocus
           autocomplete="bank_ident"
         />
         <InputError
@@ -99,6 +102,71 @@
         <InputError
           class="mt-2"
           :message="form.errors.recurring_expense"
+        />
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="housing_expense"
+          value="Housing Expense?"
+        />
+        <Checkbox
+          id="housing_expense"
+          v-model:checked="form.housing_expense"
+          name="housing_expense"
+        />
+        <InputError
+          class="mt-2"
+          :message="form.errors.housing_expense"
+        />
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="utility_expense"
+          value="Utility?"
+        />
+        <Checkbox
+          id="utility_expense"
+          v-model:checked="form.utility_expense"
+          name="utility_expense"
+        />
+        <InputError
+          class="mt-2"
+          :message="form.errors.utility_expense"
+        />
+      </div>
+
+
+      <div class="m-4">
+        <InputLabel
+          for="primary_income"
+          value="Primary Income?"
+        />
+        <Checkbox
+          id="primary_income"
+          v-model:checked="form.primary_income"
+          name="primary_income"
+        />
+        <InputError
+          class="mt-2"
+          :message="form.errors.primary_income"
+        />
+      </div>
+
+      <div class="m-4">
+        <InputLabel
+          for="extra_income"
+          value="Extra Income?"
+        />
+        <Checkbox
+          id="extra_income"
+          v-model:checked="form.extra_income"
+          name="extra_income"
+        />
+        <InputError
+          class="mt-2"
+          :message="form.errors.extra_income"
         />
       </div>
     </div>

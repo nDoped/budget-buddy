@@ -19,6 +19,10 @@
     { key: 'name', label: 'Name', sortable: true },
     { key: 'extra_expense_text', label: 'Extra Expense?', sortable: true },
     { key: 'recurring_expense_text', label: 'Recurring Expense?', sortable: true },
+    { key: 'housing_expense_text', label: 'Housing?', sortable: true },
+    { key: 'utility_expense_text', label: 'Utilities?', sortable: true },
+    { key: 'primary_income_text', label: 'Primary Income?', sortable: true },
+    { key: 'extra_income_text', label: 'Extra Income?', sortable: true },
     { key: 'color', label: 'Color', sortable: true, color_bg:true },
   ]);
 

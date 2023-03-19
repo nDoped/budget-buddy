@@ -21,6 +21,10 @@
       form.color = props.category.color;
       form.extra_expense = (props.category.extra_expense) ? true : false;
       form.recurring_expense = (props.category.recurring_expense) ? true : false;
+      form.housing_expense = (props.category.housing_expense) ? true : false;
+      form.utility_expense = (props.category.utility_expense) ? true : false;
+      form.primary_income = (props.category.primary_income) ? true : false;
+      form.extra_income = (props.category.extra_income) ? true : false;
       deleteCategoryForm.id = props.category.id;
     }
   );
@@ -66,7 +70,11 @@
     name: props.category.name,
     color: props.category.color,
     extra_expense: (props.category.extra_expense) ? true : false,
-    recurring_expense: (props.category.recurring_expense) ? true : false
+    recurring_expense: (props.category.recurring_expense) ? true : false,
+    housing_expense: (props.category.housing_expense) ? true : false,
+    utility_expense: (props.category.utility_expense) ? true : false,
+    primary_income: (props.category.primary_income) ? true : false,
+    extra_income: (props.category.extra_income) ? true : false
   });
 
   function submit() {
@@ -170,6 +178,69 @@
               <InputError
                 class="mt-2"
                 :message="form.errors.recurring_expense"
+              />
+            </div>
+
+            <div class="m-4">
+              <InputLabel
+                :for="getUuid('housing-expense')"
+                value="Housing Expense?"
+              />
+              <Checkbox
+                :id="getUuid('housing-expense')"
+                v-model:checked="form.housing_expense"
+                name="housing_expense"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.housing_expense"
+              />
+            </div>
+
+            <div class="m-4">
+              <InputLabel
+                :for="getUuid('utility-expense')"
+                value="Utility?"
+              />
+              <Checkbox
+                :id="getUuid('utility-expense')"
+                v-model:checked="form.utility_expense"
+                name="utility_expense"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.utility_expense"
+              />
+            </div>
+
+
+            <div class="m-4">
+              <InputLabel
+                value="Primary Income?"
+              />
+              <Checkbox
+                :id="getUuid('primary-income')"
+                v-model:checked="form.primary_income"
+                name="primary_income"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.primary_income"
+              />
+            </div>
+
+            <div class="m-4">
+              <InputLabel
+                value="Extra Income?"
+              />
+              <Checkbox
+                :id="getUuid('extra-income')"
+                v-model:checked="form.extra_income"
+                name="extra_income"
+              />
+              <InputError
+                class="mt-2"
+                :message="form.errors.extra_income"
               />
             </div>
           </div>

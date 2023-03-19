@@ -26,6 +26,10 @@ class CategoryController extends Controller
         $category->hex_color = $request->color;
         $category->extra_expense = $request->extra_expense;
         $category->recurring_expense = $request->recurring_expense;
+        $category->housing_expense = $request->housing_expense;
+        $category->utility_expense = $request->utility_expense;
+        $category->primary_income = $request->primary_income;
+        $category->extra_income = $request->extra_income;
         $category->save();
         return redirect()->route('settings.categories');
     }

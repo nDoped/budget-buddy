@@ -177,7 +177,6 @@
                       type="text"
                       class="mt-1 block w-full"
                       required
-                      autofocus
                       autocomplete="initial_balance"
                     />
                     <InputError
@@ -199,7 +198,6 @@
                       v-model="form.interest_rate"
                       type="text"
                       class="mt-1 block w-full"
-                      autofocus
                       autocomplete="interest_rate"
                     />
 
@@ -222,7 +220,6 @@
                       v-model="form.url"
                       type="text"
                       class="mt-1 block w-full"
-                      autofocus
                       placeholder="https://example.org"
                       autocomplete="url"
                     />

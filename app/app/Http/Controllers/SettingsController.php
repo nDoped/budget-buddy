@@ -48,6 +48,14 @@ class SettingsController extends Controller
                 'extra_expense_text' => ($cat->extra_expense) ? "Yes" : "No",
                 'recurring_expense' => $cat->recurring_expense,
                 'recurring_expense_text' => ($cat->recurring_expense) ? "Yes" : "No",
+                'housing_expense' => $cat->housing_expense,
+                'housing_expense_text' => ($cat->housing_expense) ? "Yes" : "No",
+                'utility_expense' => $cat->utility_expense,
+                'utility_expense_text' => ($cat->utility_expense) ? "Yes" : "No",
+                'primary_income' => $cat->primary_income,
+                'primary_income_text' => ($cat->primary_income) ? "Yes" : "No",
+                'extra_income' => $cat->extra_income,
+                'extra_income_text' => ($cat->extra_income) ? "Yes" : "No",
                 'color' => $cat->hex_color,
             ];
 
@@ -145,6 +153,10 @@ class SettingsController extends Controller
         $cat->user_id = $current_user->id;
         $cat->extra_expense = $request->extra_expense;
         $cat->recurring_expense = $request->recurring_expense;
+        $cat->housing_expense = $request->housing_expense;
+        $cat->utility_expense = $request->utility_expense;
+        $cat->primary_income = $request->primary_income;
+        $cat->extra_income = $request->extra_income;
         $cat->save();
         return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
     }
