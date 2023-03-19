@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <div class="overflow-hidden">
+      <div class="overflow-x-auto">
         <ExpandableTable
           :items="categories"
           :fields="fields"
