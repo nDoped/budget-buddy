@@ -107,10 +107,9 @@
 </script>
 
 <template>
-  <div class="max-h-96 relative">
+  <div class="max-h-[48rem] relative">
     <div v-if="items.length > 0">
       <div
-        v-if="pagination.totalPages > 1"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
         <div
@@ -119,36 +118,47 @@
         >
           Results per page
           <button
-            class="mx-2"
-            @click="perPage = 5"
-          >
-            5
-          </button>
-          <button
-            class="mx-2"
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 10}"
             @click="perPage = 10"
           >
             10
           </button>
           <button
-            class="mx-2"
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 20}"
             @click="perPage = 20"
           >
             20
           </button>
           <button
-            class="mx-2"
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 50}"
             @click="perPage = 50"
           >
             50
           </button>
+          <button
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 100}"
+            @click="perPage = 100"
+          >
+            100
+          </button>
+          <button
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 200}"
+            @click="perPage = 200"
+          >
+            200
+          </button>
         </div>
 
         <div
-          class="m-1"
+          class="m-1 flex flex-row-reverse"
           style="text-align: right"
         >
-          <div>
+          <div v-if="pagination.totalPages > 1">
             <button
               :disabled="pagination.currentPage <= 1"
               @click="pagination.currentPage--"
@@ -162,6 +172,10 @@
             >
               &gt;&gt;
             </button>
+          </div>
+
+          <div class="mr-3">
+            {{ items.length }} total transactions
           </div>
         </div>
       </div>
@@ -252,7 +266,6 @@
 
     <div v-if="items.length > 0">
       <div
-        v-if="pagination.totalPages > 1"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
         <div
@@ -261,36 +274,47 @@
         >
           Results per page
           <button
-            class="mx-2"
-            @click="perPage = 5"
-          >
-            5
-          </button>
-          <button
-            class="mx-2"
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 10}"
             @click="perPage = 10"
           >
             10
           </button>
           <button
-            class="mx-2"
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 20}"
             @click="perPage = 20"
           >
             20
           </button>
           <button
-            class="mx-2"
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 50}"
             @click="perPage = 50"
           >
             50
           </button>
+          <button
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 100}"
+            @click="perPage = 100"
+          >
+            100
+          </button>
+          <button
+            class="mx-2 p-1"
+            :class="{'border border-round border-black border-solid': perPage === 200}"
+            @click="perPage = 200"
+          >
+            200
+          </button>
         </div>
 
         <div
-          class="m-1"
+          class="m-1 flex flex-row-reverse"
           style="text-align: right"
         >
-          <div>
+          <div v-if="pagination.totalPages > 1">
             <button
               :disabled="pagination.currentPage <= 1"
               @click="pagination.currentPage--"
@@ -304,6 +328,10 @@
             >
               &gt;&gt;
             </button>
+          </div>
+
+          <div class="mr-3">
+            {{ items.length }} total transactions
           </div>
         </div>
       </div>
