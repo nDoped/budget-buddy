@@ -43,7 +43,7 @@
   }
 
   const fields = ref([
-    { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
+    //{ key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true },

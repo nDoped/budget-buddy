@@ -107,7 +107,66 @@
 </script>
 
 <template>
-  <div>
+  <div class="max-h-96 relative">
+    <div v-if="items.length > 0">
+      <div
+        v-if="pagination.totalPages > 1"
+        class="py-2 min-w-full sm:px-6 lg:px-8"
+      >
+        <div
+          class="m-1"
+          style="text-align: right"
+        >
+          Results per page
+          <button
+            class="mx-2"
+            @click="perPage = 5"
+          >
+            5
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 10"
+          >
+            10
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 20"
+          >
+            20
+          </button>
+          <button
+            class="mx-2"
+            @click="perPage = 50"
+          >
+            50
+          </button>
+        </div>
+
+        <div
+          class="m-1"
+          style="text-align: right"
+        >
+          <div>
+            <button
+              :disabled="pagination.currentPage <= 1"
+              @click="pagination.currentPage--"
+            >
+              &lt;&lt;
+            </button>
+            Page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+            <button
+              :disabled="pagination.currentPage >= pagination.totalPages"
+              @click="pagination.currentPage++"
+            >
+              &gt;&gt;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <table class="min-w-full table-auto text-black bg-zinc-200 dark:text-white dark:bg-slate-800">
       <thead>
         <tr>
@@ -118,7 +177,7 @@
             <th
               v-if="sortable"
               @click="setSort(key)"
-              class="sortable text-xl font-bold"
+              class="sortable text-lg font-semibold dark:bg-slate-800"
               :class="maxThWidthClass"
             >
               {{ label }}
@@ -131,7 +190,7 @@
             <th
               v-else
               :class="maxThWidthClass"
-              class="text-xl font-bold"
+              class="text-lg font-semibold dark:bg-slate-800"
             >
               <span class="text-zinc-800 dark:text-zinc-200">
                 {{ label }}
@@ -150,7 +209,7 @@
             @click="showHideRow(item, i)"
             :ref="(el) => { visibleTrRefs.push(el) }"
             :id="`visible_row_${i}`"
-            class="hover:opacity-80 focus:bg-slate-400 border-t"
+            class="hover:bg-slate-700 focus:bg-slate-400 border-t"
             :class="getSpecialRowClasses(item)"
           >
             <td
@@ -191,10 +250,7 @@
       </tbody>
     </table>
 
-    <div
-      v-if="items.length > 0"
-      class="overflow-x-auto sm:-mx-6 lg:-mx-8"
-    >
+    <div v-if="items.length > 0">
       <div
         v-if="pagination.totalPages > 1"
         class="py-2 min-w-full sm:px-6 lg:px-8"
@@ -256,6 +312,17 @@
 </template>
 
 <style>
+  table {
+    position: relative;
+    border-collapse: collapse;
+  }
+
+  th {
+    position: sticky;
+    top: -1px; /* Don't forget this, required for the stickiness */
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  }
+
   th.sortable {
     cursor: pointer;
   }

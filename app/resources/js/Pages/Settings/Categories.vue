@@ -15,7 +15,7 @@
   });
 
   const fields = ref([
-    { key: 'id', label: 'ID', sortable: true },
+    //{ key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'primary_income', label: 'Primary Income?', sortable: true },
     { key: 'secondary_income', label: 'Secondary Income?', sortable: true },

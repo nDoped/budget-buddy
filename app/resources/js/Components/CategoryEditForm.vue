@@ -129,7 +129,7 @@
 </script>
 
 <template>
-  <div class="py-12">
+  <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-slate-500 overflow-hidden shadow-sm sm:rounded-lg">
         <form
@@ -137,14 +137,15 @@
           :key="category.id"
         >
           <div class="flex flex-col p-6 bg-slate-500 border-b border-gray-200">
+            <!--
+            <div class="m-2 ">
+              <p class="text-lg text-semibold">
+                Editting category {{ category.id }}
+              </p>
+            </div>
+            -->
             <div class="flex flex-row">
-              <div class="m-4">
-                <p>
-                  {{ category.id }}
-                </p>
-              </div>
-
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('cat-name')"
                   value="Name"
@@ -163,7 +164,7 @@
                 />
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('cat-color')"
                   value="color"
@@ -177,7 +178,7 @@
             </div>
 
             <div class="flex flex-row">
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   value="Primary Income?"
                 />
@@ -189,7 +190,7 @@
                 >
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   value="Secondary Income?"
                 />
@@ -201,7 +202,7 @@
                 >
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('regular-expense')"
                   value="Regular Expense?"
@@ -214,7 +215,7 @@
                 >
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('recurring-expense')"
                   value="Recurring Expense?"
@@ -227,7 +228,7 @@
                 >
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('extra-expense')"
                   value="Extra Expense?"
@@ -240,7 +241,7 @@
                 >
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('housing-expense')"
                   value="Housing?"
@@ -253,7 +254,7 @@
                 >
               </div>
 
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   :for="getUuid('utility-expense')"
                   value="Utility?"
@@ -268,7 +269,7 @@
             </div>
           </div>
 
-          <div class="flex flex-wrap p-6 bg-slate-500 border-gray-200">
+          <div class="flex flex-wrap p-3 bg-slate-500 border-gray-200">
             <PrimaryButton
               class="ml-3"
               type="submit"

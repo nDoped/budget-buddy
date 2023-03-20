@@ -137,20 +137,24 @@
 </script>
 
 <template>
-  <div class="py-12">
+  <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-slate-500 overflow-x-auto shadow-sm sm:rounded-lg">
         <form
           @submit.prevent="submit"
           :key="transaction.id"
         >
-          <div class="flex flex-wrap p-6 ">
-            <div class="m-4">
-              <p>{{ transaction.id }}</p>
-            </div>
-            <div class="m-4">
+          <!--
+          <div class="m-2 ">
+            <p class="text-lg text-semibold">
+              Editting transaction {{ transaction.id }}
+            </p>
+          </div>
+          -->
+          <div class="flex flex-wrap p-1 ">
+            <div class="m-2">
               <!-- date -->
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   for="date"
                   value="Transaction Date"
@@ -166,7 +170,7 @@
               </div>
 
               <!-- amount -->
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   for="amount"
                   value="Amount"
@@ -186,9 +190,9 @@
             </div>
 
 
-            <div class="m-4">
+            <div class="m-2">
               <!-- credit/debit -->
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   for="credit"
                   value="Credit/Debit"
@@ -215,7 +219,7 @@
               </div>
 
               <!-- accounts -->
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
                   for="account"
                   value="Account"
@@ -250,8 +254,8 @@
               </div>
             </div>
 
-            <div class="m-4 grow">
-              <div class="m-4">
+            <div class="m-2 grow">
+              <div class="m-1">
                 <InputLabel
                   for="note"
                   value="Note"
@@ -269,7 +273,7 @@
                 />
               </div>
 
-              <div class="m-4">
+              <div class="m-1">
                 <InputLabel
                   for="bank_ident"
                   value="Bank Identifier"
@@ -291,7 +295,7 @@
           </div>
 
           <!-- categories -->
-          <div class="m-4 bg-slate-500 border-t border-b border-gray-200">
+          <div class="m-2 bg-slate-500 border-t border-b border-gray-200">
             <TransactionCategory
               :categories="props.transaction.categories"
               :available-categories="props.categories"
@@ -301,7 +305,7 @@
             />
           </div>
 
-          <div class="flex flex-wrap p-6 bg-slate-500 border-gray-200">
+          <div class="flex flex-wrap p-2 bg-slate-500 border-gray-200">
             <div>
               <PrimaryButton
                 class="ml-3"
