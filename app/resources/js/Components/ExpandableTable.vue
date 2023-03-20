@@ -110,6 +110,7 @@
   <div class="max-h-[48rem] relative">
     <div v-if="items.length > 0">
       <div
+        v-if="items.length > 10"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
         <div
@@ -266,6 +267,7 @@
 
     <div v-if="items.length > 0">
       <div
+        v-if="items.length > 10"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
         <div
