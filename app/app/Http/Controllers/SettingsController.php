@@ -11,6 +11,7 @@ use App\Models\Account;
 use App\Models\AccountType;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\CategoryType;
 
 class SettingsController extends Controller
 {
@@ -41,25 +42,54 @@ class SettingsController extends Controller
             ->orderBy('name')
             ->get();
         foreach ($cat_itty as $cat) {
+            $catt = CategoryType::find($cat->category_type_id);
             $cats[] = [
                 'name' => $cat->name,
                 'id' => $cat->id,
-                'extra_expense' => $cat->extra_expense,
-                'regular_expense' => $cat->regular_expense,
-                'recurring_expense' => $cat->recurring_expense,
-                'housing_expense' => $cat->housing_expense,
-                'utility_expense' => $cat->utility_expense,
-                'primary_income' => $cat->primary_income,
-                'secondary_income' => $cat->secondary_income,
+                'category_type_name' => ($catt) ? $catt->name : null,
+                'category_type_id' => ($catt) ? $catt->id : null,
                 'color' => $cat->hex_color,
             ];
 
         }
         return Inertia::render('Settings/Categories', [
-            'categories' => $cats
+            'categories' => $cats,
+            'category-types' => $this->_fetch_category_types()
         ]);
     }
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function category_types(Request $request)
+    {
+        return Inertia::render('Settings/CategoryTypes', [
+            'category-types' => $this->_fetch_category_types()
+        ]);
+    }
+    /**
+     * @return array
+     */
+    private function _fetch_category_types() : array
+    {
+        $catts = [];
+        $current_user = Auth::user();
+        $catt_itty = CategoryType::where('user_id', '=', $current_user->id)
+            ->orderBy('name')
+            ->get();
+        foreach ($catt_itty as $catt) {
+            $catts[] = [
+                'name' => $catt->name,
+                'id' => $catt->id,
+                'note' => $catt->note,
+                'color' => $catt->hex_color,
+            ];
+
+        }
+        return $catts;
+    }
 
     /**
      * @return array
@@ -128,55 +158,6 @@ class SettingsController extends Controller
         $acct->url = $request->url;
         $acct->save();
         return redirect()->route('settings.show')->with('message', 'Successfully Created Account: #' . $acct->id);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store_category(Request $request)
-    {
-        $current_user = Auth::user();
-        $request->validate([
-            'name' => [ 'required', 'max:50' ],
-        ]);
-        $cat = new Category();
-        $cat->name = $request->name;
-        $cat->hex_color = $request->color;
-        $cat->user_id = $current_user->id;
-        switch ($request->category_type) {
-        case 'extra_expense':
-            $cat->extra_expense = true;
-            break;
-
-        case 'regular_expense':
-            $cat->regular_expense = true;
-            break;
-
-        case 'recurring_expense':
-            $cat->recurring_expense = true;
-            break;
-
-        case 'housing_expense':
-            $cat->housing_expense = true;
-            break;
-
-        case 'utility_expense':
-            $cat->utility_expense = true;
-            break;
-
-        case 'primary_income':
-            $cat->primary_income = true;
-            break;
-
-        case 'secondary_income':
-            $cat->secondary_income = true;
-            break;
-        }
-        $cat->save();
-        return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
     }
 
     /**

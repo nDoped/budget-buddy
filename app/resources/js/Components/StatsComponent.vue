@@ -16,7 +16,7 @@
             class="mb-1 text-3xl bg-zinc-500 dark:bg-slate-900 font-semibold text-primary-600"
             :class="stat.class"
           >
-            <span class="tabular-nums">{{ stat.value }}</span>
+            <span class="tabular-nums" :style="getStyle(stat)">{{ stat.value }}</span>
           </dd>
         </div>
       </div>
@@ -24,22 +24,27 @@
   </div>
 </template>
 
-<script>
-  export default {
-    name: 'StatsComponent',
-    props: {
-      stats: {
-        type: Array,
-        default() {
-          return [];
-        },
-      },
-      last: {
-        type: String,
-        default() {
-          return 'Last 30 Days';
-        },
+<script setup>
+  import {
+    computed,
+  } from 'vue';
+
+  const getStyle = (stat) => {
+    return `color: ${stat.color}`
+  };
+
+  const props = defineProps({
+    stats: {
+      type: Array,
+      default() {
+        return [];
       },
     },
-  };
+    last: {
+      type: String,
+      default() {
+        return 'Last 30 Days';
+      },
+    },
+  });
 </script>

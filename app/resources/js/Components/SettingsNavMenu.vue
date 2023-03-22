@@ -1,14 +1,15 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import SectionBorder from '@/Components/SectionBorder.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-const showingNavigationDropdown = ref(false);
+  import { ref } from 'vue';
+  import NavLink from '@/Components/NavLink.vue';
+  import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+  const showingNavigationDropdown = ref(false);
 
-const props = defineProps({
-  data: Object
-});
+  defineProps({
+    data: {
+      type: Object,
+      default: () => {}
+    }
+  });
 </script>
 
 
@@ -17,14 +18,27 @@ const props = defineProps({
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
-
         <!-- Navigation Links -->
         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-          <NavLink :href="route('settings.show')" :active="route().current('settings.show')">
+          <NavLink
+            :href="route('settings.show')"
+            :active="route().current('settings.show')"
+          >
             Accounts
           </NavLink>
-          <NavLink :href="route('settings.categories')" :active="route().current('settings.categories')">
+
+          <NavLink
+            :href="route('settings.categories')"
+            :active="route().current('settings.categories')"
+          >
             Transaction Categories
+          </NavLink>
+
+          <NavLink
+            :href="route('settings.category_types')"
+            :active="route().current('settings.category_types')"
+          >
+            Transaction Category Types
           </NavLink>
         </div>
       </div>
@@ -68,6 +82,10 @@ const props = defineProps({
 
           <ResponsiveNavLink :href="route('settings.categories')" :active="route().current('settings.categories')">
             Transaction Categories
+          </ResponsiveNavLink>
+
+          <ResponsiveNavLink :href="route('settings.category_types')" :active="route().current('settings.category_types')">
+            Transaction Category Types
           </ResponsiveNavLink>
         </div>
       </div>

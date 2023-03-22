@@ -3,25 +3,19 @@
   import AppLayout from '@/Layouts/AppLayout.vue';
   import SettingsNavMenu from '@/Components/SettingsNavMenu.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
-  import CategoryEditForm from '@/Components/CategoryEditForm.vue';
-  import CategoryForm from '@/Components/CategoryForm.vue';
-  //const formatter = inject('formatter');
+  import CategoryTypeEditForm from '@/Components/CategoryTypeEditForm.vue';
+  import CategoryTypeForm from '@/Components/CategoryTypeForm.vue';
 
   defineProps({
-    categories: {
-      type: Array,
-      default: () => {}
-    },
     categoryTypes: {
       type: Array,
-      default: () => {}
+      default: () => []
     }
   });
 
   const fields = ref([
-    //{ key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
-    { key: 'category_type_name', label: 'Type', sortable: true },
+    { key: 'note', label: 'Note', sortable: true  },
     { key: 'color', label: 'Color', sortable: true  },
   ]);
 
@@ -42,14 +36,14 @@
       <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
           <div class="overflow-hidden">
-            <CategoryForm :category-types="categoryTypes" />
+            <CategoryTypeForm />
           </div>
         </div>
       </div>
 
       <div class="overflow-x-auto">
         <ExpandableTable
-          :items="categories"
+          :items="categoryTypes"
           :fields="fields"
           class="grow w-full bg-gray-800 text-slate-300"
         >
@@ -62,9 +56,8 @@
           </template>
 
           <template #hidden_row="{hidden_tr_refs, item, i}">
-            <CategoryEditForm
-              :category="item"
-              :category-types="categoryTypes"
+            <CategoryTypeEditForm
+              :category-type="item"
               @cancel="hideTr(hidden_tr_refs, i)"
               @success="hideTr(hidden_tr_refs, i)"
             />

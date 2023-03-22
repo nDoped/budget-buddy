@@ -16,6 +16,10 @@
     title: {
       type: String,
       default: () => "Here's some data"
+    },
+    color: {
+      type: String,
+      default: () => "#ffffff"
     }
   });
 
@@ -57,6 +61,7 @@
       pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
     options.plugins.title.text = props.title;
+    options.plugins.title.color = props.color;
   });
 </script>
 

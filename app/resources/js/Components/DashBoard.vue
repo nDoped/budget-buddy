@@ -23,61 +23,9 @@
       type: Object,
       default: () => {}
     },
-    extraExpenseBreakdown: {
+    categoryTypeBreakdowns: {
       type: Object,
       default: () => {}
-    },
-    regularExpenseBreakdown: {
-      type: Object,
-      default: () => {}
-    },
-    recurringExpenseBreakdown: {
-      type: Object,
-      default: () => {}
-    },
-    housingExpenseBreakdown: {
-      type: Object,
-      default: () => {}
-    },
-    utilityExpenseBreakdown: {
-      type: Object,
-      default: () => {}
-    },
-    primaryIncomeBreakdown: {
-      type: Object,
-      default: () => {}
-    },
-    secondaryIncomeBreakdown: {
-      type: Object,
-      default: () => {}
-    },
-    totalExtraExpenses: {
-      type: Number,
-      default: () => 0
-    },
-    totalRegularExpenses: {
-      type: Number,
-      default: () => 0
-    },
-    totalHousingExpenses: {
-      type: Number,
-      default: () => 0
-    },
-    totalUtilityExpenses: {
-      type: Number,
-      default: () => 0
-    },
-    totalRecurringExpenses: {
-      type: Number,
-      default: () => 0
-    },
-    totalPrimaryIncome: {
-      type: Number,
-      default: () => 0
-    },
-    totalSecondaryIncome: {
-      type: Number,
-      default: () => 0
     },
     accountGrowthLineData: {
       type: Object,
@@ -177,62 +125,13 @@
   const dashboardStats = computed(() => {
     let ret = [];
 
-    if (props.totalPrimaryIncome) {
+    for (let i in props.categoryTypeBreakdowns) {
       ret.push({
-        title: 'Primary Income',
-        value: formatter.format(props.totalPrimaryIncome),
-        class: 'text-green-400'
+        title: props.categoryTypeBreakdowns[i].name,
+        value: formatter.format(props.categoryTypeBreakdowns[i].total),
+        color: props.categoryTypeBreakdowns[i].color
       });
     }
-
-    if (props.totalSecondaryIncome) {
-      ret.push({
-        title: 'Secondary Income',
-        value: formatter.format(props.totalSecondaryIncome),
-        class: 'text-green-400'
-      });
-    }
-
-    if (props.totalRegularExpenses) {
-      ret.push({
-        title: 'Regular Expenses',
-        value: formatter.format(props.totalRegularExpenses),
-        class: 'text-red-400'
-      });
-    }
-
-    if (props.totalRecurringExpenses) {
-      ret.push({
-        title: 'Recurring Expenses',
-        value: formatter.format(props.totalRecurringExpenses),
-        class: 'text-red-400'
-      });
-    }
-
-    if (props.totalExtraExpenses) {
-      ret.push({
-        title: 'Extra Expenses',
-        value: formatter.format(props.totalExtraExpenses),
-        class: 'text-red-400'
-      });
-    }
-
-    if (props.totalHousingExpenses) {
-      ret.push({
-        title: 'Housing',
-        value: formatter.format(props.totalHousingExpenses),
-        class: 'text-red-400'
-      });
-    }
-
-    if (props.totalUtilityExpenses) {
-      ret.push({
-        title: 'Utilities',
-        value: formatter.format(props.totalUtilityExpenses),
-        class: 'text-red-400'
-      });
-    }
-
     return ret;
   });
 
@@ -415,72 +314,14 @@
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
     <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       <div
-        v-if="! Array.isArray(primaryIncomeBreakdown)"
+        v-for="(br, i) in categoryTypeBreakdowns"
         class="m-2 h-[32rem]"
+        :key="i"
       >
         <ExpenseBreakdown
-          :categorized-expenses="primaryIncomeBreakdown"
-          title="Primary Income"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(secondaryIncomeBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="secondaryIncomeBreakdown"
-          title="Secondary Income"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(regularExpenseBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="regularExpenseBreakdown"
-          title="Regular Expenses"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(recurringExpenseBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="recurringExpenseBreakdown"
-          title="Recurring Expenses"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(extraExpenseBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="extraExpenseBreakdown"
-          title="Extra Expenses"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(housingExpenseBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="housingExpenseBreakdown"
-          title="Housing"
-        />
-      </div>
-
-      <div
-        v-if="! Array.isArray(utilityExpenseBreakdown)"
-        class="m-2 h-[32rem]"
-      >
-        <ExpenseBreakdown
-          :categorized-expenses="utilityExpenseBreakdown"
-          title="Utilities"
+          :categorized-expenses="br.data"
+          :title="br.name"
+          :color="br.color"
         />
       </div>
     </div>

@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryTypeController;
 use App\Http\Controllers\DashboardController;
 
 /*
@@ -42,10 +43,14 @@ Route::middleware([
     Route::delete('/transactions/destroy/{id}', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
     Route::post('/categories/update/{category}', [ CategoryController::class, 'update' ])->name('categories.update');
     Route::delete('/categories/destroy/{id}', [ CategoryController::class, 'destroy' ])->name('categories.destroy');
+    Route::delete('/category_types/destroy/{id}', [ CategoryTypeController::class, 'destroy' ])->name('category_types.destroy');
+    Route::post('/category_types/update/{categoryType}', [ CategoryTypeController::class, 'update' ])->name('category_types.update');
 
     Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.show');
     Route::post('/settings/store_account', [ SettingsController::class, 'store_account' ])->name('accounts.store');
     Route::post('/settings/store_account_type', [ SettingsController::class, 'store_account_type' ])->name('account_types.store');
     Route::get('/settings/categories', [ SettingsController::class, 'categories' ])->name('settings.categories');
-    Route::post('/settings/store_category', [ SettingsController::class, 'store_category' ])->name('categories.store');
+    Route::post('/settings/store_category', [ CategoryController::class, 'store' ])->name('categories.store');
+    Route::get('/settings/category_types', [ SettingsController::class, 'category_types' ])->name('settings.category_types');
+    Route::post('/settings/store_category_type', [ CategoryTypeController::class, 'store' ])->name('category_type.store');
 });

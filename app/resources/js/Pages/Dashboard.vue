@@ -5,24 +5,7 @@
   const props = defineProps({
     data: {
       type: Object,
-      default: () => {
-        return {
-          asset_accounts: Object,
-          debt_accounts: Object,
-          total_economic_growth: Object,
-          extra_expense_breakdown: Object,
-          regular_expense_breakdown: Object,
-          recurring_expense_breakdown: Object,
-          housing_expense_breakdown: Object,
-          utility_expense_breakdown: Object,
-          primary_income_breakdown: Object,
-          secondary_income_breakdown: Object,
-          regular_income_breakdown: Object,
-          account_growth_line_data: Object,
-          start: String,
-          end: String
-        }
-      }
+      default: () => {}
     }
   });
 </script>
@@ -36,20 +19,7 @@
             :assets="props.data.asset_accounts"
             :debts="props.data.debt_accounts"
             :total-economic-growth="props.data.total_economic_growth"
-            :extra-expense-breakdown="props.data.extra_expense_breakdown"
-            :regular-expense-breakdown="props.data.regular_expense_breakdown"
-            :recurring-expense-breakdown="props.data.recurring_expense_breakdown"
-            :housing-expense-breakdown="props.data.housing_expense_breakdown"
-            :utility-expense-breakdown="props.data.utility_expense_breakdown"
-            :primary-income-breakdown="props.data.primary_income_breakdown"
-            :secondary-income-breakdown="props.data.secondary_income_breakdown"
-            :total-extra-expenses="props.data.total_extra_expenses"
-            :total-regular-expenses="props.data.total_regular_expenses"
-            :total-recurring-expenses="props.data.total_recurring_expenses"
-            :total-housing-expenses="props.data.total_housing_expenses"
-            :total-utility-expenses="props.data.total_utility_expenses"
-            :total-primary-income="props.data.total_primary_income"
-            :total-secondary-income="props.data.total_secondary_income"
+            :category-type-breakdowns="props.data.category_type_breakdowns"
             :account-growth-line-data="props.data.account_growth_line_data"
             :start="props.data.start"
             :end="props.data.end"

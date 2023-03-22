@@ -279,25 +279,12 @@ class DashboardController extends Controller
         $debt_accts[] = $total_net_growth['debts'];
         $data['start'] = $start;
         $data['end'] = $end;
-        $data['extra_expense_breakdown'] = $trans_data['extra_expense_breakdown'];
-        $data['regular_expense_breakdown'] = $trans_data['regular_expense_breakdown'];
-        $data['recurring_expense_breakdown'] = $trans_data['recurring_expense_breakdown'];
-        $data['housing_expense_breakdown'] = $trans_data['housing_expense_breakdown'];
-        $data['utility_expense_breakdown'] = $trans_data['utility_expense_breakdown'];
-        $data['primary_income_breakdown'] = $trans_data['primary_income_breakdown'];
-        $data['secondary_income_breakdown'] = $trans_data['secondary_income_breakdown'];
-        $data['total_extra_expenses'] = $trans_data['total_extra_expenses'];
-        $data['total_regular_expenses'] = $trans_data['total_regular_expenses'];
-        $data['total_recurring_expenses'] = $trans_data['total_recurring_expenses'];
-        $data['total_housing_expenses'] = $trans_data['total_housing_expenses'];
-        $data['total_utility_expenses'] = $trans_data['total_utility_expenses'];
-        $data['total_primary_income'] = $trans_data['total_primary_income'];
-        $data['total_secondary_income'] = $trans_data['total_secondary_income'];
-        $data['total_economic_growth'] = $total_eco_growth;
+        $data['category_type_breakdowns'] = $trans_data['category_type_breakdowns'];
         $data['asset_accounts'] = $asset_accts;
         $data['debt_accounts'] = $debt_accts;
         $data['account_growth_line_data']['daily_economic_growth'] = $account_growth_line_data['daily_economic_growth'];
         $data['account_growth_line_data']['total_economic_growth'] = $account_growth_line_data['total_economic_growth'];
+        $data['total_economic_growth'] = $total_eco_growth;
         return Inertia::render('Dashboard', [
             'data' => $data
         ]);

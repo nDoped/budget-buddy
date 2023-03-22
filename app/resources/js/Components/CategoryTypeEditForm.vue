@@ -11,35 +11,32 @@
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
   import TextInput from '@/Components/TextInput.vue';
+  import TextArea from '@/Components/TextArea.vue';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['success', 'cancel']);
 
   const props = defineProps({
-    category: {
-      type: Object,
-      default: () => {}
-    },
-    categoryTypes: {
+    categoryType: {
       type: Object,
       default: () => {}
     }
   });
 
   const form = useForm({
-    name: props.category.name,
-    color: props.category.color,
-    category_type: (props.category.category_type_id) ?? ''
+    name: props.categoryType.name,
+    note: props.categoryType.note,
+    color: props.categoryType.color,
   });
 
   watch(
-    () => props.category,
+    () => props.categoryType,
     () => {
-      form.name = props.category.name;
-      form.color = props.category.color;
-      form.category_type = (props.category.category_type_id) ?? '';
-      deleteCategoryForm.id = props.category.id;
+      form.name = props.categoryType.name;
+      form.note = props.categoryType.note;
+      form.color = props.categoryType.color;
+      deleteCategoryTypeForm.id = props.categoryType.id;
     }
   );
 
@@ -47,29 +44,29 @@
     emit('cancel');
   };
 
-  const catBeingDeleted = ref(null);
+  const catTypeBeingDeleted = ref(null);
 
   const confirmCatDeletion = () => {
-    catBeingDeleted.value = props.category.id;
+    catTypeBeingDeleted.value = props.categoryType.id;
   };
 
   const success = (deleting) => {
-    catBeingDeleted.value = null;
-    toast.success((deleting) ? 'Category Deleted!' : 'Category Updated!');
+    catTypeBeingDeleted.value = null;
+    toast.success((deleting) ? 'Category Type Deleted!' : 'Category Type Updated!');
     emit('success');
   };
 
-  const deleteCategoryForm = useForm({
-    id:props.category.id
+  const deleteCategoryTypeForm = useForm({
+    id:props.categoryType.id
   });
 
   const deleteCategory = () => {
-    deleteCategoryForm.delete(route('categories.destroy', {id: catBeingDeleted.value}), {
+    deleteCategoryTypeForm.delete(route('category_types.destroy', {id: catTypeBeingDeleted.value}), {
       preserveScroll: true,
       onSuccess: () => success(true),
       onError: (err) =>  {
         console.error(err.message)
-        catBeingDeleted.value = null;
+        catTypeBeingDeleted.value = null;
         toast.error(err.message, {
           autoClose: 6000,
         });
@@ -79,12 +76,12 @@
 
   function submit() {
     /* global route */
-    form.post(route('categories.update', { category: props.category.id }), {
+    form.post(route('category_types.update', { categoryType: props.categoryType.id }), {
       preserveScroll: true,
       onSuccess: () => success(false),
       onError: (err) =>  {
         console.error(err.message)
-        catBeingDeleted.value = null;
+        catTypeBeingDeleted.value = null;
         for (let field in err) {
           toast.error(err[field], {
             autoClose: 3000,
@@ -106,22 +103,22 @@
       <div class="bg-slate-500 overflow-hidden shadow-sm sm:rounded-lg">
         <form
           @submit.prevent="submit"
-          :key="category.id"
+          :key="categoryType.id"
         >
           <div class="flex flex-col p-6 bg-slate-500 border-b border-gray-200">
             <div class="flex flex-row">
-              <div class="m-4">
+              <div class="m-2">
                 <InputLabel
-                  :for="getUuid('cat-name')"
+                  :for="getUuid('catt-name')"
                   value="Name"
                 />
                 <TextInput
-                  :id="getUuid('cat-name')"
+                  :id="getUuid('catt-name')"
                   v-model="form.name"
                   type="text"
                   class="mt-1 block w-full"
                   autofocus
-                  autocomplete="bank_ident"
+                  autocomplete="name"
                 />
                 <InputError
                   :message="form.errors.name"
@@ -131,41 +128,28 @@
 
               <div class="m-4">
                 <InputLabel
-                  for="type"
-                  value="Category Type"
-                />
-                <select
-                  id="type"
-                  v-model="form.category_type"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                >
-                  <option
-                    selected
-                    value=""
-                  >
-                    Select type...
-                  </option>
-
-                  <option
-                    v-for="(type, i) in categoryTypes"
-                    :key="i"
-                    :value="type.id"
-                  >
-                    {{ type.name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="m-4">
-                <InputLabel
-                  :for="getUuid('cat-color')"
+                  :for="getUuid('catt-color')"
                   value="color"
                 />
                 <input
-                  :id="getUuid('cat-color')"
+                  :id="getUuid('catt-color')"
                   type="color"
                   v-model="form.color"
                 >
+              </div>
+
+              <div class="m-2">
+                <InputLabel
+                  :for="getUuid('catt-note')"
+                  value="Note"
+                />
+                <TextArea
+                  :id="getUuid('catt-note')"
+                  v-model="form.note"
+                  type="text"
+                  class="mt-1 block w-full"
+                  autocomplete="note"
+                />
               </div>
             </div>
           </div>
@@ -174,8 +158,8 @@
             <PrimaryButton
               class="ml-3"
               type="submit"
-              :class="{ 'opacity-25': deleteCategoryForm.processing || form.processing }"
-              :disabled="deleteCategoryForm.processing || form.processing"
+              :class="{ 'opacity-25': deleteCategoryTypeForm.processing || form.processing }"
+              :disabled="deleteCategoryTypeForm.processing || form.processing"
             >
               Save
             </PrimaryButton>
@@ -189,15 +173,15 @@
 
             <DangerButton
               class="ml-3"
-              :class="{ 'opacity-25': deleteCategoryForm.processing || form.processing }"
-              :disabled="deleteCategoryForm.processing || form.processing"
+              :class="{ 'opacity-25': deleteCategoryTypeForm.processing || form.processing }"
+              :disabled="deleteCategoryTypeForm.processing || form.processing"
               @click="confirmCatDeletion"
             >
               Delete
             </DangerButton>
             <ConfirmationModal
-              :show="catBeingDeleted != null"
-              @close="catBeingDeleted = null"
+              :show="catTypeBeingDeleted != null"
+              @close="catTypeBeingDeleted = null"
             >
               <template #title>
                 Delete Category
@@ -208,14 +192,14 @@
               </template>
 
               <template #footer>
-                <SecondaryButton @click="catBeingDeleted = null">
+                <SecondaryButton @click="catTypeBeingDeleted = null">
                   Cancel
                 </SecondaryButton>
 
                 <DangerButton
                   class="ml-3"
-                  :class="{ 'opacity-25': deleteCategoryForm.processing }"
-                  :disabled="deleteCategoryForm.processing"
+                  :class="{ 'opacity-25': deleteCategoryTypeForm.processing }"
+                  :disabled="deleteCategoryTypeForm.processing"
                   @click="deleteCategory"
                 >
                   Delete

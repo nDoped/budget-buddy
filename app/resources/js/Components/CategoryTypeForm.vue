@@ -3,36 +3,35 @@
   import { toast } from 'vue3-toastify';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
+  import TextArea from '@/Components/TextArea.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import TextInput from '@/Components/TextInput.vue';
 
   const success = () => {
-    toast.success('Category Created!');
+    toast.success('Category Type Created!');
     form.reset();
   };
 
-  defineProps({
-    categoryTypes: {
-      type: Object,
-      default: () => {}
-    }
-  });
-
   const form = useForm({
     name: null,
-    color: '#000000',
-    category_type: '',
+    note: null,
+    color: '#000000'
   });
   function submit() {
     /* global route */
-    form.post(route('categories.store'), {
+    form.post(route('category_type.store'), {
       preserveScroll: true,
       onSuccess: success,
       onError: (err) =>  {
-        console.error(err.message)
+        console.error(err)
       }
     });
   }
+
+  const uuid = crypto.randomUUID();
+  const getUuid = (el) => {
+    return `${el}-${uuid}`;
+  };
 </script>
 
 <template>
@@ -60,46 +59,29 @@
 
       <div class="m-4">
         <InputLabel
-          for="type"
-          value="Category Type"
-        />
-        <select
-          id="type"
-          v-model="form.category_type"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        >
-          <option
-            selected
-            value=""
-          >
-            Select type...
-          </option>
-
-          <option
-            v-for="(type, i) in categoryTypes"
-            :key="i"
-            :value="type.id"
-          >
-            {{ type.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="m-4">
-        <InputLabel
-          for="color"
+          :for="getUuid('catt-color')"
           value="color"
         />
         <input
+          :id="getUuid('catt-color')"
           type="color"
           v-model="form.color"
         >
-        <InputError
-          :message="form.errors.color"
-          class="mt-2"
-        />
       </div>
 
+      <div class="m-2">
+        <InputLabel
+          :for="getUuid('catt-note')"
+          value="Note"
+        />
+        <TextArea
+          :id="getUuid('catt-note')"
+          v-model="form.note"
+          type="text"
+          class="mt-1 block w-full"
+          autocomplete="note"
+        />
+      </div>
     </div>
 
     <div class="flex flex-wrap p-6 bg-slate-500 border-gray-200">
@@ -114,6 +96,3 @@
     </div>
   </form>
 </template>
-<style>
-
-</style>
