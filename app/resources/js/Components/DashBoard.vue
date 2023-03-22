@@ -219,14 +219,8 @@
 
   <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
     <StatsComponent
-      :stats="dashboardStats"
-      :last="rangeDisplay"
-    />
-  </div>
-  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
-    <StatsComponent
       :stats="dashboardStatsTotals"
-      last=""
+      :last="rangeDisplay"
     />
   </div>
 
@@ -309,6 +303,13 @@
         <GrowthLines :chart-data="accountGrowthLineData" />
       </div>
     </div>
+  </div>
+
+  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
+    <StatsComponent
+      :stats="dashboardStats"
+      last=""
+    />
   </div>
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
