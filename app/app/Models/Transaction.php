@@ -67,9 +67,7 @@ class Transaction extends Model
                 ->whereColumn('accounts.id', 'transactions.account_id');
         }, $current_user->id)->orderBy('transaction_date', $order_by);
 
-
-
-        if ($start ) {
+        if ($start) {
             $transactions_in_range = $transactions_in_range->where('transaction_date', '>=', $start);
             if ($return_to_range) {
                 $transactions_to_range = $transactions_to_range->where('transaction_date', '<', $start);

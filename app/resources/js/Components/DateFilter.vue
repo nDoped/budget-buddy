@@ -95,7 +95,7 @@
       <InputLabel
         for="transaction_start_date"
         value="Start Date"
-        class="text-white"
+        class="text-black dark:text-white"
       />
       <InputDate
         id="transactions_start_date"
@@ -107,7 +107,7 @@
       <InputLabel
         for="transaction_end_date"
         value="End Date"
-        class="text-white"
+        class="text-black dark:text-white"
       />
       <InputDate
         id="transactions_start_date"
@@ -115,7 +115,7 @@
       />
       <InputLabel
         for="use-start-date"
-        class="text-white"
+        class="text-black dark:text-white"
       >
         <span class="pr-2">Use Start Date?</span>
         <Checkbox
@@ -130,7 +130,7 @@
       <button
         :class="{ 'opacity-25': processing }"
         :disabled="processing"
-        class="text-white bg-gray-600 max-w-xsm focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
+        class="text-black dark:text-white bg-gray-300 dark:bg-gray-600 max-w-xsm focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
         @click="filter"
       >
         <slot name="range_button_text">

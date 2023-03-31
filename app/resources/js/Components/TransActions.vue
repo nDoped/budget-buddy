@@ -91,7 +91,7 @@
 </script>
 
 <template>
-  <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
+  <div class="p-6 sm:px-20 bg-slate-100 dark:bg-slate-700 border-b border-gray-200">
     <TransactionsForm
       :accounts="accounts"
       :categories="categories"
@@ -119,8 +119,8 @@
         <template #visible_row="{ item , value, key }">
           <div
             :class="{
-              'text-green-400': colorText(key, value, item) && item.asset,
-              'text-rose-800': colorText(key, value, item) && ! item.asset,
+              'text-green-800 dark:text-green-400': colorText(key, value, item) && item.asset,
+              'text-red-800 dark:text-red-400': colorText(key, value, item) && ! item.asset,
             }"
             class="font-medium text-sm"
           >

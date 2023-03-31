@@ -113,10 +113,10 @@
 <template>
   <InputError :message="percentError" />
 
-  <div class="flex flex-col md:flex-row content-between bg-slate-500">
+  <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
     <div
       class="flex flex-wrap bg-slate-500 mr-4"
-      :class="{'border border-red-700': percentError}"
+      :class="{'border border-red-600 dark:border-red-400': percentError}"
     >
       <div
         v-for="(category, i) in catsRef"

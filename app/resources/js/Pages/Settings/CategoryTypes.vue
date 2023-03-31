@@ -55,7 +55,7 @@
             </div>
           </template>
 
-          <template #hidden_row="{hidden_tr_refs, item, i}">
+          <template #hidden_row="{ hidden_tr_refs, item, i }">
             <CategoryTypeEditForm
               :category-type="item"
               @cancel="hideTr(hidden_tr_refs, i)"

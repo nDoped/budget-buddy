@@ -199,7 +199,7 @@
 </script>
 
 <template>
-  <div class="p-6 sm:px-20 bg-slate-700 border-b border-gray-200">
+  <div class="p-6 sm:px-20 dark:bg-slate-700 border-b border-gray-200">
     <div
       class="max-w-xl"
       style="text-align: left"
@@ -224,7 +224,7 @@
     />
   </div>
 
-  <div class="w-full bg-slate-700 bg-opacity-75 grid grid-cols-1 xl:grid-cols-2">
+  <div class="w-full dark:bg-slate-700 bg-opacity-75 grid grid-cols-1 xl:grid-cols-2">
     <div class="p-6">
       <div class="flex items-center flex-col overflow-x-auto">
         <div class="text-3xl text-bold">
@@ -232,7 +232,7 @@
         </div>
 
         <ExpandableTable
-          class="grow w-full bg-gray-800 text-black"
+          class="grow w-full"
           :items="debts"
           :fields="fields"
         >
@@ -254,7 +254,7 @@
             </div>
           </template>
 
-          <template #hidden_row="{item}">
+          <template #hidden_row="{item, i }">
             <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
           </template>
         </ExpandableTable>
@@ -267,7 +267,7 @@
           Assets
         </div>
         <ExpandableTable
-          class="grow w-full bg-gray-800 text-black"
+          class="grow w-full"
           :items="assets"
           :fields="fields"
         >

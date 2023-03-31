@@ -1,6 +1,7 @@
 <script setup>
   import { onBeforeUpdate, computed, reactive, watch, ref } from 'vue';
   import { sort } from 'fast-sort'
+  const emit = defineEmits(['row-expanded', 'row-collapsed']);
 
   const sortBy = ref(null);
   const sortDesc = ref(null);
@@ -50,8 +51,10 @@
     let hiddenRow = hiddenTrRefs.value[i];
     if (hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
+      emit('row-expanded', hiddenRow, i);
     } else {
       hiddenRow.classList.add("hidden");
+      emit('row-collapsed', hiddenRow, i);
     }
 
     /*
@@ -192,7 +195,7 @@
             <th
               v-if="sortable"
               @click="setSort(key)"
-              class="sortable text-lg font-semibold dark:bg-slate-800"
+              class="sortable text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
               :class="maxThWidthClass"
             >
               {{ label }}
@@ -205,7 +208,7 @@
             <th
               v-else
               :class="maxThWidthClass"
-              class="text-lg font-semibold dark:bg-slate-800"
+              class="text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
             >
               <span class="text-zinc-800 dark:text-zinc-200">
                 {{ label }}
@@ -224,7 +227,7 @@
             @click="showHideRow(item, i)"
             :ref="(el) => { visibleTrRefs.push(el) }"
             :id="`visible_row_${i}`"
-            class="hover:bg-slate-700 focus:bg-slate-400 border-t"
+            class="hover:bg-slate-300 dark:hover:bg-slate-600 focus:bg-slate-400 border-t"
             :class="getSpecialRowClasses(item)"
           >
             <td

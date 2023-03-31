@@ -41,7 +41,7 @@
     <Head :title="title" />
     <Banner />
     <div class="min-h-screen bg-gray-400 dark:bg-gray-800">
-      <nav class="text-black bg-slate-500 dark:bg-slate-500 border-b border-gray-100">
+      <nav class="text-black bg-slate-200 dark:bg-slate-500 border-b border-gray-100">
         <!-- Primary Navigation Menu -->
         <div class="max-w-11xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between h-16">

@@ -1,4 +1,10 @@
 * Search on transactions
+* Convert Total Economic Growth to Total Net Worth
+  - So I sold the Si today and the issue that i knew was always there reared its ugly head...the program doesn't track physical assets. It also became apparent that the $9k check I received (and the subsequent elimination of $12k in debt) aren't actually a net positive economic growth and therefore shouldn't count as an increase in Total Net Worth.
+  - This means I need an economic starting point
+  - When accounts are added into the system, they should affect the Total Net Worth value
+    > For example, when adding a debt account, the daily economic growth should be impacted based on it being a debt or asset...which of course would affect the Total Net Worth (as it currently would for Total Economic Growth).
+  - In this way, today's $9k check and elimination of $12k in debt would be balanced out by either the account initially being added into the system or a debit transaction to an existing account (as it currently works).
 * App-wide change log
 * Link recurring transactions together
   - End goal is that editing or deleting a recurring transactions will offer to apply the same edit/deletion to all subsequent transactions
@@ -11,7 +17,5 @@
   - Either remove the totals row and figure out a better way to integrate a totals row with ExpandableTable
   - Or include balance graph data for the totals of both debt and asset accounts
   - Leaning towards the latter, although the former might be useful elsewhere
+  - Need to address issue of adding more than 10 asset or debt accounts...table does pagination then
 * Insurance tracking tool
-* Fix ExpandableTable bug that removes pagination if a higher "Results per Page" is selected
-  - Highlight currently selected "Results per page"
-  - Include total trans count
