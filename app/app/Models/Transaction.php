@@ -118,6 +118,7 @@ class Transaction extends Model
                                 'id' => $trans->id,
                                 'date' => $trans->transaction_date,
                                 'cat_value' => $cat_value / 100,
+                                'note' => $trans->note,
                                 'trans_total' => $trans->amount / 100,
                             ];
 
@@ -131,6 +132,7 @@ class Transaction extends Model
                                         'id' => $trans->id,
                                         'date' => $trans->transaction_date,
                                         'cat_value' => $cat_value / 100,
+                                        'note' => $trans->note,
                                         'trans_total' => $trans->amount / 100,
                                     ]
                                 ]
@@ -151,6 +153,7 @@ class Transaction extends Model
                                         [
                                             'id' => $trans->id,
                                             'date' => $trans->transaction_date,
+                                            'note' => $trans->note,
                                             'cat_value' => $cat_value / 100,
                                             'trans_total' => $trans->amount / 100,
                                         ]

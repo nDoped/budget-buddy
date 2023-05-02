@@ -154,7 +154,11 @@ export const expenseBreakdownOptions = {
                 month: "numeric",
                 day: "numeric",
             });
-            ret.push(`Transaction ${t['id']} on ${date} for ${catVal}`);
+            let displayTxt = `${date} for ${catVal}`
+            if (t['note']) {
+              displayTxt += ` - ${t['note']}`
+            }
+            ret.push(displayTxt);
           });
 
           return ret
