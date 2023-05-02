@@ -192,10 +192,14 @@ class TransactionController extends Controller
         $data = $request->validated();
         $current_user = Auth::user();
         $transaction->amount = $data['amount'] * 100;
-        $transaction->note = $data['note'];
         $transaction->account_id = $data['account_id'];
         $transaction->credit = $data['credit'];
-        $transaction->bank_identifier = $data['bank_identifier'];
+        if ($data['bank_identifier']) {
+            $transaction->bank_identifier = $data['bank_identifier'];
+        }
+        if ($data['note']) {
+            $transaction->note = $data['note'];
+        }
         $transaction->transaction_date = $data['transaction_date'];
         $transaction->categories()->detach();
         foreach ($data['categories'] as $cat) {

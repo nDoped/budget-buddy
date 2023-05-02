@@ -6,6 +6,8 @@
     > For example, when adding a debt account, the daily economic growth should be impacted based on it being a debt or asset...which of course would affect the Total Net Worth (as it currently would for Total Economic Growth).
   - In this way, today's $9k check and elimination of $12k in debt would be balanced out by either the account initially being added into the system or a debit transaction to an existing account (as it currently works).
 * App-wide change log
+* Duplicate transaction feature
+* Bulk transaction edit
 * Link recurring transactions together
   - End goal is that editing or deleting a recurring transactions will offer to apply the same edit/deletion to all subsequent transactions
 * Link buddy transactions together
