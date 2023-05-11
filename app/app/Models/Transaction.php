@@ -32,6 +32,7 @@ class Transaction extends Model
      *      'end' => bool,
      *      'include_to_range' => bool,
      *      'order_by' => string,
+     *      'filter_accounts' => array,
      *  ];
      * @array $args
      * return array
@@ -40,6 +41,7 @@ class Transaction extends Model
     {
         $start = isset($args['start']) ? $args['start'] : null;
         $end = isset($args['end']) ? $args['end'] : null;
+        $filter_accounts = isset($args['filter_accounts']) ? $args['filter_accounts'] : null;
         $return_to_range = isset($args['include_to_range']) ? $args['include_to_range'] : null;
         $order_by = isset($args['order_by']) ? $args['order_by'] : null;
         $data = [
@@ -66,6 +68,9 @@ class Transaction extends Model
                 ->from('accounts')
                 ->whereColumn('accounts.id', 'transactions.account_id');
         }, $current_user->id)->orderBy('transaction_date', $order_by);
+        if ($filter_accounts) {
+            $transactions_in_range = $transactions_in_range->whereIn('account_id', $filter_accounts);
+        }
 
         if ($start) {
             $transactions_in_range = $transactions_in_range->where('transaction_date', '>=', $start);

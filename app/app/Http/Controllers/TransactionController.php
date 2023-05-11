@@ -23,6 +23,7 @@ class TransactionController extends Controller
         $start = $request->start;
         $end = $request->end;
         $show_all = $request->show_all;
+        $filter_accounts = $request->filter_accounts;
         $use_session_dates = $request->use_session_filter_dates;
 
         /*
@@ -73,7 +74,8 @@ class TransactionController extends Controller
             'start' => $start,
             'end' => $end,
             'include_to_range' => false,
-            'order_by' => 'desc'
+            'order_by' => 'desc',
+            'filter_accounts' => $filter_accounts
         ];
         $data = Transaction::fetch_transaction_data_for_current_user($args);
         $data['start'] = $start;

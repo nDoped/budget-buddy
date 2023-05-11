@@ -4,10 +4,6 @@
   import Checkbox from '@/Components/Checkbox.vue';
   import { ref, onMounted, watch } from 'vue';
 
-  const transStart = ref(props.start);
-  const transEnd = ref(props.end);
-  const filterData = ref({});
-  const useStartDate = ref(false);
   onMounted(() => {
     transStart.value = props.start;
     transEnd.value = props.end;
@@ -16,6 +12,7 @@
       end: props.end
     };
   });
+
   let props = defineProps({
     start: {
       type: String,
@@ -24,6 +21,10 @@
     end: {
       type: String,
       default: null
+    },
+    accounts: {
+      type: Array,
+      default: () => []
     },
     processing: {
       type: Boolean,
@@ -34,16 +35,20 @@
       default: true
     },
   });
+
   const emit = defineEmits(['filter']);
   const filter = () => {
     emit('filter', filterData);
   }
 
+  const transStart = ref(props.start);
+  const transEnd = ref(props.end);
   watch([ () => props.start, () => props.end ], (args) => {
     transStart.value = args[0];
     transEnd.value = args[1];
   });
 
+  const useStartDate = ref(false);
   watch(() => useStartDate.value, () => {
     if (useStartDate.value) {
       transEnd.value = transStart.value;
@@ -55,36 +60,31 @@
     }
   });
 
+  const filterData = ref({});
+  const filterAccounts = ref({});
+  watch(() => filterAccounts.value, () => {
+    filterData.value.filter_accounts = filterAccounts.value;
+  });
 
   watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => {
     if (newStart && newEnd) {
-      filterData.value = {
-        start: newStart,
-        end: newEnd
-      };
+      filterData.value.start = newStart;
+      filterData.value.end = newEnd;
 
     } else if (newStart) {
-      filterData.value = {
-        start: newStart,
-        end: null
-      };
+      filterData.value.start = newStart;
+      filterData.value.end = null;
 
     } else if (newEnd) {
-      filterData.value = {
-        start: null,
-        end: newEnd
-      };
+      filterData.value.start = null;
+      filterData.value.end = newEnd;
 
     } else if (props.includeShowAll) {
-      filterData.value = {
-        show_all: true
-      };
+      filterData.value.show_all = true;
 
     } else {
-      filterData.value = {
-        start: null,
-        end: null
-      };
+      filterData.value.start = null;
+      filterData.value.end = null;
     }
   });
 </script>
@@ -124,6 +124,31 @@
           name="use_start"
         />
       </InputLabel>
+    </div>
+
+    <div
+      v-if="accounts.length > 0"
+      class="m-2"
+    >
+      <InputLabel
+        for="type"
+        value="Accounts"
+        class="text-black dark:text-white"
+      />
+      <select
+        id="type"
+        multiple
+        v-model="filterAccounts"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+      >
+        <option
+          v-for="(account, i) in accounts"
+          :key="i"
+          :value="account.id"
+        >
+          {{ account.name }}
+        </option>
+      </select>
     </div>
 
     <div class="m-2 mt-7">

@@ -101,6 +101,7 @@
       :start="transStart"
       :end="transEnd"
       :processing="filterTransactionsForm.processing"
+      :accounts="accounts"
       @filter="filterEventHandler"
     >
       <template #range_button_text>
