@@ -52,6 +52,7 @@ class TransactionController extends Controller
         } else if ($use_session_dates) {
             $start = session('filter_start_date');
             $end = session('filter_end_date');
+            $filter_accounts = session('filter_accounts');
 
         } else if ($show_all) {
             $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
@@ -68,6 +69,11 @@ class TransactionController extends Controller
                 session([ 'filter_start_date' => null ]);
                 session([ 'filter_end_date' => $end ]);
             }
+        }
+        if ($filter_accounts) {
+            session([ 'filter_accounts' => $filter_accounts ]);
+        } else {
+            $request->session()->forget([ 'filter_accounts' ]);
         }
 
         $args = [

@@ -121,7 +121,7 @@
     return ret;
   });
 
-
+  /*
   const dashboardStats = computed(() => {
     let ret = [];
 
@@ -134,6 +134,7 @@
     }
     return ret;
   });
+   */
 
   const fields = ref([
     { key: 'name', label: 'Name', sortable: true, highlight:false, has_url:true, format: false },
@@ -164,6 +165,14 @@
       return true;
     }
     return false;
+  };
+
+  const getBreakdownTitle = (br) => {
+    /*
+    return "<span style='color:" + br.color + "'>" + br.name + '</span>:'
+      + formatter.format(br.total);
+     */
+    return br.name + ': ' + formatter.format(br.total);
   };
 
   const textColor = (item, value, highlight) => {
@@ -254,7 +263,7 @@
             </div>
           </template>
 
-          <template #hidden_row="{item, i }">
+          <template #hidden_row="{item}">
             <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
           </template>
         </ExpandableTable>
@@ -305,12 +314,14 @@
     </div>
   </div>
 
+  <!--
   <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
     <StatsComponent
       :stats="dashboardStats"
       last=""
     />
   </div>
+  -->
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
     <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -321,7 +332,7 @@
       >
         <ExpenseBreakdown
           :categorized-expenses="br.data"
-          :title="br.name"
+          :title="getBreakdownTitle(br)"
           :color="br.color"
         />
       </div>

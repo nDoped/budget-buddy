@@ -61,6 +61,10 @@
       pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
     options.plugins.title.text = props.title;
+    options.plugins.title.font = {
+      weight: 'bold',
+      size:24
+    };
     options.plugins.title.color = props.color;
   });
 </script>

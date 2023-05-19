@@ -97,7 +97,7 @@ class Transaction extends Model
         }
 
         if ($end) {
-          $transactions_in_range = $transactions_in_range->where('transaction_date', '<=', $end);
+            $transactions_in_range = $transactions_in_range->where('transaction_date', '<=', $end);
         }
 
         $category_type_breakdowns = [];

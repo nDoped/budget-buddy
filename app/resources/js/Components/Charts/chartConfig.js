@@ -17,7 +17,12 @@ export const accountGrowthLinesOptions = {
   maintainAspectRatio: false,
   plugins:{
     title: {
-      display: true
+      text: "Economic Growth",
+      display: true,
+      font: {
+        weight: 'bold',
+        size:24
+      }
     },
 
     datalabels: {
