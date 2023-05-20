@@ -3,6 +3,7 @@
   import {
     inject,
     computed,
+    onMounted,
     ref
   } from 'vue';
   import AccountUrlLink from '@/Components/AccountUrlLink.vue';
@@ -167,11 +168,16 @@
     return false;
   };
 
+  const mounted = ref(false);
+  onMounted(() => {
+    mounted.value = true;
+  });
+
   const getBreakdownTitle = (br) => {
-    /*
-    return "<span style='color:" + br.color + "'>" + br.name + '</span>:'
+      /*
+    return "<span style='color:" + br.color + "'>" + br.name + ':</span> '
       + formatter.format(br.total);
-     */
+       */
     return br.name + ': ' + formatter.format(br.total);
   };
 
@@ -324,13 +330,14 @@
   -->
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div class="h-full bg-slate-700 bg-opacity-75 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       <div
         v-for="(br, i) in categoryTypeBreakdowns"
-        class="m-2 h-[32rem]"
+        class="m-2 h-[36rem] text-center"
         :key="i"
       >
         <ExpenseBreakdown
+          v-if="mounted && ! filterTransactionsForm.processing"
           :categorized-expenses="br.data"
           :title="getBreakdownTitle(br)"
           :color="br.color"
