@@ -20,11 +20,19 @@
       <div class="flex justify-between h-16">
         <!-- Navigation Links -->
         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+          <span class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-3xl font-medium leading-5 dark:text-slate-900 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition">Settings</span>
           <NavLink
-            :href="route('settings.show')"
-            :active="route().current('settings.show')"
+            :href="route('settings.accounts')"
+            :active="route().current('settings.accounts')"
           >
             Accounts
+          </NavLink>
+
+          <NavLink
+            :href="route('settings.account_types')"
+            :active="route().current('settings.account_types')"
+          >
+            Account Types
           </NavLink>
 
           <NavLink
@@ -76,7 +84,10 @@
       <!-- Responsive Settings Options -->
       <div class="pt-4 pb-1 border-t border-gray-200">
         <div class="mt-3 space-y-1">
-          <ResponsiveNavLink :href="route('settings.show')" :active="route().current('settings.show')">
+          <ResponsiveNavLink
+            :href="route('settings.accounts')"
+            :active="route().current('settings.accounts')"
+          >
             Accounts
           </ResponsiveNavLink>
 

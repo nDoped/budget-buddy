@@ -24,7 +24,20 @@ class SettingsController extends Controller
     {
         $data['accounts'] = $this->_fetch_accounts();
         $data['account_types'] = $this->_fetch_account_types();
-        return Inertia::render('Settings/Show', [
+        return Inertia::render('Settings/Accounts', [
+            'data' => $data
+        ]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function account_types(Request $request)
+    {
+        $data['account_types'] = $this->_fetch_account_types();
+        return Inertia::render('Settings/AccountTypes', [
             'data' => $data
         ]);
     }
@@ -157,7 +170,7 @@ class SettingsController extends Controller
         $acct->initial_balance = $request->initial_balance * 100;
         $acct->url = $request->url;
         $acct->save();
-        return redirect()->route('settings.show')->with('message', 'Successfully Created Account: #' . $acct->id);
+        return redirect()->route('settings.accounts')->with('message', 'Successfully Created Account: #' . $acct->id);
     }
 
     /**
@@ -190,6 +203,6 @@ class SettingsController extends Controller
         $acct->user_id = $current_user->id;
         $acct->asset = $request->boolean('asset');
         $acct->save();
-        return redirect()->route('settings.show')->with('message', 'Successfully Created Account: #' . $acct->id);
+        return redirect()->route('settings.account_types');
     }
 }

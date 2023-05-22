@@ -219,7 +219,7 @@
                       Profile
                     </DropdownLink>
 
-                    <DropdownLink :href="route('settings.show')">
+                    <DropdownLink :href="route('settings.accounts')">
                       Settings
                     </DropdownLink>
 
@@ -329,8 +329,8 @@
               </ResponsiveNavLink>
 
               <ResponsiveNavLink
-                :href="route('settings.show')"
-                :active="route().current('settings.show')"
+                :href="route('settings.accounts')"
+                :active="route().current('settings.accounts')"
               >
                 Settings
               </ResponsiveNavLink>

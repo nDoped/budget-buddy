@@ -1,12 +1,15 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import Accounts from '@/Components/Accounts.vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+  import { Head } from '@inertiajs/vue3';
+  import AppLayout from '@/Layouts/AppLayout.vue';
+  import Accounts from '@/Pages/Settings/Accounts.vue';
+  import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 
-const props = defineProps({
-  data: Object
-});
+  defineProps({
+    data: {
+      type: Object,
+      default: () => {}
+    }
+  });
 </script>
 
 <template>
@@ -21,8 +24,8 @@ const props = defineProps({
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-black overflow-hidden shadow-xl sm:rounded-lg">
           <Accounts
-            :accounts='data.accounts'
-            :account_types='data.types'
+            :accounts="data.accounts"
+            :account-types="data.types"
           />
         </div>
       </div>

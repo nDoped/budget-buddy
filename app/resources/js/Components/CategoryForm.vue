@@ -99,7 +99,6 @@
           class="mt-2"
         />
       </div>
-
     </div>
 
     <div class="flex flex-wrap p-6 bg-slate-500 border-gray-200">
@@ -114,6 +113,3 @@
     </div>
   </form>
 </template>
-<style>
-
-</style>

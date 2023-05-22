@@ -17,6 +17,10 @@
     expand: {
       type: Boolean,
       default: () => true
+    },
+    paginationStart: {
+      type: Number,
+      default: () => 10
     }
   });
 
@@ -113,7 +117,7 @@
   <div class="max-h-[48rem] relative">
     <div v-if="items.length > 0">
       <div
-        v-if="items.length > 10"
+        v-if="items.length > paginationStart"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
         <div
@@ -270,7 +274,7 @@
 
     <div v-if="items.length > 0">
       <div
-        v-if="items.length > 10"
+        v-if="items.length > paginationStart"
         class="py-2 min-w-full sm:px-6 lg:px-8"
       >
         <div
