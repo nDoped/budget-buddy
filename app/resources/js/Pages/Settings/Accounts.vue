@@ -105,7 +105,7 @@
                     id="init_bal"
                     v-model="form.initial_balance"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     required
                     autocomplete="initial_balance"
                   />
@@ -125,7 +125,7 @@
                     id="interest"
                     v-model="form.interest_rate"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     autocomplete="interest_rate"
                   />
 
@@ -145,7 +145,7 @@
                     id="url"
                     v-model="form.url"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="https://example.org"
                     autocomplete="url"
                   />

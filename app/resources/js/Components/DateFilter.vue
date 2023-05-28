@@ -70,21 +70,27 @@
     if (newStart && newEnd) {
       filterData.value.start = newStart;
       filterData.value.end = newEnd;
+      filterData.value.show_all = null;
 
     } else if (newStart) {
       filterData.value.start = newStart;
       filterData.value.end = null;
+      filterData.value.show_all = null;
 
     } else if (newEnd) {
       filterData.value.start = null;
       filterData.value.end = newEnd;
+      filterData.value.show_all = null;
 
     } else if (props.includeShowAll) {
       filterData.value.show_all = true;
+      filterData.value.start = null;
+      filterData.value.end = null;
 
     } else {
       filterData.value.start = null;
       filterData.value.end = null;
+      filterData.value.show_all = null;
     }
   });
 </script>

@@ -64,7 +64,7 @@
         <div class="m-4">
           <InputLabel
             for="asset"
-            value="asset"
+            value="Asset/Debt"
           />
           <select
             id="asset"
