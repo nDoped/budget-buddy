@@ -62,7 +62,7 @@
   });
 
   const form = useForm({
-    transaction_date: (new Date()).toISOString().slice(0, 10),
+    transaction_date: new Date((new Date()).toLocaleDateString()).toISOString().slice(0,10),
     amount: null,
     credit: false,
     account_id: '',
