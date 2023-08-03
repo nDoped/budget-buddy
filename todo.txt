@@ -1,4 +1,5 @@
 * Search on transactions
+* Make days clickable in total eco growth chart. Clicking a date will take you to the transactions page with that date selected as start and end
 * Convert Total Economic Growth to Total Net Worth
   - So I sold the Si today and the issue that i knew was always there reared its ugly head...the program doesn't track physical assets. It also became apparent that the $9k check I received (and the subsequent elimination of $12k in debt) aren't actually a net positive economic growth and therefore shouldn't count as an increase in Total Net Worth.
   - This means I need an economic starting point

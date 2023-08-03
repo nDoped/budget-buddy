@@ -51,7 +51,7 @@ class TransactionPostRequest extends FormRequest
         case 'transactions.store':
         case 'transactions.update':
             $ret = [
-                'amount' => [ 'required', 'gt:0' ],
+                'amount' => [ 'required', 'gte:0' ],
                 'account_id' => [ 'required', 'numeric' ],
                 'transaction_date' => [ 'required', 'date' ],
                 'credit' => [ 'required', 'boolean' ],
