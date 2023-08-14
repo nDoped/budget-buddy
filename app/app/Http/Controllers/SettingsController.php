@@ -59,6 +59,8 @@ class SettingsController extends Controller
             $cats[] = [
                 'name' => $cat->name,
                 'id' => $cat->id,
+                'active_text' => ($cat->active) ? "Yes": "No",
+                'active' => ($cat->active) ? true : false,
                 'category_type_name' => ($catt) ? $catt->name : null,
                 'category_type_id' => ($catt) ? $catt->id : null,
                 'color' => $cat->hex_color,

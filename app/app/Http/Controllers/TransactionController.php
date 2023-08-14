@@ -105,13 +105,13 @@ class TransactionController extends Controller
         $cats = [];
         $current_user = Auth::user();
         $cat_itty = Category::where('user_id', '=', $current_user->id)
+            ->where('active', 1)
             ->orderBy('name')
             ->get();
         foreach ($cat_itty as $cat) {
             $cats[] = [
                 'name' => $cat->name,
                 'cat_id' => $cat->id,
-                'extra_expense' => ($cat->extra_expense) ? "Yes" : "No",
                 'color' => $cat->hex_color,
             ];
         }

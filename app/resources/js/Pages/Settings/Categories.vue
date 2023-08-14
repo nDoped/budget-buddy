@@ -23,6 +23,7 @@
     { key: 'name', label: 'Name', sortable: true },
     { key: 'category_type_name', label: 'Type', sortable: true },
     { key: 'color', label: 'Color', sortable: true  },
+    { key: 'active_text', label: 'Active', sortable: true  },
   ]);
 
   const hideTr = (hiddenTrRefs, i) => {

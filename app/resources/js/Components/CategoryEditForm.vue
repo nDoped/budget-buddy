@@ -7,6 +7,7 @@
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+  import Checkbox from '@/Components/Checkbox.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
@@ -30,6 +31,7 @@
   const form = useForm({
     name: props.category.name,
     color: props.category.color,
+    active: props.category.active,
     category_type: (props.category.category_type_id) ?? ''
   });
 
@@ -38,6 +40,7 @@
     () => {
       form.name = props.category.name;
       form.color = props.category.color;
+      form.active = props.category.active;
       form.category_type = (props.category.category_type_id) ?? '';
       deleteCategoryForm.id = props.category.id;
     }
@@ -159,13 +162,24 @@
               <div class="m-4">
                 <InputLabel
                   :for="getUuid('cat-color')"
-                  value="color"
+                  value="Color"
                 />
                 <input
                   :id="getUuid('cat-color')"
                   type="color"
                   v-model="form.color"
                 >
+              </div>
+
+              <div class="m-4">
+                <InputLabel
+                  :for="getUuid('cat-active')"
+                  value="Active"
+                />
+                <Checkbox
+                  v-model:checked="form.active"
+                  name="active"
+                />
               </div>
             </div>
           </div>

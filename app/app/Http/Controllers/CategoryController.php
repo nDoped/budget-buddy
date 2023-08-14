@@ -8,7 +8,6 @@ use App\Models\Category;
 
 class CategoryController extends Controller
 {
-
     /**
      * Update the specified resource in storage.
      *
@@ -49,6 +48,7 @@ class CategoryController extends Controller
         $category->name = $request->name;
         $category->hex_color = $request->color;
         $category->category_type_id = $request->category_type;
+        $category->active = $request->active;
         $category->save();
         return redirect()->route('settings.categories');
     }
