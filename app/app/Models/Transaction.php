@@ -90,7 +90,8 @@ class Transaction extends Model
                         'transaction_date' => $trans->transaction_date,
                         'note' => $trans->note,
                         'bank_identifier' => $trans->bank_identifier,
-                        'id' => $trans->id
+                        'id' => $trans->id,
+                        'buddy_id' => $trans->buddy_id
                     ];
                 }
             }
@@ -191,6 +192,7 @@ class Transaction extends Model
                 'note' => $trans->note,
                 'bank_identifier' => $trans->bank_identifier,
                 'id' => $trans->id,
+                'buddy_id' => $trans->buddy_id,
                 'categories' => $categories,
             ];
         }

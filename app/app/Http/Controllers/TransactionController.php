@@ -141,7 +141,10 @@ class TransactionController extends Controller
             $trans_buddy->credit = ! $trans->credit;
             $trans_buddy->account_id = $data['trans_buddy_account'];
             $trans_buddy->note = $data['trans_buddy_note'];
+            $trans_buddy->buddy_id = $trans->id;
             $trans_buddy->save();
+            $trans->buddy_id = $trans_buddy->id;
+            $trans->save();
         }
 
         $recurring_transactions = [];
@@ -158,8 +161,11 @@ class TransactionController extends Controller
                 if ($trans_buddy) {
                     $recurring_buddy = $trans_buddy->replicate();
                     $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
+                    $recurring_buddy->buddy_id = $recurring_trans->id;
                     $recurring_buddy->save();
                     $recurring_buddy_transactions[] = $recurring_buddy;
+                    $recurring_trans->buddy_id = $recurring_buddy->id;
+                    $recurring_trans->save();
                 }
                 $next_date = $next_date->add(new \DateInterval($duration));
             }
@@ -217,6 +223,17 @@ class TransactionController extends Controller
         }
 
         $transaction->save();
+        if ($transaction->buddy_id) {
+            $buddy_trans = Transaction::where('id', '=', $transaction->buddy_id)->first();
+            $buddy_trans->amount = $data['amount'] * 100;
+            $buddy_trans->credit = ! $data['credit'];
+            foreach ($data['categories'] as $cat) {
+                $cat_model = Category::find($cat['cat_id']);
+                $percent = $cat['percent'];
+                $buddy_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+            }
+            $buddy_trans->save();
+        }
         return redirect()
             ->route(
                 'transactions',
@@ -233,6 +250,10 @@ class TransactionController extends Controller
     public function destroy(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
+        $target = Transaction::where('id', '=', $data['id'])->first();
+        if ($target->buddy_id) {
+            Transaction::destroy($target->buddy_id);
+        }
         Transaction::destroy($data['id']);
         return redirect()
             ->route(
