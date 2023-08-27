@@ -227,6 +227,7 @@ class TransactionController extends Controller
             $buddy_trans = Transaction::where('id', '=', $transaction->buddy_id)->first();
             $buddy_trans->amount = $data['amount'] * 100;
             $buddy_trans->credit = ! $data['credit'];
+            $buddy_trans->categories()->detach();
             foreach ($data['categories'] as $cat) {
                 $cat_model = Category::find($cat['cat_id']);
                 $percent = $cat['percent'];
