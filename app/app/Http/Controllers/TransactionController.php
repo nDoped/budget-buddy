@@ -141,6 +141,7 @@ class TransactionController extends Controller
             $trans_buddy->credit = ! $trans->credit;
             $trans_buddy->account_id = $data['trans_buddy_account'];
             $trans_buddy->note = $data['trans_buddy_note'];
+            $trans_buddy->parent_id = $trans->id;
             $trans_buddy->buddy_id = $trans->id;
             $trans_buddy->save();
             $trans->buddy_id = $trans_buddy->id;
@@ -156,11 +157,13 @@ class TransactionController extends Controller
             while ($next_date->format('Y-m-d') <= $data['recurring_end_date']) {
                 $recurring_trans = $trans->replicate();
                 $recurring_trans->transaction_date = $next_date->format(\DateTime::ATOM);
+                $recurring_trans->parent_id = $trans->id;
                 $recurring_trans->save();
                 $recurring_transactions[] = $recurring_trans;
                 if ($trans_buddy) {
                     $recurring_buddy = $trans_buddy->replicate();
                     $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
+                    $recurring_buddy->parent_id = $trans->id;
                     $recurring_buddy->buddy_id = $recurring_trans->id;
                     $recurring_buddy->save();
                     $recurring_buddy_transactions[] = $recurring_buddy;

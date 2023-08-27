@@ -91,6 +91,8 @@
     }
   );
 
+
+  //const showRecurringEditDialogue = ref(null);
   function submit() {
     if (categoriesInvalid.value === true) {
       toast.error("Transaction category percentages must sum to 100%", {
@@ -98,6 +100,15 @@
       });
       return;
     }
+
+    /*
+    if (props.transaction.parent_id) {
+      toast.error("Editing recurring", {
+        autoClose: 3000,
+      });
+      return;
+    }
+     */
 
     form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
@@ -305,11 +316,18 @@
             />
           </div>
 
+          <div
+            v-if="transaction.buddy_id"
+            class="m-2 text-red-600 dark:text-red-400 bg-slate-500"
+          >
+            Edits to this transaction will also be applied to its buddy transaction
+          </div>
           <div class="flex flex-wrap p-2 bg-slate-500 border-gray-200">
             <div>
               <PrimaryButton
                 class="ml-3"
-                type="submit"
+                type="button"
+                @click="submit"
                 :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
                 :disabled="deleteTransactionForm.processing || form.processing"
               >
