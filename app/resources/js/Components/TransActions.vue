@@ -51,6 +51,7 @@
     { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
     { key: 'bank_identifier', label: 'Bank Identifier', sortable:true, searchable:true, color_text:false },
+    { key: 'parent_id', label: 'Recurring', sortable:true, searchable:true, color_text:false },
     { key: 'note', label: 'Note', sortable:true, searchable:true, color_text:false },
   ]);
 

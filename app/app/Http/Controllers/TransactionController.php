@@ -141,7 +141,6 @@ class TransactionController extends Controller
             $trans_buddy->credit = ! $trans->credit;
             $trans_buddy->account_id = $data['trans_buddy_account'];
             $trans_buddy->note = $data['trans_buddy_note'];
-            $trans_buddy->parent_id = $trans->id;
             $trans_buddy->buddy_id = $trans->id;
             $trans_buddy->save();
             $trans->buddy_id = $trans_buddy->id;
@@ -153,6 +152,8 @@ class TransactionController extends Controller
         if ($data['recurring']) {
             $duration = ($data['frequency'] === 'monthly') ? 'P1M' : 'P14D';
             $d = new \DateTime($data['transaction_date']);
+            $trans->parent_id = $trans->id;
+            $trans->save();
             $next_date = $d->add(new \DateInterval($duration));
             while ($next_date->format('Y-m-d') <= $data['recurring_end_date']) {
                 $recurring_trans = $trans->replicate();
@@ -163,7 +164,6 @@ class TransactionController extends Controller
                 if ($trans_buddy) {
                     $recurring_buddy = $trans_buddy->replicate();
                     $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
-                    $recurring_buddy->parent_id = $trans->id;
                     $recurring_buddy->buddy_id = $recurring_trans->id;
                     $recurring_buddy->save();
                     $recurring_buddy_transactions[] = $recurring_buddy;
@@ -227,26 +227,55 @@ class TransactionController extends Controller
 
         $transaction->save();
         if ($transaction->buddy_id) {
-            $buddy_trans = Transaction::where('id', '=', $transaction->buddy_id)->first();
-            $buddy_trans->amount = $data['amount'] * 100;
-            $buddy_trans->credit = ! $data['credit'];
-            $buddy_trans->transaction_date = $data['transaction_date'];
-            if ($data['note']) {
-                $buddy_trans->note = $data['note'];
-            }
-            $buddy_trans->categories()->detach();
-            foreach ($data['categories'] as $cat) {
-                $cat_model = Category::find($cat['cat_id']);
-                $percent = $cat['percent'];
-                $buddy_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-            }
-            $buddy_trans->save();
+            $this->_updateBuddyTransaction($transaction);
         }
+
+        if ($data['edit_child_transactions'] && $transaction->parent_id) {
+            $future_transactions = Transaction::where('parent_id', '=', $transaction->parent_id)
+                ->where('transaction_date', '>', $transaction->transaction_date)->get();
+            foreach ($future_transactions as $future_trans) {
+                $future_trans->amount = $data['amount'] * 100;
+                $future_trans->credit = $data['credit'];
+                $future_trans->account_id = $data['account_id'];
+                if ($data['note']) {
+                    $future_trans->note = $data['note'];
+                }
+
+                $future_trans->categories()->detach();
+                foreach ($data['categories'] as $cat) {
+                    $cat_model = Category::find($cat['cat_id']);
+                    $percent = $cat['percent'];
+                    $future_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
+                }
+                $future_trans->save();
+                if ($future_trans->buddy_id) {
+                    $this->_updateBuddyTransaction($future_trans);
+                }
+            }
+        }
+
         return redirect()
             ->route(
                 'transactions',
                 [ 'use_session_filter_dates' => true ]
             );
+    }
+    private function _updateBuddyTransaction(Transaction $transaction)
+    {
+        if (! $transaction->buddy_id) {
+            return;
+        }
+        $trans_buddy = Transaction::where('id', '=', $transaction->buddy_id)->first();
+        $trans_buddy->amount = $transaction->amount;
+        $trans_buddy->credit = ! $transaction->credit;
+        $trans_buddy->transaction_date = $transaction->transaction_date;
+        $trans_buddy->note = $transaction->note;
+        $trans_buddy->categories()->detach();
+        foreach ($transaction->categories as $cat) {
+            $percent = $cat->pivot->percentage / 100;
+            $trans_buddy->categories()->save($cat, [ 'percentage' => $percent * 100 ]);
+        }
+        $trans_buddy->save();
     }
 
     /**
@@ -259,10 +288,60 @@ class TransactionController extends Controller
     {
         $data = $request->validated();
         $target = Transaction::where('id', '=', $data['id'])->first();
-        if ($target->buddy_id) {
-            Transaction::destroy($target->buddy_id);
+        if (! $target) {
+            return redirect()
+                ->route(
+                    'transactions',
+                    [ 'use_session_filter_dates' => true ]
+                );
         }
-        Transaction::destroy($data['id']);
+
+        // we're deleting a parent and not wanting to delete all of the children
+        // so we need to move the parent id for all children to the next in line
+        if (! $data['delete_child_transactions'] && $target->parent_id === $target->id) {
+            $next_child_trans = Transaction::where('parent_id', '=', $target->id)
+                ->where('id', '<>', $target->id)
+                ->first();
+            $child_transactions = Transaction::where('parent_id', '=', $target->id)
+                ->where('id', '<>', $target->id)
+                ->get();
+            foreach ($child_transactions as $child_trans) {
+                $child_trans->parent_id = $next_child_trans->id;
+                $child_trans->save();
+            }
+        }
+        if ($data['delete_child_transactions']) {
+            $child_transactions = Transaction::where('parent_id', '=', $target->parent_id)
+                ->where('transaction_date', '>', $target->transaction_date)
+                ->get();
+            foreach ($child_transactions as $child_trans) {
+                if ($child_trans->buddy_id) {
+                    Transaction::destroy($child_trans->buddy_id);
+                }
+                Transaction::destroy($child_trans->id);
+            }
+        }
+
+        // if the target has a buddy, delete that too
+        if ($target->buddy_id) {
+            // if that buddy is the parent to a recurring trans sequence,
+            // then we must cycle the parent ids down to the next in line
+            $buddy = Transaction::where('id', '=', $target->buddy_id)->first();
+            if ($buddy->parent_id === $buddy->id) {
+                $next_child_trans = Transaction::where('parent_id', '=', $buddy->id)
+                    ->where('id', '<>', $buddy->id)
+                    ->first();
+                $child_transactions = Transaction::where('parent_id', '=', $buddy->id)
+                    ->where('id', '<>', $buddy->id)
+                    ->get();
+                foreach ($child_transactions as $child_trans) {
+                    $child_trans->parent_id = $next_child_trans->id;
+                    $child_trans->save();
+                }
+            }
+            Transaction::destroy($buddy->id);
+        }
+        Transaction::destroy($target->id);
         return redirect()
             ->route(
                 'transactions',

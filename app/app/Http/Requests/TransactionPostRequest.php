@@ -45,6 +45,7 @@ class TransactionPostRequest extends FormRequest
         case 'transactions.destroy':
             $ret = [
                 'id' => [ 'required', 'gt:0', 'numeric' ],
+                'delete_child_transactions' => [ 'nullable', 'boolean'],
             ];
             break;
 
@@ -57,6 +58,7 @@ class TransactionPostRequest extends FormRequest
                 'credit' => [ 'required', 'boolean' ],
                 'bank_identifier' => [ 'nullable', 'string' ],
                 'note' => [ 'nullable', 'string'],
+                'edit_child_transactions' => [ 'nullable', 'boolean'],
                 'categories' => [ 'nullable' ],
             ];
 

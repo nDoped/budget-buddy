@@ -45,13 +45,21 @@
 
   const success = (deleted) => {
     transBeingDeleted.value = null;
+    editThisTransOnly.value = false;
+    editAllFutureRecurring.value = false;
     toast.success((deleted) ? 'Transaction Deleted!' : 'Transaction Updated!');
     emit('success');
   };
 
   const deleteTransactionForm = useForm({
-    id:props.transaction.id
+    id:props.transaction.id,
+    delete_child_transactions:false
+
   });
+  const deleteChildTransactions = () => {
+    deleteTransactionForm.delete_child_transactions = true;
+    deleteTransaction();
+  };
   const deleteTransaction = () => {
     /* global route */
     deleteTransactionForm.delete(route('transactions.destroy', {id: transBeingDeleted.value}), {
@@ -71,6 +79,7 @@
     transaction_date: props.transaction.transaction_date,
     amount: props.transaction.amount,
     credit: props.transaction.asset,
+    edit_child_transactions: false,
     account_id: props.transaction.account_id,
     note: props.transaction.note,
     bank_identifier: props.transaction.bank_identifier,
@@ -92,7 +101,19 @@
   );
 
 
-  //const showRecurringEditDialogue = ref(null);
+  const showRecurringEditDialogue = ref(false);
+  const editThisTransOnly = ref(false);
+  const setEditThisTransOnly = () => {
+    editThisTransOnly.value = true;
+    submit();
+
+  };
+  const editAllFutureRecurring = ref(false);
+  const setEditAllFutureRecurring = () => {
+    editAllFutureRecurring.value = true;
+    submit();
+
+  };
   function submit() {
     if (categoriesInvalid.value === true) {
       toast.error("Transaction category percentages must sum to 100%", {
@@ -101,14 +122,18 @@
       return;
     }
 
-    /*
-    if (props.transaction.parent_id) {
-      toast.error("Editing recurring", {
-        autoClose: 3000,
-      });
+    if (props.transaction.parent_id && ! editThisTransOnly.value && ! editAllFutureRecurring.value) {
+      showRecurringEditDialogue.value = true;
       return;
+
+    } else if (props.transaction.parent_id && editThisTransOnly.value) {
+      form.edit_child_transactions = false;
+
+
+    } else if (props.transaction.parent_id) {
+      form.edit_child_transactions = true;
     }
-     */
+    showRecurringEditDialogue.value = false;
 
     form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
@@ -349,8 +374,9 @@
               >
                 Delete
               </DangerButton>
+
               <ConfirmationModal
-                :show="transBeingDeleted != null"
+                :show="! transaction.parent_id && transBeingDeleted != null"
                 @close="transBeingDeleted = null"
               >
                 <template #title>
@@ -362,10 +388,6 @@
                 </template>
 
                 <template #footer>
-                  <SecondaryButton @click="transBeingDeleted = null">
-                    Cancel
-                  </SecondaryButton>
-
                   <DangerButton
                     class="ml-3"
                     :class="{ 'opacity-25': deleteTransactionForm.processing }"
@@ -374,6 +396,90 @@
                   >
                     Delete
                   </DangerButton>
+
+                  <SecondaryButton @click="transBeingDeleted = null">
+                    Cancel
+                  </SecondaryButton>
+                </template>
+              </ConfirmationModal>
+
+              <ConfirmationModal
+                :show="transaction.parent_id && transBeingDeleted != null"
+                @close="transBeingDeleted = null"
+              >
+                <template #title>
+                  Delete Transaction
+                </template>
+
+                <template #content>
+                  You are deleting a recurring transaction. Would you like to delete just this transaction or this transaction and all future transactions as well?
+                </template>
+
+                <template #footer>
+                  <DangerButton
+                    class="ml-3"
+                    :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                    :disabled="deleteTransactionForm.processing"
+                    @click="deleteTransaction"
+                  >
+                    This transaction only
+                  </DangerButton>
+
+                  <DangerButton
+                    class="ml-3"
+                    :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                    :disabled="deleteTransactionForm.processing"
+                    @click="deleteChildTransactions"
+                  >
+                    This transaction and all future transactions
+                  </DangerButton>
+
+                  <SecondaryButton @click="transBeingDeleted = null">
+                    Cancel
+                  </SecondaryButton>
+                </template>
+              </ConfirmationModal>
+
+              <ConfirmationModal
+                :show="showRecurringEditDialogue"
+                @close="showRecurringEditDialogue = false"
+              >
+                <template #title>
+                  Editing a Recurring Transaction
+                </template>
+
+                <template #content>
+                  This is a recurring transaction. Would you like to apply these edits to this transaction only or to this and all future transactions?
+                </template>
+
+                <template #footer>
+                  <PrimaryButton
+                    class="ml-3"
+                    type="button"
+                    @click="setEditThisTransOnly()"
+                    :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                    :disabled="deleteTransactionForm.processing || form.processing"
+                  >
+                    This transaction only
+                  </PrimaryButton>
+
+                  <PrimaryButton
+                    class="ml-3"
+                    type="button"
+                    @click="setEditAllFutureRecurring()"
+                    :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                    :disabled="deleteTransactionForm.processing || form.processing"
+                  >
+                    This and all future transactions
+                  </PrimaryButton>
+
+                  <SecondaryButton
+                    class="ml-3"
+                    :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                    @click="showRecurringEditDialogue = false"
+                  >
+                    Cancel
+                  </SecondaryButton>
                 </template>
               </ConfirmationModal>
             </div>
