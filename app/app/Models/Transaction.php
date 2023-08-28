@@ -92,7 +92,8 @@ class Transaction extends Model
                         'bank_identifier' => $trans->bank_identifier,
                         'id' => $trans->id,
                         'buddy_id' => $trans->buddy_id,
-                        'parent_id' => $trans->parent_id
+                        'parent_id' => $trans->parent_id,
+                        'parent_transaction_date' => self::_fetch_parent_transaction_date($trans)
                     ];
                 }
             }
@@ -195,6 +196,7 @@ class Transaction extends Model
                 'id' => $trans->id,
                 'buddy_id' => $trans->buddy_id,
                 'parent_id' => $trans->parent_id,
+                'parent_transaction_date' => self::_fetch_parent_transaction_date($trans),
                 'categories' => $categories,
             ];
         }
@@ -208,5 +210,16 @@ class Transaction extends Model
 
         $data['category_type_breakdowns'] = $category_type_breakdowns;
         return $data;
+    }
+
+    private static function _fetch_parent_transaction_date(Transaction $trans)
+    {
+        $parent_trans_date = null;
+        if ($trans->parent_id) {
+            $parent_trans = Transaction::where('id', '=', $trans->parent_id)->first();
+            $parent_trans_date = $parent_trans->transaction_date;
+
+        }
+        return $parent_trans_date;
     }
 }

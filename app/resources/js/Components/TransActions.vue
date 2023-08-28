@@ -43,7 +43,7 @@
   }
 
   const fields = ref([
-    //{ key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
+    { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true },
@@ -51,8 +51,8 @@
     { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false },
     //{ key: 'account_type', label: 'Account Type', sortable:true, color_text:false },
     { key: 'bank_identifier', label: 'Bank Identifier', sortable:true, searchable:true, color_text:false },
-    { key: 'parent_id', label: 'Recurring', sortable:true, searchable:true, color_text:false },
     { key: 'note', label: 'Note', sortable:true, searchable:true, color_text:false },
+    { key: 'parent_transaction_date', label: 'Parent Transaction', sortable:true, searchable:true, color_text:false },
   ]);
 
   onMounted(() => {
@@ -136,6 +136,18 @@
                   .toLocaleString('us-en', {
                     timeZone: "utc",
                     weekday: "short",
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                  })
+              }}
+            </div>
+
+            <div v-else-if="key === 'parent_transaction_date' && value">
+              {{
+                item.parent_id + ' - ' + new Date(item[key])
+                  .toLocaleString('us-en', {
+                    timeZone: "utc",
                     year: "numeric",
                     month: "numeric",
                     day: "numeric",
