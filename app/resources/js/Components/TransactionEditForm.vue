@@ -388,18 +388,24 @@
                 </template>
 
                 <template #footer>
-                  <DangerButton
-                    class="ml-3"
-                    :class="{ 'opacity-25': deleteTransactionForm.processing }"
-                    :disabled="deleteTransactionForm.processing"
-                    @click="deleteTransaction"
-                  >
-                    Delete
-                  </DangerButton>
+                  <div class="sm:flex sm:items-start p-1 ">
+                    <div class="m-2">
+                      <DangerButton
+                        class="ml-3"
+                        :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                        :disabled="deleteTransactionForm.processing"
+                        @click="deleteTransaction"
+                      >
+                        Delete
+                      </DangerButton>
+                    </div>
 
-                  <SecondaryButton @click="transBeingDeleted = null">
-                    Cancel
-                  </SecondaryButton>
+                    <div class="m-2">
+                      <SecondaryButton @click="transBeingDeleted = null">
+                        Cancel
+                      </SecondaryButton>
+                    </div>
+                  </div>
                 </template>
               </ConfirmationModal>
 
@@ -416,27 +422,38 @@
                 </template>
 
                 <template #footer>
-                  <DangerButton
-                    class="ml-3"
-                    :class="{ 'opacity-25': deleteTransactionForm.processing }"
-                    :disabled="deleteTransactionForm.processing"
-                    @click="deleteTransaction"
-                  >
-                    This transaction only
-                  </DangerButton>
+                  <div class="sm:flex sm:items-start p-1 ">
+                    <div class="m-2">
+                      <DangerButton
+                        class="ml-3"
+                        :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                        :disabled="deleteTransactionForm.processing"
+                        @click="deleteTransaction"
+                      >
+                        This transaction only
+                      </DangerButton>
+                    </div>
 
-                  <DangerButton
-                    class="ml-3"
-                    :class="{ 'opacity-25': deleteTransactionForm.processing }"
-                    :disabled="deleteTransactionForm.processing"
-                    @click="deleteChildTransactions"
-                  >
-                    This transaction and all future transactions
-                  </DangerButton>
+                    <div class="m-2">
+                      <DangerButton
+                        class="ml-3"
+                        :class="{ 'opacity-25': deleteTransactionForm.processing }"
+                        :disabled="deleteTransactionForm.processing"
+                        @click="deleteChildTransactions"
+                      >
+                        This and all future transactions
+                      </DangerButton>
+                    </div>
 
-                  <SecondaryButton @click="transBeingDeleted = null">
-                    Cancel
-                  </SecondaryButton>
+                    <div class="m-2">
+                      <SecondaryButton
+                        class="ml-3"
+                        @click="transBeingDeleted = null"
+                      >
+                        Cancel
+                      </SecondaryButton>
+                    </div>
+                  </div>
                 </template>
               </ConfirmationModal>
 
@@ -453,33 +470,41 @@
                 </template>
 
                 <template #footer>
-                  <PrimaryButton
-                    class="ml-3"
-                    type="button"
-                    @click="setEditThisTransOnly()"
-                    :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
-                    :disabled="deleteTransactionForm.processing || form.processing"
-                  >
-                    This transaction only
-                  </PrimaryButton>
+                  <div class="sm:flex sm:items-start p-1 ">
+                    <div class="m-2">
+                      <PrimaryButton
+                        class="ml-3"
+                        type="button"
+                        @click="setEditThisTransOnly()"
+                        :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                        :disabled="deleteTransactionForm.processing || form.processing"
+                      >
+                        This transaction only
+                      </PrimaryButton>
+                    </div>
 
-                  <PrimaryButton
-                    class="ml-3"
-                    type="button"
-                    @click="setEditAllFutureRecurring()"
-                    :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
-                    :disabled="deleteTransactionForm.processing || form.processing"
-                  >
-                    This and all future transactions
-                  </PrimaryButton>
+                    <div class="m-2">
+                      <PrimaryButton
+                        class="ml-3"
+                        type="button"
+                        @click="setEditAllFutureRecurring()"
+                        :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                        :disabled="deleteTransactionForm.processing || form.processing"
+                      >
+                        This and all future transactions
+                      </PrimaryButton>
+                    </div>
 
-                  <SecondaryButton
-                    class="ml-3"
-                    :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
-                    @click="showRecurringEditDialogue = false"
-                  >
-                    Cancel
-                  </SecondaryButton>
+                    <div class="m-2">
+                      <SecondaryButton
+                        class="ml-3"
+                        :class="{ 'opacity-25': deleteTransactionForm.processing || form.processing }"
+                        @click="showRecurringEditDialogue = false"
+                      >
+                        Cancel
+                      </SecondaryButton>
+                    </div>
+                  </div>
                 </template>
               </ConfirmationModal>
             </div>
