@@ -2,7 +2,12 @@
   import InputDate from '@/Components/InputDate.vue';
   import InputLabel from '@/Components/InputLabel.vue';
   import Checkbox from '@/Components/Checkbox.vue';
-  import { ref, onMounted, watch } from 'vue';
+  import {
+    ref,
+    onMounted,
+    computed,
+    watch
+  } from 'vue';
 
   onMounted(() => {
     transStart.value = props.start;
@@ -25,6 +30,10 @@
     accounts: {
       type: Array,
       default: () => []
+    },
+    showTransactionsLink: {
+      type: Boolean,
+      default: false
     },
     processing: {
       type: Boolean,
@@ -64,6 +73,26 @@
   const filterAccounts = ref({});
   watch(() => filterAccounts.value, () => {
     filterData.value.filter_accounts = filterAccounts.value;
+  });
+
+  const transactionsUrl = computed(() => {
+    let url = 'transactions';
+    if (transStart.value && transEnd.value) {
+      url += `?start=${props.start}&end=${props.end}`;
+
+    } else if (transStart.value) {
+      url += `?start=${props.start}`;
+
+    } else if (transEnd.value) {
+      url += `?end=${props.end}`;
+
+    } else if (props.includeShowAll) {
+      url += `?show_all=1`;
+
+    } else {
+      url += `?use_session_filters=1`;
+    }
+    return url;
   });
 
   watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => {
@@ -121,7 +150,7 @@
       />
       <InputLabel
         for="use-start-date"
-        class="text-black dark:text-white"
+        class="mt-2 text-black dark:text-white"
       >
         <span class="pr-2">Use Start Date?</span>
         <Checkbox
@@ -168,6 +197,17 @@
           Select Range
         </slot>
       </button>
+
+      <div class="mt-2">
+        <a
+          v-if="showTransactionsLink"
+          class="underline"
+          target="_blank"
+          :href="transactionsUrl"
+        >
+          View these transactions
+        </a>
+      </div>
     </div>
   </div>
 </template>

@@ -222,6 +222,7 @@
       <DateFilter
         :start="start"
         :end="end"
+        :showTransactionsLink="true"
         @filter="crunchIt"
         :processing="filterTransactionsForm.processing"
       >
