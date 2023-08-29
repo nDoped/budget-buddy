@@ -260,6 +260,7 @@ class TransactionController extends Controller
                 [ 'use_session_filter_dates' => true ]
             );
     }
+
     private function _updateBuddyTransaction(Transaction $transaction)
     {
         if (! $transaction->buddy_id) {
@@ -270,11 +271,13 @@ class TransactionController extends Controller
         $trans_buddy->credit = ! $transaction->credit;
         $trans_buddy->transaction_date = $transaction->transaction_date;
         $trans_buddy->note = $transaction->note;
+        /*
         $trans_buddy->categories()->detach();
         foreach ($transaction->categories as $cat) {
             $percent = $cat->pivot->percentage / 100;
             $trans_buddy->categories()->save($cat, [ 'percentage' => $percent * 100 ]);
         }
+         */
         $trans_buddy->save();
     }
 
