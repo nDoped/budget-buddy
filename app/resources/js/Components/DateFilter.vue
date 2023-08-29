@@ -202,7 +202,6 @@
         <a
           v-if="showTransactionsLink"
           class="underline"
-          target="_blank"
           :href="transactionsUrl"
         >
           View these transactions
