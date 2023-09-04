@@ -59,10 +59,10 @@
       return;
     }
     let hiddenRow = hiddenTrRefs.value[i];
-    if (hiddenRow.classList.contains("hidden")) {
+    if (hiddenRow && hiddenRow.classList.contains("hidden")) {
       hiddenRow.classList.remove("hidden");
       emit('row-expanded', hiddenRow, i);
-    } else {
+    } else if (hiddenRow) {
       hiddenRow.classList.add("hidden");
       emit('row-collapsed', hiddenRow, i);
     }

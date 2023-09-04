@@ -243,6 +243,7 @@
 
         <ExpandableTable
           class="grow w-full"
+          :pagination-start="100"
           :items="debts"
           :fields="fields"
         >
@@ -279,7 +280,7 @@
         <ExpandableTable
           class="grow w-full"
           :items="assets"
-          pagination-start="100"
+          :pagination-start="100"
           :fields="fields"
         >
           <template #visible_row="{ item , value, key }">
