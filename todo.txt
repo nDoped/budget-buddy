@@ -10,9 +10,4 @@
 * Duplicate transaction feature
 * Bulk transaction edit
 * Build receipt analyzer
-* Fix totals graph
-  - Either remove the totals row and figure out a better way to integrate a totals row with ExpandableTable
-  - Or include balance graph data for the totals of both debt and asset accounts
-  - Leaning towards the latter, although the former might be useful elsewhere
-  - Need to address issue of adding more than 10 asset or debt accounts...table does pagination then
 * Insurance tracking tool

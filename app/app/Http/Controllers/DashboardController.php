@@ -212,6 +212,7 @@ class DashboardController extends Controller
                 'name' => 'Totals',
                 'start_balance' => 0,
                 'in_range_net_growth' => 0,
+                'expand' => false,
                 'end_balance' => 0,
                 'asset' => true,
             ],
@@ -220,6 +221,7 @@ class DashboardController extends Controller
                 'start_balance' => 0,
                 'in_range_net_growth' => 0,
                 'end_balance' => 0,
+                'expand' => false,
                 'asset' => false,
 
             ],
@@ -312,6 +314,7 @@ class DashboardController extends Controller
                 'url' => $acct->url,
                 'in_range_net_growth' => 0,
                 'pre_range_net_growth' => 0,
+                'expand' => true,
                 'daily_net_growths' => [],
                 'end_balance' => 0
             ];

@@ -122,7 +122,6 @@
     return ret;
   });
 
-  /*
   const dashboardStats = computed(() => {
     let ret = [];
 
@@ -135,7 +134,6 @@
     }
     return ret;
   });
-   */
 
   const fields = ref([
     { key: 'name', label: 'Name', sortable: true, highlight:false, has_url:true, format: false },
@@ -174,10 +172,6 @@
   });
 
   const getBreakdownTitle = (br) => {
-      /*
-    return "<span style='color:" + br.color + "'>" + br.name + ':</span> '
-      + formatter.format(br.total);
-       */
     return br.name + ': ' + formatter.format(br.total);
   };
 
@@ -222,7 +216,7 @@
       <DateFilter
         :start="start"
         :end="end"
-        :showTransactionsLink="true"
+        :show-transactions-link="true"
         @filter="crunchIt"
         :processing="filterTransactionsForm.processing"
       >
@@ -285,6 +279,7 @@
         <ExpandableTable
           class="grow w-full"
           :items="assets"
+          pagination-start="100"
           :fields="fields"
         >
           <template #visible_row="{ item , value, key }">
@@ -321,14 +316,12 @@
     </div>
   </div>
 
-  <!--
   <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
     <StatsComponent
       :stats="dashboardStats"
       last=""
     />
   </div>
-  -->
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
     <div class="h-full bg-slate-700 bg-opacity-75 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

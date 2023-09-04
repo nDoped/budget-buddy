@@ -1,5 +1,11 @@
 <script setup>
-  import { onBeforeUpdate, computed, reactive, watch, ref } from 'vue';
+  import {
+    onBeforeUpdate,
+    computed,
+    reactive,
+    watch,
+    ref
+  } from 'vue';
   import { sort } from 'fast-sort'
   const emit = defineEmits(['row-expanded', 'row-collapsed']);
 
@@ -251,7 +257,7 @@
           </tr>
 
           <tr
-            v-if="expand"
+            v-if="expand && item.expand"
             :ref="(el) => { hiddenTrRefs.push(el) }"
             :id="`hidden_row_${i}`"
             class="hidden"
