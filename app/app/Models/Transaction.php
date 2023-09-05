@@ -87,6 +87,7 @@ class Transaction extends Model
                         'account_type' => $type->name,
                         'asset_txt' => ($trans->credit) ? 'Credit' : 'Debit',
                         'asset' => ($trans->credit) ? true : false,
+                        'expand' => true,
                         'transaction_date' => $trans->transaction_date,
                         'note' => $trans->note,
                         'bank_identifier' => $trans->bank_identifier,
@@ -191,6 +192,7 @@ class Transaction extends Model
                 'asset_text' => ($trans->credit) ? 'Credit' : 'Debit',
                 'asset' => ($trans->credit) ? true : false,
                 'transaction_date' => $trans->transaction_date,
+                'expand' => true,
                 'note' => $trans->note,
                 'bank_identifier' => $trans->bank_identifier,
                 'id' => $trans->id,
@@ -212,7 +214,7 @@ class Transaction extends Model
         return $data;
     }
 
-    private static function _fetch_parent_transaction_date(Transaction $trans)
+    private static function _fetch_parent_transaction_date(Transaction $trans) : string|null
     {
         $parent_trans_date = null;
         if ($trans->parent_id) {
