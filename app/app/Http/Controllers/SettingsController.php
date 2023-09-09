@@ -60,6 +60,7 @@ class SettingsController extends Controller
                 'name' => $cat->name,
                 'id' => $cat->id,
                 'active_text' => ($cat->active) ? "Yes": "No",
+                'expand' => true,
                 'active' => ($cat->active) ? true : false,
                 'category_type_name' => ($catt) ? $catt->name : null,
                 'category_type_id' => ($catt) ? $catt->id : null,
@@ -84,6 +85,7 @@ class SettingsController extends Controller
             'category-types' => $this->_fetch_category_types()
         ]);
     }
+
     /**
      * @return array
      */
@@ -99,6 +101,7 @@ class SettingsController extends Controller
                 'name' => $catt->name,
                 'id' => $catt->id,
                 'note' => $catt->note,
+                'expand' => true,
                 'color' => $catt->hex_color,
             ];
 
