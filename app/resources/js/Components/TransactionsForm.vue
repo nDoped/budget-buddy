@@ -264,6 +264,10 @@
                       Select Frequency...
                     </option>
 
+                    <option value="yearly">
+                      Yearly
+                    </option>
+
                     <option value="monthly">
                       Monthly
                     </option>

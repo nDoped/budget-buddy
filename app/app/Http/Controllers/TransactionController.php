@@ -149,8 +149,22 @@ class TransactionController extends Controller
 
         $recurring_transactions = [];
         $recurring_buddy_transactions = [];
+        $duration = '';
         if ($data['recurring']) {
-            $duration = ($data['frequency'] === 'monthly') ? 'P1M' : 'P14D';
+            switch ($data['frequency']) {
+            case 'yearly':
+                $duration = 'P1Y';
+                break;
+
+            case 'monthly':
+                $duration = 'P1M';
+                break;
+
+            case 'biweekly':
+                $duration = 'P14D';
+                break;
+            }
+
             $d = new \DateTime($data['transaction_date']);
             $trans->parent_id = $trans->id;
             $trans->save();
