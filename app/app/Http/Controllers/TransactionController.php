@@ -156,6 +156,10 @@ class TransactionController extends Controller
                 $duration = 'P1Y';
                 break;
 
+            case 'quarterly':
+                $duration = 'P3M';
+                break;
+
             case 'monthly':
                 $duration = 'P1M';
                 break;

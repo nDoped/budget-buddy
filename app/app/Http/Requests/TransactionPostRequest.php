@@ -70,7 +70,7 @@ class TransactionPostRequest extends FormRequest
 
                 $to_merge_recurring = [
                     'recurring_end_date' => [ 'date' ],
-                    'frequency' => [ 'string', 'in:monthly,biweekly,yearly' ],
+                    'frequency' => [ 'string', 'in:monthly,biweekly,yearly,quarterly' ],
                 ];
                 if (! $request->boolean('recurring')) {
                     $to_merge_recurring['recurring_end_date'][] = 'nullable';

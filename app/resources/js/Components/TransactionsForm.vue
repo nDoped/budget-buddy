@@ -268,6 +268,10 @@
                       Yearly
                     </option>
 
+                    <option value="quarterly">
+                      Quarterly
+                    </option>
+
                     <option value="monthly">
                       Monthly
                     </option>
