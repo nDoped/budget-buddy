@@ -21,7 +21,7 @@ if [ $? != 0 ]; then
     tmux send-keys "sale npm run dev"
     tmux split-window -h
     tmux send-keys "cd app" Enter
-    tmux send-keys "sale up" Enter
+    tmux send-keys "systemctl --user start docker-desktop && sale up" Enter
     tmux select-pane -U
     tmux send-keys "cd app" Enter
     tmux send-keys "vim "

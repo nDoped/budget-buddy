@@ -1,7 +1,9 @@
 <script setup>
-  import { inject, ref, onMounted } from 'vue';
+  import { inject, ref, onMounted, watch } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import TransactionsForm from '@/Components/TransactionsForm.vue';
+  import SearchInput from '@/Components/SearchInput.vue';
+  import ElasticFrame from '@/Components/ElasticFrame.vue';
   import TransactionEditForm from '@/Components/TransactionEditForm.vue';
   import DateFilter from '@/Components/DateFilter.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
@@ -46,10 +48,10 @@
     { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
-    { key: 'amount', label: 'Amount', sortable:true, color_text:true, searchable:true },
-    { key: 'account', label: 'Account', sortable:true, searchable: true, color_text:false },
+    { key: 'amountSearchMatchText', label: 'Amount', sortable:true, color_text:true, searchable:true },
+    { key: 'accountSearchMatchText', label: 'Account', sortable:true, searchable: true, color_text:false },
     { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false },
-    { key: 'note', label: 'Note', sortable:true, searchable:true, color_text:false },
+    { key: 'noteSearchMatchText', label: 'Note', sortable:true, searchable:true, color_text:false },
     { key: 'parent_transaction_date', label: 'Parent Transaction', sortable:true, searchable:true, color_text:false },
   ]);
 
@@ -87,6 +89,76 @@
     }
     return false;
   };
+  const searchText = ref('');
+  const filteredTransactions = ref(props.transactions);
+
+  const clearSearchResults = () => {
+    filteredTransactions.value = props.transactions;
+    resetSearchMatchTextValues();
+  };
+  const resetSearchMatchTextValues = () => {
+    filteredTransactions.value.forEach((t) => {
+      t.accountSearchMatchText = t.account;
+      t.noteSearchMatchText = t.note;
+      t.amountSearchMatchText = formatter.format(t.amount);
+      // use this member for search matches
+      t.amountFormated = formatter.format(t.amount);
+    });
+  };
+  onMounted(() => {
+    resetSearchMatchTextValues();
+    watch(() => props.transactions, () => {
+      searchText.value = '';
+      clearSearchResults();
+    });
+  });
+
+  const buildMarkString = (query, value) => {
+    let index = value.toUpperCase().indexOf(query.toUpperCase());
+    let ret = value.substring(0, index)
+      + "<mark>"
+      + value.substring(index, index + query.length)
+      + "</mark>" + value.substring(index + query.length);
+    return ret;
+  };
+  watch(searchText, (query) => {
+    applySearchFilter(query);
+  });
+  const applySearchFilter = (query) => {
+    if (! query) {
+      clearSearchResults();
+      return;
+    }
+    let searchResults = [];
+    props.transactions.forEach((t) => {
+      if (t.account.toLowerCase().includes(query.toLowerCase())
+        || (t.note && t.note.toLowerCase().includes(query.toLowerCase()))
+        || t.amountFormated.includes(query)
+      ) {
+
+        if (t.account.toLowerCase().includes(query.toLowerCase())) {
+          t.accountSearchMatchText = buildMarkString(query, t.account);
+        } else {
+          t.accountSearchMatchText = t.account;
+        }
+        if (t.note && t.note.toLowerCase().includes(query.toLowerCase())) {
+          t.noteSearchMatchText = buildMarkString(query, t.note);
+        } else {
+          t.noteSearchMatchText = t.note;
+        }
+
+        if (t.amountFormated.includes(query)) {
+          t.amountSearchMatchText = buildMarkString(query, t.amountFormated);
+        } else {
+          t.amountSearchMatchText = t.amountFormated;
+        }
+
+        searchResults.push(t);
+      }
+
+      filteredTransactions.value = searchResults;
+    });
+  };
 </script>
 
 <template>
@@ -96,24 +168,33 @@
       :categories="categories"
     />
 
-    <DateFilter
-      :start="transStart"
-      :end="transEnd"
-      :processing="filterTransactionsForm.processing"
-      :accounts="accounts"
-      @filter="filterEventHandler"
-    >
-      <template #range_button_text>
-        Filter
-      </template>
-    </DateFilter>
+    <ElasticFrame>
+      <DateFilter
+        :start="transStart"
+        :end="transEnd"
+        :processing="filterTransactionsForm.processing"
+        :accounts="accounts"
+        @filter="filterEventHandler"
+      >
+        <template #range_button_text>
+          Filter
+        </template>
+      </DateFilter>
 
-    <div
-      v-if="transactions.length > 0"
-      class="mt-4 overflow-x-auto"
-    >
+      <SearchInput
+        v-if="transactions.length > 0"
+        class="place-self-end"
+        v-model="searchText"
+        input-name="search"
+        hint="Search Transactions"
+        placeholder="Search"
+      />
+    </ElasticFrame>
+
+    <div class="mt-4 overflow-x-auto">
       <ExpandableTable
-        :items="transactions"
+        v-if="transactions.length > 0"
+        :items="filteredTransactions"
         :fields="fields"
       >
         <template #visible_row="{ item , value, key }">
@@ -124,11 +205,7 @@
             }"
             class="font-medium text-sm"
           >
-            <div v-if="key === 'amount'">
-              {{ formatter.format(item[key]) }}
-            </div>
-
-            <div v-else-if="key === 'transaction_date'">
+            <div v-if="key === 'transaction_date'">
               {{
                 new Date(item[key])
                   .toLocaleString('us-en', {
@@ -159,9 +236,10 @@
               v-html="fetchCatString(value)"
             />
 
-            <div v-else>
-              {{ value }}
-            </div>
+            <div
+              v-else
+              v-html="value"
+            />
           </div>
         </template>
 
@@ -175,10 +253,10 @@
           />
         </template>
       </ExpandableTable>
-    </div>
 
-    <div v-else>
-      <p>No transactions found in the given date range</p>
+      <div v-else>
+        <p>No transactions found in the given date range</p>
+      </div>
     </div>
   </div>
 </template>

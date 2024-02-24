@@ -24,6 +24,7 @@
         "vue": "^3.2.31"
     },
     "dependencies": {
+        "@heroicons/vue": "^2.1.1",
         "chart.js": "^4.3.0",
         "chartjs-plugin-datalabels": "^2.2.0",
         "fast-sort": "^3.2.1",

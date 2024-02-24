@@ -16,7 +16,7 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response
      */
     public function index(Request $request) : \Inertia\Response
     {
@@ -122,7 +122,7 @@ class TransactionController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \App\Http\Requests\TransactionPostRequest $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
     {
@@ -133,7 +133,7 @@ class TransactionController extends Controller
         $trans->credit = $data['credit'];
         $trans->account_id = $data['account_id'];
         $trans->transaction_date = $data['transaction_date'];
-        $trans->note = $data['note'];
+        $trans->note = strip_tags($data['note']);
         $trans->save();
         $trans_buddy = null;
         if ($data['trans_buddy']) {
@@ -230,10 +230,10 @@ class TransactionController extends Controller
         $transaction->account_id = $data['account_id'];
         $transaction->credit = $data['credit'];
         if ($data['bank_identifier']) {
-            $transaction->bank_identifier = $data['bank_identifier'];
+            $transaction->bank_identifier = strip_tags($data['bank_identifier']);
         }
         if ($data['note']) {
-            $transaction->note = $data['note'];
+            $transaction->note = strip_tags($data['note']);
         }
         $transaction->transaction_date = $data['transaction_date'];
         $transaction->categories()->detach();
