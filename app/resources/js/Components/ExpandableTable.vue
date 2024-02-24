@@ -199,12 +199,12 @@
       <thead>
         <tr>
           <template
-            v-for="{ key, label, sortable } in fields"
+            v-for="{ key, label, sortable, sortColumn } in fields"
             :key="key"
           >
             <th
               v-if="sortable"
-              @click="setSort(key)"
+              @click="(sortColumn) ? setSort(sortColumn): setSort(key)"
               class="sortable text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
               :class="maxThWidthClass"
             >
