@@ -31,11 +31,38 @@
     });
   });
   const fetchFilteredCatsOptions = (cat) => {
-    let ret = [ ...filteredCats.value, cat ];
-    ret.sort(function(a, b) {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
+    let cats = [ ...filteredCats.value, cat ];
+    cats.sort(function(a, b) {
+      if (a.cat_type_name !== b.cat_type_name) {
+        if (a.cat_type_name < b.cat_type_name) return -1;
+        if (a.cat_type_name > b.cat_type_name) return 1;
+      } else {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+      }
       return 0;
+    });
+    let ret = [
+      {
+        'category_type': "No Category Type",
+        'categories': []
+      }
+    ];
+    cats.forEach((c) => {
+      if (! c.cat_type_id) {
+        let noCatType = ret.find((r) => r.category_type === "No Category Type");
+        noCatType.categories.push(c);
+        return;
+      }
+      let existing = ret.find((r) => r.category_type === c.cat_type_name);
+      if (existing) {
+        existing.categories.push(c);
+      } else {
+        ret.push({
+          'category_type': c.cat_type_name,
+          'categories': [c]
+        });
+      }
     });
     return ret;
   };
@@ -139,18 +166,14 @@
           label="name"
           placeholder="Select a Category"
           deselect-label=""
+          group-label="category_type"
+          group-values="categories"
+          :group-select="false"
           select-label=""
           :options="fetchFilteredCatsOptions(category)"
           :allow-empty="false"
-          @input="catChange($event, i)"
           :searchable="true"
-        >
-          <template #option="optionProps">
-            <div class="option__desc">
-              <span class="option__title">{{ optionProps.option.name }} ({{ optionProps.option.cat_type_name ?? "No Category Type" }})</span>
-            </div>
-          </template>
-        </Multiselect>
+        />
 
         <InputLabel
           :for="getUuid('category-percent', i)"

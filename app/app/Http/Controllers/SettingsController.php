@@ -68,6 +68,15 @@ class SettingsController extends Controller
             ];
 
         }
+
+        usort($cats, function($a, $b) {
+            $result = strcmp($a['category_type_name'], $b['category_type_name']);
+            if ($result === 0) {
+                $result = strcmp($a['name'], $b['name']);
+            }
+            return $result;
+        });
+
         return Inertia::render('Settings/Categories', [
             'categories' => $cats,
             'category-types' => $this->_fetch_category_types()

@@ -174,9 +174,12 @@ class Transaction extends Model
 
                 }
 
+                $catt = CategoryType::find($cat->category_type_id);
                 $categories[] =  [
                     'name' => $cat->name,
                     'cat_id' => $cat->id,
+                    'cat_type_name' => ($catt) ? $catt->name : null,
+                    'cat_type_id' => ($catt) ? $catt->id : null,
                     'color' => $cat->hex_color,
                     'percent' => $percent / 100,
                     'value' => $cat_value / 100

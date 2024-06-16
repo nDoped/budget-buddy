@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use App\Http\Requests\TransactionPostRequest;
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\CategoryType;
 use App\Models\Transaction;
 
 class TransactionController extends Controller
@@ -109,17 +110,12 @@ class TransactionController extends Controller
             ->orderBy('name')
             ->get();
         foreach ($cat_itty as $cat) {
-            $cat_type_id = null;
-            $cat_type_name = null;
-            if ($cat->category_type_id) {
-                $cat_type_name = $cat->categoryType->name;
-                $cat_type_id = $cat->categoryType->id;
-            }
+            $catt = CategoryType::find($cat->category_type_id);
             $cats[] = [
                 'name' => $cat->name,
                 'cat_id' => $cat->id,
-                'cat_type_id' => $cat_type_id,
-                'cat_type_name' => $cat_type_name,
+                'cat_type_name' => ($catt) ? $catt->name : null,
+                'cat_type_id' => ($catt) ? $catt->id : null,
                 'color' => $cat->hex_color,
                 'percent' => 100
             ];
