@@ -1,4 +1,5 @@
 <script setup>
+  import Multiselect from 'vue-multiselect';
   import {
     toRaw,
     ref,
@@ -103,6 +104,8 @@
     catsRef.value.push({
       cat_id: filteredCats.value[0].cat_id,
       name: filteredCats.value[0].name,
+      cat_type_id: filteredCats.value[0].cat_type_id,
+      cat_type_name: filteredCats.value[0].cat_type_name,
       color: filteredCats.value[0].color,
       percent: 100
     });
@@ -128,21 +131,26 @@
           value="Category"
         />
 
-        <select
+        <Multiselect
           :id="getUuid('category-select', i)"
-          v-model="category.cat_id"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          :style="catSelectBorder(category)"
+          class="my-multiselect"
+          v-model="catsRef[i]"
+          track-by="cat_id"
+          label="name"
+          placeholder="Select a Category"
+          deselect-label=""
+          select-label=""
+          :options="fetchFilteredCatsOptions(category)"
+          :allow-empty="false"
           @input="catChange($event, i)"
+          :searchable="true"
         >
-          <option
-            v-for="cat in fetchFilteredCatsOptions(category)"
-            :key="category + cat.cat_id"
-            :value="cat.cat_id"
-          >
-            {{ cat.name }}
-          </option>
-        </select>
+          <template #option="optionProps">
+            <div class="option__desc">
+              <span class="option__title">{{ optionProps.option.name }} ({{ optionProps.option.cat_type_name ?? "No Category Type" }})</span>
+            </div>
+          </template>
+        </Multiselect>
 
         <InputLabel
           :for="getUuid('category-percent', i)"
@@ -179,3 +187,31 @@
     </div>
   </div>
 </template>
+
+<style lang="css" src="vue-multiselect/dist/vue-multiselect.css"></style>
+
+<style>
+
+.my-multiselect .multiselect__tags {
+  @apply bg-gray-400;
+  min-height: 32px;
+  display: block;
+  padding: 3px 40px 0 8px;
+  border-radius: 5px;
+  border: 1px solid #e8e8e8;
+  background: #fff;
+  font-size: 14px;
+}
+.my-multiselect .multiselect {
+  @apply bg-gray-400;
+}
+.my-multiselect .multiselect__option--highlight .multiselect__option {
+  @apply bg-gray-400;
+}
+.my-multiselect .multiselect__single {
+  @apply bg-gray-400
+}
+.my-multiselect .multiselect__input {
+  @apply bg-gray-400
+}
+</style>

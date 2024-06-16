@@ -109,10 +109,19 @@ class TransactionController extends Controller
             ->orderBy('name')
             ->get();
         foreach ($cat_itty as $cat) {
+            $cat_type_id = null;
+            $cat_type_name = null;
+            if ($cat->category_type_id) {
+                $cat_type_name = $cat->categoryType->name;
+                $cat_type_id = $cat->categoryType->id;
+            }
             $cats[] = [
                 'name' => $cat->name,
                 'cat_id' => $cat->id,
+                'cat_type_id' => $cat_type_id,
+                'cat_type_name' => $cat_type_name,
                 'color' => $cat->hex_color,
+                'percent' => 100
             ];
         }
         return $cats;
