@@ -24,6 +24,16 @@
       default: () => []
     }
   });
+  // @todo: This doesn't work but i'm leaving it for now
+  // untill i can fix it
+  //const preventBackspaceNavigation = (ev) => {
+  //  if (ev.key === 'Backspace') {
+  //    console.log({
+  //      'resources/js/Components/TransactionCategory.vue:27 ev.key' : ev.key,
+  //    });
+  //    return ev.preventDefault();
+  //  }
+  //};
 
   const filteredCats = computed(() => {
     return props.availableCategories.filter((ac) => {
@@ -97,24 +107,13 @@
   );
 
   const catSelectBorder = (cat) => {
-    return `border: solid ${cat.color}`;
+    return `border: solid ${cat.color}; border-radius: 5px;`;
   };
   const uuid = crypto.randomUUID();
   const getUuid = (el, i) => {
     return `${el}-${i}-${uuid}`;
   };
-  const catChange = (e, i) => {
-    if (e) {
-      let newCatId = e.target.value;
-      let newCat = props.availableCategories.find(ac => ac.cat_id === parseInt(newCatId));
-
-      if (catsRef.value[i].name !== newCat.name) {
-        catsRef.value[i].name = newCat.name;
-      }
-      document.getElementById(getUuid('category-select', i)).style.cssText = catSelectBorder(newCat);
-      document.getElementById(getUuid('category-percent', i)).style.cssText = catSelectBorder(newCat);
-    }
-
+  const catChange = () => {
     if (percentTotal.value === 100 || catsRef.value.length === 0) {
       emit('category-update', catsRef);
     } else {
@@ -122,11 +121,9 @@
     }
   };
 
-  const removeCategory = (cat, i) => {
+  const removeCategory = (i) => {
     catsRef.value.splice(i, 1);
-    catChange();
   };
-
   const addCategory = () => {
     catsRef.value.push({
       cat_id: filteredCats.value[0].cat_id,
@@ -136,8 +133,13 @@
       color: filteredCats.value[0].color,
       percent: 100
     });
-    catChange();
   };
+  watch(
+    catsRef.value, catChange,
+    {
+      deep: true
+    }
+  );
 </script>
 
 <template>
@@ -158,22 +160,25 @@
           value="Category"
         />
 
-        <Multiselect
-          :id="getUuid('category-select', i)"
-          class="my-multiselect"
-          v-model="catsRef[i]"
-          track-by="cat_id"
-          label="name"
-          placeholder="Select a Category"
-          deselect-label=""
-          group-label="category_type"
-          group-values="categories"
-          :group-select="false"
-          select-label=""
-          :options="fetchFilteredCatsOptions(category)"
-          :allow-empty="false"
-          :searchable="true"
-        />
+        <div :style="catSelectBorder(category)">
+          <Multiselect
+            :id="getUuid('category-select', i)"
+            class="my-multiselect"
+            v-model="catsRef[i]"
+            track-by="cat_id"
+            label="name"
+            placeholder="Select a Category"
+            deselect-label=""
+            group-label="category_type"
+            group-values="categories"
+            :group-select="false"
+            select-label=""
+            :options="fetchFilteredCatsOptions(category)"
+            :allow-empty="false"
+            :searchable="true"
+          />
+          <!-- @keyup.prevent.stop="preventBackspaceNavigation" -->
+        </div>
 
         <InputLabel
           :for="getUuid('category-percent', i)"
@@ -185,15 +190,14 @@
           type="number"
           min=".1"
           step=".001"
-          v-model="category.percent"
+          v-model="catsRef[i].percent"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           :style="catSelectBorder(category)"
-          @input="catChange()"
         >
         <DangerButton
           class="max-h-1 max-w-1"
           type="button"
-          @click="removeCategory(category, i)"
+          @click="removeCategory(i)"
         >
           Remove
         </DangerButton>
@@ -232,9 +236,9 @@
   @apply bg-gray-400;
 }
 .my-multiselect .multiselect__single {
-  @apply bg-gray-400
+  @apply bg-gray-400;
 }
 .my-multiselect .multiselect__input {
-  @apply bg-gray-400
+  @apply bg-gray-400;
 }
 </style>

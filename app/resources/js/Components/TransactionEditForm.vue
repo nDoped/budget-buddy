@@ -43,8 +43,10 @@
     transBeingDeleted.value = props.transaction.id;
   };
 
+  const transCatCounter = ref(0);
   const success = (deleted) => {
     transBeingDeleted.value = null;
+    transCatCounter.value++;
     editThisTransOnly.value = false;
     editAllFutureRecurring.value = false;
     toast.success((deleted) ? 'Transaction Deleted!' : 'Transaction Updated!');
@@ -54,7 +56,6 @@
   const deleteTransactionForm = useForm({
     id:props.transaction.id,
     delete_child_transactions:false
-
   });
   const deleteChildTransactions = () => {
     deleteTransactionForm.delete_child_transactions = true;
@@ -129,7 +130,6 @@
     } else if (props.transaction.parent_id && editThisTransOnly.value) {
       form.edit_child_transactions = false;
 
-
     } else if (props.transaction.parent_id) {
       form.edit_child_transactions = true;
     }
@@ -139,6 +139,7 @@
       preserveScroll: true,
       onSuccess: () => success(false),
       onError: (err) =>  {
+        transCatCounter.value++;
         console.error(err)
         transBeingDeleted.value = null;
         for (let field in err) {
@@ -163,7 +164,6 @@
     form.categories = [];
   };
 
-  const transCatCounter = ref(0);
   const cancel = () => {
     form.categories = structuredClone(ogCats);
     // force TransactionCategory to reset incase any data changes were made
