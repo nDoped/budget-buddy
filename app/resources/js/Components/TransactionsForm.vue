@@ -1,6 +1,7 @@
 <script setup>
   import {
-    ref
+    ref,
+    computed
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';
@@ -48,6 +49,10 @@
       default: () => []
     },
     categories: {
+      type: Array,
+      default: () => []
+    },
+    categoryTypes: {
       type: Array,
       default: () => []
     },
@@ -221,7 +226,9 @@
           <div class="m-4 bg-slate-500 ">
             <TransactionCategory
               :available-categories="categories"
+              :category-types="categoryTypes"
               :key="transCatCounter"
+              :errors="form.errors"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
             />

@@ -88,6 +88,7 @@ class TransactionController extends Controller
         $data['start'] = $start;
         $data['end'] = $end;
         $data['categories'] = $this->_fetch_categories();
+        $data['category_types'] = $this->_fetch_category_types();
         $current_user = Auth::user();
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
         foreach ($accounts as $acct) {
@@ -99,6 +100,28 @@ class TransactionController extends Controller
         return Inertia::render('Transactions', [
             'data' => $data,
         ]);
+    }
+
+    /**
+     * @return array
+     */
+    private function _fetch_category_types() : array
+    {
+        $catts = [];
+        $current_user = Auth::user();
+        $catt_itty = CategoryType::where('user_id', '=', $current_user->id)
+            ->orderBy('name')
+            ->get();
+        foreach ($catt_itty as $catt) {
+            $catts[] = [
+                'name' => $catt->name,
+                'id' => $catt->id,
+                'expand' => true,
+                'color' => $catt->hex_color,
+            ];
+
+        }
+        return $catts;
     }
 
     private function _fetch_categories() : array
@@ -198,7 +221,16 @@ class TransactionController extends Controller
         }
 
         foreach ($data['categories'] as $cat) {
-            $cat_model = Category::find($cat['cat_id']);
+            if ($cat['cat_id']) {
+                $cat_model = Category::find($cat['cat_id']);
+            } else {
+                $cat_model = new Category();
+                $cat_model->name = $cat['name'];
+                $cat_model->hex_color = $cat['color'];
+                $cat_model->category_type_id = $cat['cat_type_id'];
+                $cat_model->user_id = $current_user->id;
+                $cat_model->save();
+            }
             $percent = $cat['percent'];
             $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
 
@@ -243,7 +275,16 @@ class TransactionController extends Controller
         $transaction->transaction_date = $data['transaction_date'];
         $transaction->categories()->detach();
         foreach ($data['categories'] as $cat) {
-            $cat_model = Category::find($cat['cat_id']);
+            if ($cat['cat_id']) {
+                $cat_model = Category::find($cat['cat_id']);
+            } else {
+                $cat_model = new Category();
+                $cat_model->name = $cat['name'];
+                $cat_model->category_type_id = $cat['cat_type_id'];
+                $cat_model->user_id = $current_user->id;
+                $cat_model->hex_color = $cat['color'];
+                $cat_model->save();
+            }
             $percent = $cat['percent'];
             $transaction->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
         }

@@ -60,6 +60,7 @@ class TransactionPostRequest extends FormRequest
                 'note' => [ 'nullable', 'string'],
                 'edit_child_transactions' => [ 'nullable', 'boolean'],
                 'categories' => [ 'nullable' ],
+                'categories.*.name' => [ 'required' ],
             ];
 
             if ($route_name === 'transactions.store') {

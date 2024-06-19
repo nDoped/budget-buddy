@@ -4,14 +4,11 @@
     watch
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
-  import InputLabel from '@/Components/InputLabel.vue';
-  import InputError from '@/Components/InputError.vue';
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
-  import Checkbox from '@/Components/Checkbox.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
-  import TextInput from '@/Components/TextInput.vue';
+  import CategoryInputs from '@/Components/CategoryInputs.vue';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
@@ -32,7 +29,7 @@
     name: props.category.name,
     color: props.category.color,
     active: props.category.active,
-    category_type: (props.category.category_type_id) ?? ''
+    category_type: props.category.category_type_id
   });
 
   watch(
@@ -41,7 +38,7 @@
       form.name = props.category.name;
       form.color = props.category.color;
       form.active = props.category.active;
-      form.category_type = (props.category.category_type_id) ?? '';
+      form.category_type = props.category.category_type_id;
       deleteCategoryForm.id = props.category.id;
     }
   );
@@ -80,6 +77,13 @@
     });
   };
 
+  const updateInputs = ({ name, color, type, active }) => {
+    form.name = name;
+    form.color = color;
+    form.category_type = type;
+    form.active = active;
+  };
+
   function submit() {
     /* global route */
     form.post(route('categories.update', { category: props.category.id }), {
@@ -96,11 +100,6 @@
       }
     });
   }
-
-  const uuid = crypto.randomUUID();
-  const getUuid = (el) => {
-    return `${el}-${uuid}`;
-  };
 </script>
 
 <template>
@@ -111,78 +110,16 @@
           @submit.prevent="submit"
           :key="category.id"
         >
-          <div class="flex flex-col p-6 bg-slate-500 border-b border-gray-200">
-            <div class="flex flex-row">
-              <div class="m-4">
-                <InputLabel
-                  :for="getUuid('cat-name')"
-                  value="Name"
-                />
-                <TextInput
-                  :id="getUuid('cat-name')"
-                  v-model="form.name"
-                  type="text"
-                  class="mt-1 block w-full"
-                  autofocus
-                  autocomplete="bank_ident"
-                />
-                <InputError
-                  :message="form.errors.name"
-                  class="mt-2"
-                />
-              </div>
-
-              <div class="m-4">
-                <InputLabel
-                  for="type"
-                  value="Category Type"
-                />
-                <select
-                  id="type"
-                  v-model="form.category_type"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                >
-                  <option
-                    selected
-                    value=""
-                  >
-                    Select type...
-                  </option>
-
-                  <option
-                    v-for="(type, i) in categoryTypes"
-                    :key="i"
-                    :value="type.id"
-                  >
-                    {{ type.name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="m-4">
-                <InputLabel
-                  :for="getUuid('cat-color')"
-                  value="Color"
-                />
-                <input
-                  :id="getUuid('cat-color')"
-                  type="color"
-                  v-model="form.color"
-                >
-              </div>
-
-              <div class="m-4">
-                <InputLabel
-                  :for="getUuid('cat-active')"
-                  value="Active"
-                />
-                <Checkbox
-                  v-model:checked="form.active"
-                  name="active"
-                />
-              </div>
-            </div>
-          </div>
+          <CategoryInputs
+            :errors="form.errors"
+            :name="form.name"
+            :type="form.category_type"
+            :color="form.color"
+            :active="form.active"
+            :category-types="categoryTypes"
+            :include-active-input="true"
+            @field-update="updateInputs"
+          />
 
           <div class="flex flex-wrap p-3 bg-slate-500 border-gray-200">
             <PrimaryButton

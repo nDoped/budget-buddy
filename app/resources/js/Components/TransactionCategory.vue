@@ -8,6 +8,7 @@
   } from 'vue';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
+  import CategoryInputs from '@/Components/CategoryInputs.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
   import 'vue3-toastify/dist/index.css';
@@ -19,10 +20,18 @@
       type: Array,
       default: () => []
     },
+    categoryTypes: {
+      type: Array,
+      default: () => []
+    },
     availableCategories: {
       type: Array,
       default: () => []
-    }
+    },
+    errors: {
+      type: Object,
+      default: () => {return {}}
+    },
   });
   // @todo: This doesn't work but i'm leaving it for now
   // untill i can fix it
@@ -93,6 +102,12 @@
     });
     return Math.round((percentTotal + Number.EPSILON) * 100) / 100
   });
+  const getError = (i) => {
+    if (props.errors[`categories.${i}.name`]) {
+      let ret = 'The name field is required';
+      return {name: ret};
+    }
+  };
   watch(
     percentTotal,
     (p) => {
@@ -134,6 +149,21 @@
       percent: 100
     });
   };
+  const createCategory = (i, data) => {
+    catsRef.value[i].name = data.name;
+    catsRef.value[i].color = data.color;
+    catsRef.value[i].cat_type_id = data.type;
+  };
+  const createANewCategory = () => {
+    catsRef.value.push({
+      cat_id: null,
+      name: null,
+      cat_type_id: null,
+      cat_type_name: null,
+      color: '#000000',
+      percent: 100
+    });
+  };
   watch(
     catsRef.value, catChange,
     {
@@ -143,8 +173,24 @@
 </script>
 
 <template>
-  <InputError :message="percentError" />
+  <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
+    <PrimaryButton
+      class="m-4"
+      type="button"
+      @click="addCategory"
+    >
+      Add an Existing Cat
+    </PrimaryButton>
+    <PrimaryButton
+      class="m-4"
+      type="button"
+      @click="createANewCategory"
+    >
+      Create a New Cat
+    </PrimaryButton>
+  </div>
 
+  <InputError :message="percentError" />
   <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
     <div
       class="flex flex-wrap bg-slate-500 mr-4"
@@ -155,30 +201,43 @@
         :key="i"
         class="m-2"
       >
-        <InputLabel
-          :for="getUuid('category-select', i)"
-          value="Category"
-        />
-
-        <div :style="catSelectBorder(category)">
-          <Multiselect
-            :id="getUuid('category-select', i)"
-            class="my-multiselect"
-            v-model="catsRef[i]"
-            track-by="cat_id"
-            label="name"
-            placeholder="Select a Category"
-            deselect-label=""
-            group-label="category_type"
-            group-values="categories"
-            :group-select="false"
-            select-label=""
-            :options="fetchFilteredCatsOptions(category)"
-            :allow-empty="false"
-            :searchable="true"
+        <template v-if="category.cat_id">
+          <InputLabel
+            :for="getUuid('category-select', i)"
+            value="Category"
           />
-          <!-- @keyup.prevent.stop="preventBackspaceNavigation" -->
-        </div>
+
+          <div :style="catSelectBorder(category)">
+            <Multiselect
+              :id="getUuid('category-select', i)"
+              class="my-multiselect"
+              v-model="catsRef[i]"
+              track-by="cat_id"
+              label="name"
+              placeholder="Select a Category"
+              deselect-label=""
+              group-label="category_type"
+              group-values="categories"
+              :group-select="false"
+              select-label=""
+              :options="fetchFilteredCatsOptions(category)"
+              :allow-empty="false"
+              :searchable="true"
+            />
+            <!-- @keyup.prevent.stop="preventBackspaceNavigation" -->
+          </div>
+        </template>
+
+        <template v-else>
+          <h2 class="text-xl">
+            Create a New Category
+          </h2>
+          <CategoryInputs
+            :category-types="categoryTypes"
+            :errors="getError(i)"
+            @field-update="(data) => createCategory(i, data)"
+          />
+        </template>
 
         <InputLabel
           :for="getUuid('category-percent', i)"
@@ -202,15 +261,6 @@
           Remove
         </DangerButton>
       </div>
-    </div>
-
-    <div class="m-2 min-w-min flex-none order-last relative ml-auto">
-      <PrimaryButton
-        type="button"
-        @click="addCategory"
-      >
-        Add a Cat
-      </PrimaryButton>
     </div>
   </div>
 </template>

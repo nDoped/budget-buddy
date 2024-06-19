@@ -25,13 +25,15 @@
       type: Array,
       default: () => []
     },
-
     transaction: {
       type: Object,
       default: () => {}
     },
-
     categories: {
+      type: Array,
+      default: () => []
+    },
+    categoryTypes: {
       type: Array,
       default: () => []
     }
@@ -334,6 +336,7 @@
           <div class="m-2 bg-slate-500 border-t border-b border-gray-200">
             <TransactionCategory
               :categories="props.transaction.categories"
+              :category-types="categoryTypes"
               :available-categories="props.categories"
               :key="transCatCounter"
               @category-update="updateCategories"

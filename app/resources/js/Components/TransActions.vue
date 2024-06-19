@@ -19,6 +19,10 @@
       type: Array,
       default: () => []
     },
+    categoryTypes: {
+      type: Array,
+      default: () => []
+    },
     accounts: {
       type: Array,
       default: () => []
@@ -166,6 +170,7 @@
     <TransactionsForm
       :accounts="accounts"
       :categories="categories"
+      :category-types="categoryTypes"
     />
 
     <ElasticFrame>
@@ -248,6 +253,7 @@
             :accounts="accounts"
             :transaction="item"
             :categories="categories"
+            :category-types="categoryTypes"
             @cancel="hideTr(hidden_tr_refs, i)"
             @success="hideTr(hidden_tr_refs, i)"
           />

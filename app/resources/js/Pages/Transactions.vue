@@ -20,6 +20,7 @@
           <TransActions
             :transactions="data.transactions_in_range"
             :categories="data.categories"
+            :category-types="data.category_types"
             :accounts="data.accounts"
             :start="data.start"
             :end="data.end"
