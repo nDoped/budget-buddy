@@ -46,7 +46,7 @@
 
   const filteredCats = computed(() => {
     return props.availableCategories.filter((ac) => {
-      return ! catsRef.value.find(cr => cr.cat_id == ac.cat_id);
+      return ! catsRef.value.find(cr => cr.cat_data.cat_id == ac.cat_id);
     });
   });
   const fetchFilteredCatsOptions = (cat) => {
@@ -122,7 +122,7 @@
   );
 
   const catSelectBorder = (cat) => {
-    return `border: solid ${cat.color}; border-radius: 5px;`;
+    return `border: solid ${cat.cat_data.color}; border-radius: 5px;`;
   };
   const uuid = crypto.randomUUID();
   const getUuid = (el, i) => {
@@ -130,7 +130,14 @@
   };
   const catChange = () => {
     if (percentTotal.value === 100 || catsRef.value.length === 0) {
-      emit('category-update', catsRef);
+      // transform catsRef back into the structure the parent component expects
+      let cats = catsRef.value.map((c) => {
+        return {
+          ...c.cat_data,
+          percent: c.percent
+        };
+      });
+      emit('category-update', cats);
     } else {
       emit('invalid-category-state');
     }
@@ -141,27 +148,31 @@
   };
   const addCategory = () => {
     catsRef.value.push({
-      cat_id: filteredCats.value[0].cat_id,
-      name: filteredCats.value[0].name,
-      cat_type_id: filteredCats.value[0].cat_type_id,
-      cat_type_name: filteredCats.value[0].cat_type_name,
-      color: filteredCats.value[0].color,
-      percent: 100
+      "cat_data": {
+        cat_id: filteredCats.value[0].cat_id,
+        name: filteredCats.value[0].name,
+        cat_type_id: filteredCats.value[0].cat_type_id,
+        cat_type_name: filteredCats.value[0].cat_type_name,
+        color: filteredCats.value[0].color,
+      },
+      percent: 0,
     });
   };
   const createCategory = (i, data) => {
-    catsRef.value[i].name = data.name;
-    catsRef.value[i].color = data.color;
-    catsRef.value[i].cat_type_id = data.type;
+    catsRef.value[i].cat_data.name = data.name;
+    catsRef.value[i].cat_data.color = data.color;
+    catsRef.value[i].cat_data.cat_type_id = data.type;
   };
   const createANewCategory = () => {
     catsRef.value.push({
-      cat_id: null,
-      name: null,
-      cat_type_id: null,
-      cat_type_name: null,
-      color: '#000000',
-      percent: 100
+      "cat_data" : {
+        cat_id: null,
+        name: null,
+        cat_type_id: null,
+        cat_type_name: null,
+        color: '#000000',
+      },
+      percent: 0,
     });
   };
   watch(
@@ -201,7 +212,7 @@
         :key="i"
         class="m-2"
       >
-        <template v-if="category.cat_id">
+        <template v-if="category.cat_data.cat_id">
           <InputLabel
             :for="getUuid('category-select', i)"
             value="Category"
@@ -211,7 +222,7 @@
             <Multiselect
               :id="getUuid('category-select', i)"
               class="my-multiselect"
-              v-model="catsRef[i]"
+              v-model="catsRef[i].cat_data"
               track-by="cat_id"
               label="name"
               placeholder="Select a Category"

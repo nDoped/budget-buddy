@@ -139,8 +139,7 @@ class TransactionController extends Controller
                 'cat_id' => $cat->id,
                 'cat_type_name' => ($catt) ? $catt->name : null,
                 'cat_type_id' => ($catt) ? $catt->id : null,
-                'color' => $cat->hex_color,
-                'percent' => 100
+                'color' => $cat->hex_color
             ];
         }
         return $cats;

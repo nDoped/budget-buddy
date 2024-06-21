@@ -176,13 +176,15 @@ class Transaction extends Model
 
                 $catt = CategoryType::find($cat->category_type_id);
                 $categories[] =  [
-                    'name' => $cat->name,
-                    'cat_id' => $cat->id,
-                    'cat_type_name' => ($catt) ? $catt->name : null,
-                    'cat_type_id' => ($catt) ? $catt->id : null,
-                    'color' => $cat->hex_color,
+                    'cat_data' => [
+                        'name' => $cat->name,
+                        'cat_id' => $cat->id,
+                        'cat_type_name' => ($catt) ? $catt->name : null,
+                        'cat_type_id' => ($catt) ? $catt->id : null,
+                        'color' => $cat->hex_color,
+                    ],
                     'percent' => $percent / 100,
-                    'value' => $cat_value / 100
+                    //'value' => $cat_value / 100
                 ];
             }
 
@@ -206,9 +208,9 @@ class Transaction extends Model
             ];
         }
 
-        foreach ($category_type_breakdowns as $catt_id => &$catt_data) {
+        foreach ($category_type_breakdowns as &$catt_data) {
                 $catt_data['total'] = $catt_data['total'] / 100;
-            foreach ($catt_data['data'] as $cat_id => &$cat_data) {
+            foreach ($catt_data['data'] as &$cat_data) {
                 $cat_data['value'] = $cat_data['value'] / 100;
             }
         }
