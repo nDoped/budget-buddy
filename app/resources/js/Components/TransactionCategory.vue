@@ -50,7 +50,7 @@
     });
   });
   const fetchFilteredCatsOptions = (cat) => {
-    let cats = [ ...filteredCats.value, cat ];
+    let cats = [ ...filteredCats.value, cat.cat_data ];
     cats.sort(function(a, b) {
       if (a.cat_type_name !== b.cat_type_name) {
         if (a.cat_type_name < b.cat_type_name) return -1;

@@ -86,7 +86,7 @@
   const updateCategories = (newCats) => {
     categoriesInvalid.value = false;
     form.categories = [];
-    newCats.value.forEach(c => form.categories.push(c));
+    newCats.forEach(c => form.categories.push(c));
   };
 
   const setCategoriesInvalid = () => {
