@@ -60,7 +60,7 @@ class TransactionPostRequest extends FormRequest
                 'note' => [ 'nullable', 'string'],
                 'edit_child_transactions' => [ 'nullable', 'boolean'],
                 'categories' => [ 'nullable' ],
-                'categories.*.name' => [ 'required' ],
+                'categories.*.cat_data.name' => [ 'required' ],
             ];
 
             if ($route_name === 'transactions.store') {
@@ -92,5 +92,19 @@ class TransactionPostRequest extends FormRequest
             break;
         }
         return $ret;
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            'categories.*.cat_data.name.required' => 'A category name is required',
+            'account_id.required' => 'An account is required',
+            'amount.required' => 'An amount is required',
+        ];
     }
 }

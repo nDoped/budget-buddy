@@ -220,13 +220,14 @@ class TransactionController extends Controller
         }
 
         foreach ($data['categories'] as $cat) {
-            if ($cat['cat_id']) {
-                $cat_model = Category::find($cat['cat_id']);
+            $cat_data = $cat['cat_data'];
+            if ($cat_data['cat_id']) {
+                $cat_model = Category::find($cat_data['cat_id']);
             } else {
                 $cat_model = new Category();
-                $cat_model->name = $cat['name'];
-                $cat_model->hex_color = $cat['color'];
-                $cat_model->category_type_id = $cat['cat_type_id'];
+                $cat_model->name = $cat_data['name'];
+                $cat_model->hex_color = $cat_data['color'];
+                $cat_model->category_type_id = $cat_data['cat_type_id'];
                 $cat_model->user_id = $current_user->id;
                 $cat_model->save();
             }
@@ -274,14 +275,15 @@ class TransactionController extends Controller
         $transaction->transaction_date = $data['transaction_date'];
         $transaction->categories()->detach();
         foreach ($data['categories'] as $cat) {
-            if ($cat['cat_id']) {
-                $cat_model = Category::find($cat['cat_id']);
+            $cat_data = $cat['cat_data'];
+            if ($cat_data['cat_id']) {
+                $cat_model = Category::find($cat_data['cat_id']);
             } else {
                 $cat_model = new Category();
-                $cat_model->name = $cat['name'];
-                $cat_model->category_type_id = $cat['cat_type_id'];
+                $cat_model->name = $cat_data['name'];
+                $cat_model->category_type_id = $cat_data['cat_type_id'];
                 $cat_model->user_id = $current_user->id;
-                $cat_model->hex_color = $cat['color'];
+                $cat_model->hex_color = $cat_data['color'];
                 $cat_model->save();
             }
             $percent = $cat['percent'];

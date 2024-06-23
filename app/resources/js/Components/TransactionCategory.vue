@@ -103,9 +103,8 @@
     return Math.round((percentTotal + Number.EPSILON) * 100) / 100
   });
   const getError = (i) => {
-    if (props.errors[`categories.${i}.name`]) {
-      let ret = 'The name field is required';
-      return {name: ret};
+    if (props.errors[`categories.${i}.cat_data.name`]) {
+      return {name: props.errors[`categories.${i}.cat_data.name`]};
     }
   };
   watch(
@@ -130,14 +129,7 @@
   };
   const catChange = () => {
     if (percentTotal.value === 100 || catsRef.value.length === 0) {
-      // transform catsRef back into the structure the parent component expects
-      let cats = catsRef.value.map((c) => {
-        return {
-          ...c.cat_data,
-          percent: c.percent
-        };
-      });
-      emit('category-update', cats);
+      emit('category-update', catsRef);
     } else {
       emit('invalid-category-state');
     }
@@ -244,6 +236,10 @@
             Create a New Category
           </h2>
           <CategoryInputs
+            :id="getUuid('category-inputs', i)"
+            :type="category.cat_data.cat_type_id"
+            :name="category.cat_data.name"
+            :color="category.cat_data.color"
             :category-types="categoryTypes"
             :errors="getError(i)"
             @field-update="(data) => createCategory(i, data)"
