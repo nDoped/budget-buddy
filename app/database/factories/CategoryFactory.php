@@ -3,13 +3,13 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\AccountType;
+use App\Models\CategoryType;
 use App\Models\User;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Account>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Category>
  */
-class AccountFactory extends Factory
+class CategoryFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -19,10 +19,10 @@ class AccountFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name(),
-            'initial_balance' =>  0,
-            'type_id' => AccountType::factory(),
+            'name' => $this->faker->text(),
+            'category_type_id' => CategoryType::factory(),
             'user_id' => User::factory(),
+            'hex_color' => $this->faker->hexColor()
         ];
     }
 }

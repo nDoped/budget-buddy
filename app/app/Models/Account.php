@@ -23,4 +23,12 @@ class Account extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    /**
+     * Get the user that owns the account
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

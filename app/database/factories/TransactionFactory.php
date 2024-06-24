@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Account;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,11 @@ class TransactionFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'credit' => $this->faker->boolean(),
+            'account_id' => Account::factory(),
+            'transaction_date' => $this->faker->date(),
+            'amount' => $this->faker->randomDigit(),
+            'note' => $this->faker->text(),
         ];
     }
 }

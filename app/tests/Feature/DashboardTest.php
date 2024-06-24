@@ -20,10 +20,6 @@ class DashboardTest extends TestCase
         $this->actingAs($user = User::factory()->create());
 
         $response = $this->get('/dashboard');
-        Log::info([
-            'response' => $response
-
-        ]);
 
         $this->assertTrue(true);
         $this->assertTrue(Hash::check('new-password', $user->fresh()->password));

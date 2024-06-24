@@ -57,17 +57,8 @@ class Transaction extends Model
 
         $current_user = Auth::user();
 
-        $transactions_to_range = Transaction::where(function($query) {
-            $query->select('user_id')
-                ->from('accounts')
-                ->whereColumn('accounts.id', 'transactions.account_id');
-        }, $current_user->id);
-
-        $transactions_in_range = Transaction::where(function($query) {
-            $query->select('user_id')
-                ->from('accounts')
-                ->whereColumn('accounts.id', 'transactions.account_id');
-        }, $current_user->id)->orderBy('transaction_date', $order_by);
+        $transactions_to_range = $current_user->transactions();
+        $transactions_in_range = $current_user->transactions()->orderBy('transaction_date', $order_by);
         if ($filter_accounts) {
             $transactions_in_range = $transactions_in_range->whereIn('account_id', $filter_accounts);
         }

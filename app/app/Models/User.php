@@ -58,4 +58,28 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    /**
+     * Get the account types for this user
+     */
+    public function accountTypes()
+    {
+        return $this->hasMany(AccountType::class);
+    }
+
+    /**
+     * Get the accounts for this user
+     */
+    public function accounts()
+    {
+        return $this->hasMany(Account::class);
+    }
+
+    /**
+     * Get the transactions for this user
+     */
+    public function transactions()
+    {
+        return $this->hasManyThrough(Transaction::class, Account::class);
+    }
 }
