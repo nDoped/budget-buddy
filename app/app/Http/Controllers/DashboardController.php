@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 
@@ -270,7 +271,7 @@ class DashboardController extends Controller
         $total_eco_growth = ($total_net_growth['assets']['in_range_net_growth'] - $total_net_growth['debts']['in_range_net_growth']) / 100;
         foreach ($total_net_growth as $group => $data) {
             foreach ($data as $key => $val) {
-                if ($key === 'name') {
+                if (in_array($key, [ 'name', 'asset', 'expand' ])) {
                     continue;
                 }
                 $total_net_growth[$group][$key] = $val / 100;
@@ -279,16 +280,19 @@ class DashboardController extends Controller
 
         $asset_accts[] = $total_net_growth['assets'];
         $debt_accts[] = $total_net_growth['debts'];
-        $data['start'] = $start;
-        $data['end'] = $end;
-        $data['category_type_breakdowns'] = $trans_data['category_type_breakdowns'];
-        $data['asset_accounts'] = $asset_accts;
-        $data['debt_accounts'] = $debt_accts;
-        $data['account_growth_line_data']['daily_economic_growth'] = $account_growth_line_data['daily_economic_growth'];
-        $data['account_growth_line_data']['total_economic_growth'] = $account_growth_line_data['total_economic_growth'];
-        $data['total_economic_growth'] = $total_eco_growth;
         return Inertia::render('Dashboard', [
-            'data' => $data
+            'data' => [
+                'start' => $start,
+                'end' => $end,
+                'category_type_breakdowns' => $trans_data['category_type_breakdowns'],
+                'asset_accounts' => $asset_accts,
+                'debt_accounts' => $debt_accts,
+                'account_growth_line_data' => [
+                    'daily_economic_growth' => $account_growth_line_data['daily_economic_growth'],
+                    'total_economic_growth' => $account_growth_line_data['total_economic_growth']
+                ],
+                'total_economic_growth' => $total_eco_growth
+            ]
         ]);
     }
 

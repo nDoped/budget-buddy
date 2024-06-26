@@ -20,4 +20,11 @@ class Category extends Model
     {
         return $this->belongsTo(CategoryType::class);
     }
+    /**
+     * Get the user that owns the account
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

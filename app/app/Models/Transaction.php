@@ -5,9 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * App\Models\Transaction
+ *
+ * @property int $id
+ * @property int $amount
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Exam whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Transaction extends Model
 {
     use HasFactory;
@@ -15,7 +29,7 @@ class Transaction extends Model
     /**
      * Get the account that owns the transaction.
      */
-    public function account()
+    public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
     }
@@ -103,9 +117,9 @@ class Transaction extends Model
             $categories = [];
             foreach ($trans->categories as $cat) {
                 $percent = $cat->pivot->percentage;
-                // ..idk..i guess i wanted percentages to be extremely precise...
-                // they're stored as 10e4 in the db, so divide by
-                // 10000 to get its numerical value
+                // percentages are stored as an integer with two sigfigs
+                // so dividing by 100 gets the % value, dividing by another
+                // 100 gets the float value suitable for mulitplication
                 $cat_value = $trans->amount * ($percent / 10000);
 
                 if ($cat->category_type_id) {
@@ -162,7 +176,6 @@ class Transaction extends Model
                             ]
                         ];
                     }
-
                 }
 
                 $catt = CategoryType::find($cat->category_type_id);
@@ -200,9 +213,9 @@ class Transaction extends Model
         }
 
         foreach ($category_type_breakdowns as &$catt_data) {
-                $catt_data['total'] = $catt_data['total'] / 100;
+                $catt_data['total'] = round($catt_data['total'] / 100, 2);
             foreach ($catt_data['data'] as &$cat_data) {
-                $cat_data['value'] = $cat_data['value'] / 100;
+                $cat_data['value'] = round($cat_data['value'] / 100, 2);
             }
         }
 
