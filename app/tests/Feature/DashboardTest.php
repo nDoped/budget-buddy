@@ -45,8 +45,6 @@ class DashboardTest extends TestCase
             'name' => 'cat2',
             'hex_color' => '#ffffff',
         ]);
-        /* $cat1 = Category::factory()->for($user)->create(); */
-        /* $cat2 = Category::factory()->for($user)->create(); */
         $catType1 = $cat1->categoryType;
         $catType1->name = 'CatType1';
         $catType1->save();
@@ -220,8 +218,65 @@ class DashboardTest extends TestCase
                         }
                     )
                     ->etc()
-                    /* ->dd('data') */
                  )
+                 ->has('data.category_type_breakdowns.' . $catType2->id, 4)
+                 ->where('data.category_type_breakdowns.' . $catType2->id . '.name', $catType2->name)
+                 ->where('data.category_type_breakdowns.' . $catType2->id . '.color', $catType2->hex_color)
+                 ->where('data.category_type_breakdowns.' . $catType2->id . '.total',
+                     round(
+                         (($transaction1->amount * $actualCatPercentage2)
+                         + ($transaction2->amount * $actualCatPercentage2)
+                         + ($transaction3->amount * $actualCatPercentage2)) / 100,
+                         2
+                     )
+                 )
+                 ->has('data.category_type_breakdowns.' . $catType2->id . '.data.' . $cat2->id, 4)
+                 ->where('data.category_type_breakdowns.' . $catType2->id . '.data.' . $cat2->id . '.name', $cat2->name)
+                 ->where(
+                     'data.category_type_breakdowns.' . $catType2->id . '.data.' . $cat2->id . '.value',
+                     round(
+                         (($transaction1->amount * $actualCatPercentage2)
+                         + ($transaction2->amount * $actualCatPercentage2)
+                         + ($transaction3->amount * $actualCatPercentage2)) / 100,
+                         2
+                     )
+                 )
+                 ->where('data.category_type_breakdowns.' . $catType2->id . '.data.' . $cat2->id . '.color', $cat2->hex_color)
+                 ->has('data.category_type_breakdowns.' . $catType2->id . '.data.' . $cat2->id . '.transactions', 3,
+                     function (Assert $page) use ($transaction1, $transaction2, $transaction3, $cat2) {
+                         $current_trans = $page->toArray();
+                         $transaction = null;
+                         switch($current_trans['props']['id']) {
+                             case $transaction1->id:
+                                 $transaction = $transaction1;
+                                 break;
+                             case $transaction2->id:
+                                 $transaction = $transaction2;
+                                 break;
+                             case $transaction3->id:
+                                 $transaction = $transaction3;
+                                 break;
+                         }
+                         $cats = $transaction->categories;
+                         $cat_val = null;
+                         foreach ($cats as $cat) {
+                             if ($cat->id !== $cat2->id) {
+                                 continue;
+                             }
+                             $percent = $cat->pivot->percentage;
+                             $cat_val = ($transaction->amount * ($percent / 10000)) / 100;
+                         }
+
+                         return $page
+                             ->where('id', $transaction->id)
+                             ->where('date', $transaction->transaction_date)
+                             ->where('note', $transaction->note)
+                             ->where('cat_value', $cat_val)
+                             ->etc();
+                     }
+                 )
+                 ->etc()
+                 /* ->dd('data') */
         );
 
     }
