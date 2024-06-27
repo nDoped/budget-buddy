@@ -23,6 +23,7 @@ class AccountFactory extends Factory
             'initial_balance' =>  0,
             'type_id' => AccountType::factory(),
             'user_id' => User::factory(),
+            'url' => 'https://www.example.com',
         ];
     }
 }
