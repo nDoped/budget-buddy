@@ -119,8 +119,6 @@ class DashboardController extends Controller
 
             // else this is a debit
             } else {
-
-
                 // to an asset account
                 if ($acct['asset']) {
                     $account_data[$trans['account_id']]['in_range_net_growth'] -= $trans['amount_raw'];
