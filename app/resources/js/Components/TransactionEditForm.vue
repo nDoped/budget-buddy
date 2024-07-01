@@ -137,7 +137,7 @@
     }
     showRecurringEditDialogue.value = false;
 
-    form.post(route('transactions.update', { transaction: props.transaction.id }), {
+    form.patch(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
       onSuccess: () => success(false),
       onError: (err) =>  {

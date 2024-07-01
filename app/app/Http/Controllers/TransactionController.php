@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use App\Http\Requests\TransactionPostRequest;
 use App\Models\Account;
 use App\Models\Category;
@@ -78,11 +78,11 @@ class TransactionController extends Controller
         }
 
         $args = [
-            'start' => $start,
-            'end' => $end,
+            'start_date' => $start,
+            'end_date' => $end,
             'include_to_range' => false,
             'order_by' => 'desc',
-            'filter_accounts' => $filter_accounts
+            'filter_account_ids' => $filter_accounts
         ];
         $data = Transaction::fetch_transaction_data_for_current_user($args);
         $data['start'] = $start;
@@ -117,9 +117,8 @@ class TransactionController extends Controller
                 'name' => $catt->name,
                 'id' => $catt->id,
                 'expand' => true,
-                'color' => $catt->hex_color,
+                'hex_color' => $catt->hex_color,
             ];
-
         }
         return $catts;
     }
@@ -139,7 +138,7 @@ class TransactionController extends Controller
                 'cat_id' => $cat->id,
                 'cat_type_name' => ($catt) ? $catt->name : null,
                 'cat_type_id' => ($catt) ? $catt->id : null,
-                'color' => $cat->hex_color
+                'hex_color' => $cat->hex_color
             ];
         }
         return $cats;
@@ -151,105 +150,17 @@ class TransactionController extends Controller
      * @param  \App\Http\Requests\TransactionPostRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
+    public function store(TransactionPostRequest $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
-        $current_user = Auth::user();
         $trans = new Transaction();
-        $trans->amount = $data['amount'] * 100;
-        $trans->credit = $data['credit'];
-        $trans->account_id = $data['account_id'];
-        $trans->transaction_date = $data['transaction_date'];
-        $trans->note = strip_tags($data['note']);
-        $trans->save();
-        $trans_buddy = null;
-        if ($data['trans_buddy']) {
-            $trans_buddy = $trans->replicate();
-            $trans_buddy->credit = ! $trans->credit;
-            $trans_buddy->account_id = $data['trans_buddy_account'];
-            $trans_buddy->note = $data['trans_buddy_note'];
-            $trans_buddy->buddy_id = $trans->id;
-            $trans_buddy->save();
-            $trans->buddy_id = $trans_buddy->id;
-            $trans->save();
-        }
-
-        $recurring_transactions = [];
-        $recurring_buddy_transactions = [];
-        $duration = '';
-        if ($data['recurring']) {
-            switch ($data['frequency']) {
-            case 'yearly':
-                $duration = 'P1Y';
-                break;
-
-            case 'quarterly':
-                $duration = 'P3M';
-                break;
-
-            case 'monthly':
-                $duration = 'P1M';
-                break;
-
-            case 'biweekly':
-                $duration = 'P14D';
-                break;
-            }
-
-            $d = new \DateTime($data['transaction_date']);
-            $trans->parent_id = $trans->id;
-            $trans->save();
-            $next_date = $d->add(new \DateInterval($duration));
-            while ($next_date->format('Y-m-d') <= $data['recurring_end_date']) {
-                $recurring_trans = $trans->replicate();
-                $recurring_trans->transaction_date = $next_date->format(\DateTime::ATOM);
-                $recurring_trans->parent_id = $trans->id;
-                $recurring_trans->save();
-                $recurring_transactions[] = $recurring_trans;
-                if ($trans_buddy) {
-                    $recurring_buddy = $trans_buddy->replicate();
-                    $recurring_buddy->transaction_date = $next_date->format(\DateTime::ATOM);
-                    $recurring_buddy->buddy_id = $recurring_trans->id;
-                    $recurring_buddy->save();
-                    $recurring_buddy_transactions[] = $recurring_buddy;
-                    $recurring_trans->buddy_id = $recurring_buddy->id;
-                    $recurring_trans->save();
-                }
-                $next_date = $next_date->add(new \DateInterval($duration));
-            }
-        }
-
-        foreach ($data['categories'] as $cat) {
-            $cat_data = $cat['cat_data'];
-            if ($cat_data['cat_id']) {
-                $cat_model = Category::find($cat_data['cat_id']);
-            } else {
-                $cat_model = new Category();
-                $cat_model->name = $cat_data['name'];
-                $cat_model->hex_color = $cat_data['color'];
-                $cat_model->category_type_id = $cat_data['cat_type_id'];
-                $cat_model->user_id = $current_user->id;
-                $cat_model->save();
-            }
-            $percent = $cat['percent'];
-            $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-
-            if ($trans_buddy) {
-                $trans_buddy->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-            }
-            foreach ($recurring_transactions as $rec_trans) {
-                $rec_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-            }
-            foreach ($recurring_buddy_transactions as $rec_bud_trans) {
-                $rec_bud_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-            }
-        }
-
+        $trans->create($data);
         return redirect()
             ->route(
                 'transactions',
                 [ 'use_session_filter_dates' => true ]
             );
+        //return to_route('transactions')->with('use_session_filter_dates', true);
     }
 
     /**
@@ -257,105 +168,29 @@ class TransactionController extends Controller
      *
      * @param  \App\Http\Requests\TransactionPostRequest $request
      * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(TransactionPostRequest $request, Transaction $transaction) : \Illuminate\Http\RedirectResponse
+    public function update(TransactionPostRequest $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
-        $current_user = Auth::user();
-        $transaction->amount = $data['amount'] * 100;
-        $transaction->account_id = $data['account_id'];
-        $transaction->credit = $data['credit'];
-        if ($data['bank_identifier']) {
-            $transaction->bank_identifier = strip_tags($data['bank_identifier']);
-        }
-        if ($data['note']) {
-            $transaction->note = strip_tags($data['note']);
-        }
-        $transaction->transaction_date = $data['transaction_date'];
-        $transaction->categories()->detach();
-        foreach ($data['categories'] as $cat) {
-            $cat_data = $cat['cat_data'];
-            if ($cat_data['cat_id']) {
-                $cat_model = Category::find($cat_data['cat_id']);
-            } else {
-                $cat_model = new Category();
-                $cat_model->name = $cat_data['name'];
-                $cat_model->category_type_id = $cat_data['cat_type_id'];
-                $cat_model->user_id = $current_user->id;
-                $cat_model->hex_color = $cat_data['color'];
-                $cat_model->save();
-            }
-            $percent = $cat['percent'];
-            $transaction->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-        }
-
-        $transaction->save();
-        if ($transaction->buddy_id) {
-            $this->_updateBuddyTransaction($transaction);
-        }
-
-        if ($data['edit_child_transactions'] && $transaction->parent_id) {
-            $future_transactions = Transaction::where('parent_id', '=', $transaction->parent_id)
-                ->where('transaction_date', '>', $transaction->transaction_date)->get();
-            foreach ($future_transactions as $future_trans) {
-                $future_trans->amount = $data['amount'] * 100;
-                $future_trans->credit = $data['credit'];
-                $future_trans->account_id = $data['account_id'];
-                if ($data['note']) {
-                    $future_trans->note = $data['note'];
-                }
-
-                $future_trans->categories()->detach();
-                foreach ($data['categories'] as $cat) {
-                    $cat_model = Category::find($cat['cat_id']);
-                    $percent = $cat['percent'];
-                    $future_trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
-                }
-                $future_trans->save();
-                if ($future_trans->buddy_id) {
-                    $this->_updateBuddyTransaction($future_trans);
-                }
-            }
-        }
-
+        $transaction->updateTrans($data);
         return redirect()
             ->route(
                 'transactions',
                 [ 'use_session_filter_dates' => true ]
             );
-    }
-
-    private function _updateBuddyTransaction(Transaction $transaction)
-    {
-        if (! $transaction->buddy_id) {
-            return;
-        }
-        $trans_buddy = Transaction::where('id', '=', $transaction->buddy_id)->first();
-        $trans_buddy->amount = $transaction->amount;
-        $trans_buddy->credit = ! $transaction->credit;
-        $trans_buddy->transaction_date = $transaction->transaction_date;
-        $trans_buddy->note = $transaction->note;
-        /*
-        $trans_buddy->categories()->detach();
-        foreach ($transaction->categories as $cat) {
-            $percent = $cat->pivot->percentage / 100;
-            $trans_buddy->categories()->save($cat, [ 'percentage' => $percent * 100 ]);
-        }
-         */
-        $trans_buddy->save();
+        //return to_route('transactions')->with('use_session_filter_dates', true);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Http\Requests\TransactionPostRequest $request
+     * @param  \App\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TransactionPostRequest $request) : \Illuminate\Http\RedirectResponse
+    public function destroy(Request $request) : \Illuminate\Http\RedirectResponse
     {
-        $data = $request->validated();
-        $target = Transaction::where('id', '=', $data['id'])->first();
+        $target = Transaction::where('id', '=', $request->id)->first();
         if (! $target) {
             return redirect()
                 ->route(
@@ -366,7 +201,7 @@ class TransactionController extends Controller
 
         // we're deleting a parent and not wanting to delete all of the children
         // so we need to move the parent id for all children to the next in line
-        if (! $data['delete_child_transactions'] && $target->parent_id === $target->id) {
+        if (! $request->delete_child_transactions && $target->parent_id === $target->id) {
             $next_child_trans = Transaction::where('parent_id', '=', $target->id)
                 ->where('id', '<>', $target->id)
                 ->first();
@@ -378,7 +213,7 @@ class TransactionController extends Controller
                 $child_trans->save();
             }
         }
-        if ($data['delete_child_transactions']) {
+        if ($request->delete_child_transactions) {
             $child_transactions = Transaction::where('parent_id', '=', $target->parent_id)
                 ->where('transaction_date', '>', $target->transaction_date)
                 ->get();

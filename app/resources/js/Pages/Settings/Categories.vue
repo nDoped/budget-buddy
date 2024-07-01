@@ -22,7 +22,7 @@
     //{ key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'category_type_name', label: 'Type', sortable: true },
-    { key: 'color', label: 'Color', sortable: true  },
+    { key: 'hex_color', label: 'Color', sortable: true  },
     { key: 'active_text', label: 'Active', sortable: true  },
   ]);
 
@@ -31,7 +31,7 @@
   };
 
   const cellBackground = (item) => {
-    return `background-color: ${item.color}`
+    return `background-color: ${item.hex_color}`
   }
 </script>
 
@@ -55,7 +55,7 @@
           class="grow w-full bg-gray-800 text-slate-300"
         >
           <template #visible_row="{ item , key }">
-            <div v-if="key === 'color'">
+            <div v-if="key === 'hex_color'">
               <span :style="cellBackground(item)">
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               </span>

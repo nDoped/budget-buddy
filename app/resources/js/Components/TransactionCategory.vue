@@ -145,14 +145,14 @@
         name: filteredCats.value[0].name,
         cat_type_id: filteredCats.value[0].cat_type_id,
         cat_type_name: filteredCats.value[0].cat_type_name,
-        color: filteredCats.value[0].color,
+        hex_color: filteredCats.value[0].color,
       },
       percent: 0,
     });
   };
   const createCategory = (i, data) => {
     catsRef.value[i].cat_data.name = data.name;
-    catsRef.value[i].cat_data.color = data.color;
+    catsRef.value[i].cat_data.hex_color = data.color;
     catsRef.value[i].cat_data.cat_type_id = data.type;
   };
   const createANewCategory = () => {
@@ -162,7 +162,7 @@
         name: null,
         cat_type_id: null,
         cat_type_name: null,
-        color: '#000000',
+        hex_color: '#000000',
       },
       percent: 0,
     });

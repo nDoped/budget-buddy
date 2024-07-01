@@ -17,27 +17,25 @@ if [ $? != 0 ]; then
     tmux new-window -n $dev_win
     tmux split-window -v
     tmux select-pane -U
-    tmux send-keys "cd app && sale npm run dev"
+    tmux send-keys "cd app " Enter
+    tmux send-keys "sale npm run dev"
     tmux split-window -h
     tmux send-keys "cd app && systemctl --user start docker-desktop && sale up" Enter
     tmux select-pane -U
     tmux send-keys "cd app" Enter
     tmux send-keys "nvim "
 
-    tmux new-window -n $terminal_win
-    tmux send-keys "cd app" Enter
-
     tmux new-window -n $mysql_win
     tmux send-keys "cd app && vim exact_model_budget.sql" Enter
-
-    tmux new-window -n $debug_win
-    tmux send-keys "cd app && nvim storage/logs/laravel.log" Enter
 
     tmux new-window -n $tests_win
     tmux send-keys "cd app/tests && nvim Feature/DashboardTest.php" Enter
     tmux split-window -h
     tmux send-keys "cd app/" Enter
     tmux send-keys "sale artisan test"
+
+    tmux new-window -n $debug_win
+    tmux send-keys "cd app && nvim storage/logs/laravel.log" Enter
 
     tmux new-window -n $imports_win
     tmux send-keys "cd app" Enter

@@ -26,8 +26,8 @@ class DashboardController extends Controller
         }
 
         $args = [
-            'start' => $start,
-            'end' => $end,
+            'start_date' => $start,
+            'end_date' => $end,
             'jsonify_categories' => false,
             'include_to_range' => true,
             'order_by' => 'asc',

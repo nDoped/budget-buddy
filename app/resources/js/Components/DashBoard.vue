@@ -129,7 +129,7 @@
       ret.push({
         title: props.categoryTypeBreakdowns[i].name,
         value: formatter.format(props.categoryTypeBreakdowns[i].total),
-        color: props.categoryTypeBreakdowns[i].color
+        hex_color: props.categoryTypeBreakdowns[i].hex_color
       });
     }
     return ret;
@@ -335,7 +335,7 @@
           v-if="mounted && ! filterTransactionsForm.processing"
           :categorized-expenses="br.data"
           :title="getBreakdownTitle(br)"
-          :color="br.color"
+          :color="br.hex_color"
         />
       </div>
     </div>

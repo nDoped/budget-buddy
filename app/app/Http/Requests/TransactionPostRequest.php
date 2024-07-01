@@ -42,13 +42,6 @@ class TransactionPostRequest extends FormRequest
         $ret = [];
         $route_name = Route::currentRouteName();
         switch ($route_name) {
-        case 'transactions.destroy':
-            $ret = [
-                'id' => [ 'required', 'gt:0', 'numeric' ],
-                'delete_child_transactions' => [ 'nullable', 'boolean'],
-            ];
-            break;
-
         case 'transactions.store':
         case 'transactions.update':
             $ret = [

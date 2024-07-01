@@ -1,7 +1,6 @@
 <script setup>
   import {
-    ref,
-    computed
+    ref
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';

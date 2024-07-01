@@ -25,15 +25,11 @@
 </template>
 
 <script setup>
-  import {
-    computed,
-  } from 'vue';
-
   const getStyle = (stat) => {
-    return `color: ${stat.color}`
+    return `color: ${stat.hex_color}`
   };
 
-  const props = defineProps({
+  defineProps({
     stats: {
       type: Array,
       default() {

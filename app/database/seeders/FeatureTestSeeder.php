@@ -52,9 +52,11 @@ class FeatureTestSeeder extends Seeder
             'hex_color' => '#aaaaaa',
         ]);
         $catType1 = $cat1->categoryType;
+        $catType1->user_id = $testingUser->id;
         $catType1->name = 'CatType1';
         $catType1->save();
         $catType2 = $cat2->categoryType;
+        $catType2->user_id = $testingUser->id;
         $catType2->name = 'CatType2';
         $catType2->save();
         $cat3->category_type_id = $catType2->id;

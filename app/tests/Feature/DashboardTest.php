@@ -171,7 +171,7 @@ class DashboardTest extends TestCase
                 // CatType1
                 $cat_type1 = $category_type_breakdowns[$this->catType1->id];
                 $this->assertEquals($this->catType1->name, $cat_type1['name']);
-                $this->assertEquals($this->catType1->hex_color, $cat_type1['color']);
+                $this->assertEquals($this->catType1->hex_color, $cat_type1['hex_color']);
                 $this->assertEquals(
                     round(
                         (($this->savingsTransaction1->amount * $this->actualCatPercentage1)
@@ -196,7 +196,7 @@ class DashboardTest extends TestCase
                     ),
                     $cat1_data['value']
                 );
-                $this->assertEquals($this->cat1->hex_color, $cat1_data['color']);
+                $this->assertEquals($this->cat1->hex_color, $cat1_data['hex_color']);
 
                 $cat1_transactions = $cat1_data['transactions'];
                 $this->assertEquals(3, count($cat1_transactions));
@@ -212,7 +212,7 @@ class DashboardTest extends TestCase
                 // CatType2
                 $cat_type2 = $category_type_breakdowns[$this->catType2->id];
                 $this->assertEquals($this->catType2->name, $cat_type2['name']);
-                $this->assertEquals($this->catType2->hex_color, $cat_type2['color']);
+                $this->assertEquals($this->catType2->hex_color, $cat_type2['hex_color']);
                 $this->assertEquals(
                     round(
                         (($this->savingsTransaction1->amount * $this->actualCatPercentage2)
@@ -230,7 +230,7 @@ class DashboardTest extends TestCase
 
                 $cat2_data = $cat_type_2_categories[$this->cat2->id];
                 $this->assertEquals($this->cat2->name, $cat2_data['name']);
-                $this->assertEquals($this->cat2->hex_color, $cat2_data['color']);
+                $this->assertEquals($this->cat2->hex_color, $cat2_data['hex_color']);
                 $this->assertEquals(
                     round(
                         (($this->savingsTransaction2->amount * $this->actualCatPercentage2)
@@ -252,7 +252,7 @@ class DashboardTest extends TestCase
 
                 $cat3_data = $cat_type_2_categories[$this->cat3->id];
                 $this->assertEquals($this->cat3->name, $cat3_data['name']);
-                $this->assertEquals($this->cat3->hex_color, $cat3_data['color']);
+                $this->assertEquals($this->cat3->hex_color, $cat3_data['hex_color']);
                 $this->assertEquals(
                     round(($this->savingsTransaction1->amount * $this->actualCatPercentage2) / 100, 2),
                     $cat3_data['value']
@@ -435,7 +435,7 @@ class DashboardTest extends TestCase
                 // CatType1
                 $cat_type1 = $category_type_breakdowns[$this->catType1->id];
                 $this->assertEquals($this->catType1->name, $cat_type1['name']);
-                $this->assertEquals($this->catType1->hex_color, $cat_type1['color']);
+                $this->assertEquals($this->catType1->hex_color, $cat_type1['hex_color']);
                 $this->assertEquals(
                     round(
                         ($this->savingsTransaction0->amount
@@ -464,7 +464,7 @@ class DashboardTest extends TestCase
                     ),
                     $cat1_data['value']
                 );
-                $this->assertEquals($this->cat1->hex_color, $cat1_data['color']);
+                $this->assertEquals($this->cat1->hex_color, $cat1_data['hex_color']);
 
                 $cat1_transactions = $cat1_data['transactions'];
                 $this->assertEquals(5, count($cat1_transactions));
@@ -482,7 +482,7 @@ class DashboardTest extends TestCase
                 // CatType2
                 $cat_type2 = $category_type_breakdowns[$this->catType2->id];
                 $this->assertEquals($this->catType2->name, $cat_type2['name']);
-                $this->assertEquals($this->catType2->hex_color, $cat_type2['color']);
+                $this->assertEquals($this->catType2->hex_color, $cat_type2['hex_color']);
                 $this->assertEquals(
                     round(
                         (($this->savingsTransaction1->amount * $this->actualCatPercentage2)
@@ -501,7 +501,7 @@ class DashboardTest extends TestCase
 
                 $cat2_data = $cat_type_2_categories[$this->cat2->id];
                 $this->assertEquals($this->cat2->name, $cat2_data['name']);
-                $this->assertEquals($this->cat2->hex_color, $cat2_data['color']);
+                $this->assertEquals($this->cat2->hex_color, $cat2_data['hex_color']);
                 $this->assertEquals(
                     round(
                         (($this->savingsTransaction2->amount * $this->actualCatPercentage2)
@@ -525,7 +525,7 @@ class DashboardTest extends TestCase
 
                 $cat3_data = $cat_type_2_categories[$this->cat3->id];
                 $this->assertEquals($this->cat3->name, $cat3_data['name']);
-                $this->assertEquals($this->cat3->hex_color, $cat3_data['color']);
+                $this->assertEquals($this->cat3->hex_color, $cat3_data['hex_color']);
                 $this->assertEquals(
                     round(($this->savingsTransaction1->amount * $this->actualCatPercentage2) / 100, 2),
                     $cat3_data['value']

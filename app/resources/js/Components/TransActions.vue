@@ -72,13 +72,13 @@
     let ret = '';
     let catCnt = cats.length;
     if (catCnt === 1) {
-      ret += `<span style='border-bottom: solid ${cats[0].cat_data.color}'>`;
+      ret += `<span style='border-bottom: solid ${cats[0].cat_data.hex_color}'>`;
       ret += `${cats[0].cat_data.name}`;
       ret += '</span>';
 
     } else {
       cats.forEach((c) => {
-        ret += `<span style='border-bottom: solid ${c.cat_data.color}'>`;
+        ret += `<span style='border-bottom: solid ${c.cat_data.hex_color}'>`;
         ret += ` ${c.cat_data.name} : ${c.percent}%`;
         ret += '</span><br/>';
       });

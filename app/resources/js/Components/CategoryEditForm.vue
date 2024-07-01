@@ -27,7 +27,7 @@
 
   const form = useForm({
     name: props.category.name,
-    color: props.category.color,
+    hex_color: props.category.hex_color,
     active: props.category.active,
     category_type: props.category.category_type_id
   });
@@ -36,7 +36,7 @@
     () => props.category,
     () => {
       form.name = props.category.name;
-      form.color = props.category.color;
+      form.hex_color = props.category.hex_color;
       form.active = props.category.active;
       form.category_type = props.category.category_type_id;
       deleteCategoryForm.id = props.category.id;
@@ -79,7 +79,7 @@
 
   const updateInputs = ({ name, color, type, active }) => {
     form.name = name;
-    form.color = color;
+    form.hex_color = color;
     form.category_type = type;
     form.active = active;
   };
@@ -114,7 +114,7 @@
             :errors="form.errors"
             :name="form.name"
             :type="form.category_type"
-            :color="form.color"
+            :color="form.hex_color"
             :active="form.active"
             :category-types="categoryTypes"
             :include-active-input="true"

@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 use Database\Seeders\FeatureTestSeeder;
 
@@ -29,16 +30,18 @@ class TransactionTest extends TestCase
     private $catType2;
     private $actualCatPercentage1;
     private $actualCatPercentage2;
+    private $user;
 
     protected function setup(): void
     {
         parent::setUp();
         $this->seed(FeatureTestSeeder::class);
-        $user = User::find(100000);
-        $this->actingAs($user);
+        $this->user = User::find(100000);
+        $this->actingAs($this->user);
         $this->savingsAccount = Account::find(100001);
         $this->creditCardAccount = Account::find(100002);
 
+        $this->assertEquals($this->savingsAccount->user_id, $this->user->id);
         $this->cat1 = Category::find(100003);
         $this->cat2 = Category::find(100004);
         $this->cat3 = Category::find(100005);
@@ -66,40 +69,32 @@ class TransactionTest extends TestCase
         $this->creditTransaction2 = Transaction::find(100010);
     }
 
-    /**
-     *
-     * @return void
-     */
     public function test_transaction_post()
     {
-        $this->actingAs($user = User::factory()->create());
-        $account = Account::factory()->for($user)->create();
-        $cat1 = Category::factory()->create();
-        $cat2 = Category::factory()->create();
         $response = $this->post(
             '/transactions/store',
             [
-                'account_id' => $account->id,
+                'account_id' => $this->savingsAccount->id,
                 'amount' => 1000,
                 'credit' => true,
-                'note' => 'test note',
+                'note' => 'a newly posted transaction',
                 'trans_buddy' => false,
                 'recurring' => false,
                 'categories' => [
                     [
-                        'cat_data' => [
-                            'hex_color' => $cat1->hex_color,
-                            'cat_id' => $cat1->id,
-                            'name' => $cat1->name,
+                'cat_data' => [
+                            'hex_color' => $this->cat1->hex_color,
+                            'cat_id' => $this->cat1->id,
+                            'name' => $this->cat1->name,
                         ],
                         'percent' => 50
 
                     ],
                     [
                         'cat_data' => [
-                            'hex_color' => $cat2->hex_color,
-                            'cat_id' => $cat2->id,
-                            'name' => $cat2->name,
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
                         ],
                         'percent' => 50
                     ]
@@ -109,25 +104,860 @@ class TransactionTest extends TestCase
         );
         $response->assertStatus(302);
 
-        $this->assertEquals(1, count($user->transactions));
-        $this->assertEquals(1, count($user->accounts));
-        $trans =  $user->transactions[0];
-        $account =  $user->accounts[0];
-        $this->assertEquals(1000 * 100, $trans->amount);
-        $this->assertEquals($account->id, $trans->account_id);
-        //$this->assertEquals(1000, $user->transactions->pluck('amount'));
-        $this->assertEquals(2, count($trans->categories));
-
-        /* var_dump([ */
-        /*     'Feature/TransactionTest.php:48 amound' => $user->transactions[0]->categories, */
-        /*     //'Feature/TransactionTest.php:48 cats' => $user->transactions->pluck('categories')->toArray(), */
-        /* ]); */
+        $this->user->refresh();
+        $this->assertCount(6, $this->user->transactions);
+        $this->assertCount(2, $this->user->accounts);
+        foreach ($this->user->transactions as $trans) {
+            if ($trans->note === 'a newly posted transaction') {
+                $this->assertEquals(1000 * 100, $trans->amount);
+                $this->assertEquals($this->savingsAccount->id, $trans->account_id);
+                //$this->assertEquals(1000, $user->transactions->pluck('amount'));
+                $this->assertCount(2, $trans->categories);
+                break;
+            }
+        }
     }
 
-    /**
-     *
-     * @return void
-     */
+    public function test_transaction_post_with_new_category()
+    {
+        $newCatPercent = 32.73;
+        $newCatName = "A WHOLE NEW CATEGORY!";
+        $transNote = 'A transaction with a new category';
+        $response = $this->post(
+            '/transactions/store',
+            [
+                'account_id' => $this->savingsAccount->id,
+                'amount' => 1000,
+                'credit' => true,
+                'note' => $transNote,
+                'trans_buddy' => false,
+                'recurring' => false,
+                'categories' => [
+                    [
+                'cat_data' => [
+                            'cat_id' => null,
+                            'hex_color' => '#ff0000',
+                            'name' => $newCatName,
+                            'cat_type_id' => $this->catType1->id,
+                        ],
+                        'percent' => $newCatPercent
+
+                    ],
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
+                        ],
+                        'percent' => 100 - $newCatPercent
+                    ]
+                ],
+                'transaction_date' => '2021-09-01',
+            ]
+        );
+        $response->assertStatus(302);
+        $this->user->refresh();
+
+        $this->assertCount(6, $this->user->transactions);
+        foreach ($this->user->transactions as $trans) {
+            if ($trans->note === $transNote) {
+                $this->assertEquals(1000 * 100, $trans->amount);
+                $this->assertEquals($this->savingsAccount->id, $trans->account_id);
+                $categories = $trans->categories;
+                $this->assertEquals(2, count($categories));
+                foreach ($categories as $cat) {
+                    if ($cat->id === $this->cat2->id) {
+                        $this->assertEquals(round(100 - $newCatPercent, 2), round($cat->pivot->percentage / 100, 2));
+                    } else {
+                        $this->assertEquals($newCatPercent, $cat->pivot->percentage / 100);
+                        $this->assertEquals($newCatName, $cat->name);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    public function test_transaction_post_with_invalid_percentage()
+    {
+        $firstCatPercent = 12.01;
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'a newly posted transaction',
+            'trans_buddy' => false,
+            'recurring' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat1->hex_color,
+                        'cat_id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat2->hex_color,
+                        'cat_id' => $this->cat2->id,
+                        'name' => $this->cat2->name,
+                    ],
+                    'percent' => 50
+                ]
+            ],
+            'transaction_date' => '2021-09-01',
+        ];
+        $this->withoutExceptionHandling();
+        try {
+            $this->post(
+                '/transactions/store',
+                $data
+            );
+        } catch (\Exception $e) {
+            $this->assertEquals('Category percentages do not sum to 100', $e->getMessage());
+        }
+    }
+
+    public function test_transaction_post_recurring_biweekly()
+    {
+        $initial_trans_cnt = $this->user->transactions->count();
+        $this->post(
+            '/transactions/store',
+            [
+                'account_id' => $this->savingsAccount->id,
+                'amount' => 1000,
+                'credit' => false,
+                'note' => 'parent trans with biweekly recurring',
+                'trans_buddy' => false,
+                'recurring' => true,
+                'frequency' => 'biweekly',
+                'recurring_end_date' => '2024-12-31',
+                'categories' => [
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat1->hex_color,
+                            'cat_id' => $this->cat1->id,
+                            'name' => $this->cat1->name,
+                        ],
+                        'percent' => 50
+
+                    ],
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
+                        ],
+                        'percent' => 50
+                    ]
+                ],
+                'transaction_date' => '2024-01-01',
+            ]
+        );
+        $this->assertEquals($initial_trans_cnt + 27, $this->user->transactions()->count());
+
+        $parent = Transaction::where('note', 'parent trans with biweekly recurring')
+            ->where('transaction_date', '2024-01-01')
+            ->first();
+        $expectedCats = [
+            $this->cat1->id => 50,
+            $this->cat2->id => 50
+        ];
+        $expectedChildCnt = 26;
+        $expectedChildCatCnt = 2;
+        $this->_checkChildrenAfterPost(
+            $parent,
+            $expectedCats,
+            $expectedChildCnt,
+            $expectedChildCatCnt,
+            $this->savingsAccount
+        );
+    }
+
+    public function test_transaction_post_recurring_monthly()
+    {
+        $initial_trans_cnt = $this->user->transactions->count();
+        $this->post(
+            '/transactions/store',
+            [
+                'account_id' => $this->savingsAccount->id,
+                'amount' => 1000,
+                'credit' => false,
+                'note' => 'parent trans monthly recurring',
+                'trans_buddy' => false,
+                'recurring' => true,
+                'frequency' => 'monthly',
+                'recurring_end_date' => '2023-12-31',
+                'categories' => [
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat1->hex_color,
+                            'cat_id' => $this->cat1->id,
+                            'name' => $this->cat1->name,
+                        ],
+                        'percent' => 50
+
+                    ],
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
+                        ],
+                        'percent' => 50
+                    ]
+                ],
+                'transaction_date' => '2023-01-01',
+            ]
+        );
+        $this->assertEquals($initial_trans_cnt + 12, $this->user->transactions()->count());
+        $parent = Transaction::where('note', 'parent trans monthly recurring')
+            ->where('transaction_date', '2023-01-01')
+            ->first();
+        $expectedCats = [
+            $this->cat1->id => 50,
+            $this->cat2->id => 50
+        ];
+        $expectedChildCnt = 11;
+        $expectedChildCatCnt = 2;
+        $this->_checkChildrenAfterPost(
+            $parent,
+            $expectedCats,
+            $expectedChildCnt,
+            $expectedChildCatCnt,
+            $this->savingsAccount
+        );
+    }
+
+    public function test_transaction_post_recurring_with_buddies()
+    {
+        $initial_trans_cnt = $this->user->transactions->count();
+        $firstCatPercent = 42.37;
+        $this->post(
+            '/transactions/store',
+            [
+                'account_id' => $this->savingsAccount->id,
+                'amount' => 1000,
+                'credit' => false,
+                'note' => 'parent trans with recurring buddies',
+                'trans_buddy' => true,
+                'trans_buddy_account' => $this->creditCardAccount->id,
+                'trans_buddy_note' => 'buddy note',
+                'recurring' => true,
+                'frequency' => 'monthly',
+                'recurring_end_date' => '2025-08-31',
+                'categories' => [
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat1->hex_color,
+                            'cat_id' => $this->cat1->id,
+                            'name' => $this->cat1->name,
+                        ],
+                        'percent' => $firstCatPercent
+
+                    ],
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
+                        ],
+                        'percent' => 100 - $firstCatPercent
+                    ]
+                ],
+                'transaction_date' => '2024-09-11',
+            ]
+        );
+        $this->assertEquals($initial_trans_cnt + 12 + 12, $this->user->transactions()->count());
+        $parent = Transaction::where('note', 'parent trans with recurring buddies')
+            ->where('transaction_date', '2024-09-11')
+            ->first();
+        $expectedCats = [
+            $this->cat1->id => $firstCatPercent,
+            $this->cat2->id => 100 - $firstCatPercent
+        ];
+        $expectedChildCnt = 11;
+        $expectedChildCatCnt = 2;
+        $this->_checkChildrenAfterPost(
+            $parent,
+            $expectedCats,
+            $expectedChildCnt,
+            $expectedChildCatCnt,
+            $this->savingsAccount,
+            true,
+            $this->creditCardAccount,
+            $expectedChildCatCnt
+        );
+    }
+
+    public function test_transaction_patch()
+    {
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $this->assertEquals(true, $this->savingsTransaction0->credit);
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2002-01-01',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'an updated note',
+            'categories' => []
+
+        ];
+        $response = $this->patch(
+            '/transactions/update/' . $this->savingsTransaction0->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals($updateData['account_id'], $this->creditCardAccount->id);
+        $this->assertEquals($updateData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($updateData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($updateData['amount'] * 100, $this->savingsTransaction0->amount);
+        $this->assertEquals($updateData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($updateData['note'], $this->savingsTransaction0->note);
+        $this->assertCount(0, $this->savingsTransaction0->categories);
+    }
+
+    public function test_transaction_patch_update_categories()
+    {
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $this->assertEquals(true, $this->savingsTransaction0->credit);
+        $firstCatPercent = 15.92;
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2002-01-01',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'an updated note',
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 100 - $firstCatPercent
+                ]
+            ],
+        ];
+        $response = $this->patch(
+            '/transactions/update/' . $this->savingsTransaction0->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals($updateData['account_id'], $this->creditCardAccount->id);
+        $this->assertEquals($updateData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($updateData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($updateData['amount'] * 100, $this->savingsTransaction0->amount);
+        $this->assertEquals($updateData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($updateData['note'], $this->savingsTransaction0->note);
+        $this->assertCount(2, $this->savingsTransaction0->categories);
+        foreach ($this->savingsTransaction0->categories as $cat) {
+            if ($cat->id === $this->cat3->id) {
+                $this->assertEquals($firstCatPercent, $cat->pivot->percentage / 100);
+            } else {
+                $this->assertEquals(100 - $firstCatPercent, $cat->pivot->percentage / 100);
+                $this->assertEquals(
+                    $updateData['categories'][1]['cat_data']['name'],
+                    $cat->name
+                );
+            }
+        }
+    }
+
+    public function test_transaction_patch_update_categories_with_invalid_id()
+    {
+        $firstCatPercent = 15.92;
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2002-01-01',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'an updated note',
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'cat_id' => -99,
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 100 - $firstCatPercent
+                ]
+            ],
+        ];
+
+        $this->withoutExceptionHandling();
+        try {
+            $this->patch(
+                '/transactions/update/' . $this->savingsTransaction0->id,
+                $updateData
+            );
+        } catch (\Exception $e) {
+            $this->assertEquals('Invalid category id', $e->getMessage());
+        }
+    }
+
+    public function test_transaction_patch_update_recurring()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->savingsTransaction0->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->savingsTransaction0->createRecurringSeries(
+            $endDate,
+            'biweekly'
+        );
+        $this->assertEquals(27, $this->user->transactions()->count());
+
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $this->assertEquals(true, $this->savingsTransaction0->credit);
+        $firstCatPercent = 15.92;
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2002-01-01',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'an updated note',
+            'edit_child_transactions' => true,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 100 - $firstCatPercent
+                ]
+            ],
+        ];
+        $response = $this->patch(
+            '/transactions/update/' . $this->savingsTransaction0->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals($updateData['account_id'], $this->creditCardAccount->id);
+        $this->assertEquals($updateData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($updateData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($updateData['amount'] * 100, $this->savingsTransaction0->amount);
+        $this->assertEquals($updateData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($updateData['note'], $this->savingsTransaction0->note);
+        $this->assertCount(2, $this->savingsTransaction0->categories);
+        foreach ($this->savingsTransaction0->categories as $cat) {
+            if ($cat->id === $this->cat3->id) {
+                $this->assertEquals($firstCatPercent, $cat->pivot->percentage / 100);
+            } else {
+                $this->assertEquals(100 - $firstCatPercent, $cat->pivot->percentage / 100);
+                $this->assertEquals(
+                    $updateData['categories'][1]['cat_data']['name'],
+                    $cat->name
+                );
+            }
+        }
+    }
+
+    public function test_transaction_patch_update_recurring_with_buddies()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->savingsTransaction0->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->savingsTransaction0->createBuddyTransaction(
+            $this->creditCardAccount,
+            'buddy note'
+        );
+        $this->savingsTransaction0->createRecurringSeries(
+            $endDate,
+            'biweekly'
+        );
+        $this->assertEquals(54, $this->user->transactions()->count());
+
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $this->assertEquals(true, $this->savingsTransaction0->credit);
+        $firstCatPercent = 15.92;
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2002-01-01',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'an updated note',
+            'edit_child_transactions' => true,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 100 - $firstCatPercent
+                ]
+            ],
+        ];
+        // original savingsTransaction0 category
+        $originalCategoryData = [
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat1->hex_color,
+                        'cat_id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                    ],
+                    'percent' => 100
+
+                ],
+            ],
+        ];
+        // sanity check before making the request
+        $this->_checkCategories($this->savingsTransaction0, $originalCategoryData);
+        $buddy = $this->savingsTransaction0->buddyTransaction();
+        $this->_checkCategories($buddy, $originalCategoryData);
+        foreach ($this->savingsTransaction0->children() as $child) {
+            $this->_checkCategories($child, $originalCategoryData);
+            $childBuddy = $child->buddyTransaction();
+            $this->assertCount(count($originalCategoryData['categories']), $childBuddy->categories);
+            $this->_checkCategories($childBuddy, $originalCategoryData);
+        }
+
+        $response = $this->patch(
+            '/transactions/update/' . $this->savingsTransaction0->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals($updateData['account_id'], $this->creditCardAccount->id);
+        $this->assertEquals($updateData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($updateData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($updateData['amount'] * 100, $this->savingsTransaction0->amount);
+        $this->assertEquals($updateData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($updateData['note'], $this->savingsTransaction0->note);
+        $this->_checkCategories($this->savingsTransaction0, $updateData);
+        $buddy = $this->savingsTransaction0->buddyTransaction();
+        $this->_checkCategories($buddy, $originalCategoryData);
+        foreach ($this->savingsTransaction0->children() as $child) {
+            $this->assertEquals($updateData['amount'] * 100, $child->amount);
+            $this->_checkCategories($child, $updateData);
+
+            $childBuddy = $child->buddyTransaction();
+            $this->assertEquals($updateData['amount'] * 100, $childBuddy->amount);
+            $this->assertEquals(! $updateData['credit'], $childBuddy->credit);
+            $this->_checkCategories($childBuddy, $originalCategoryData);
+        }
+    }
+
+    public function test_transaction_patch_child_update()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $firstCatPercent = 15.92;
+        // ensure the new date is two weeks after the parent
+        $d = new \DateTime($this->savingsTransaction0->transaction_date);
+        $newTransDate = $d->add(new \DateInterval('P14D'))->format('Y-m-d');
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => $newTransDate,
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 47.89,
+            'credit' => true,
+            'note' => 'an updated note',
+            'edit_child_transactions' => true,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 100 - $firstCatPercent
+                ]
+            ],
+        ];
+        // original savingsTransaction0 category
+        $originalData = [
+            'account_id' => $this->savingsTransaction0->account_id,
+            'transaction_date' => $this->savingsTransaction0->transaction_date,
+            'bank_identifier' => $this->savingsTransaction0->bank_identifier,
+            'amount' => $this->savingsTransaction0->amount,
+            'credit' => $this->savingsTransaction0->credit,
+            'note' => $this->savingsTransaction0->note,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat1->hex_color,
+                        'cat_id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                    ],
+                    'percent' => 100
+
+                ],
+            ],
+        ];
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->savingsTransaction0->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->savingsTransaction0->createBuddyTransaction(
+            $this->creditCardAccount,
+            'buddy note'
+        );
+        $this->savingsTransaction0->createRecurringSeries(
+            $endDate,
+            'biweekly'
+        );
+        $this->assertEquals(54, $this->user->transactions()->count());
+
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $this->assertEquals(true, $this->savingsTransaction0->credit);
+        // sanity check before making the request
+        $this->assertEquals($originalData['account_id'], $this->savingsTransaction0->account_id);
+        $this->assertEquals($originalData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($originalData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($originalData['amount'], $this->savingsTransaction0->amount);
+        $this->assertEquals($originalData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($originalData['note'], $this->savingsTransaction0->note);
+        $this->_checkCategories($this->savingsTransaction0, $originalData);
+        $buddy = $this->savingsTransaction0->buddyTransaction();
+        $this->_checkCategories($buddy, $originalData);
+        foreach ($this->savingsTransaction0->children() as $child) {
+            $this->_checkCategories($child, $originalData);
+            $childBuddy = $child->buddyTransaction();
+            $this->assertCount(count($originalData['categories']), $childBuddy->categories);
+            $this->_checkCategories($childBuddy, $originalData);
+        }
+
+        $child = $this->savingsTransaction0->children()->first();
+        $response = $this->patch(
+            '/transactions/update/' . $child->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+
+        // parent trans should be untouched
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals($originalData['account_id'], $this->savingsTransaction0->account_id);
+        $this->assertEquals($originalData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($originalData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($originalData['amount'], $this->savingsTransaction0->amount);
+        $this->assertEquals($originalData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($originalData['note'], $this->savingsTransaction0->note);
+        $this->_checkCategories($this->savingsTransaction0, $originalData);
+        $buddy = $this->savingsTransaction0->buddyTransaction();
+        $this->_checkCategories($buddy, $originalData);
+
+        // first child on should be updated
+        $this->_checkChildrenAfterPatch($this->savingsTransaction0->children(), $updateData);
+    }
+
+    public function test_transaction_patch_child_update_with_buddies()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $firstCatPercent = 15.92;
+        // ensure the new date is two weeks after the parent
+        $d = new \DateTime($this->savingsTransaction0->transaction_date);
+        $newTransDate = $d->add(new \DateInterval('P14D'))->format('Y-m-d');
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => $newTransDate,
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 47.89,
+            'credit' => true,
+            'note' => 'an updated note',
+            'edit_child_transactions' => true,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => $firstCatPercent
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 100 - $firstCatPercent
+                ]
+            ],
+        ];
+        // original savingsTransaction0 category
+        $originalData = [
+            'account_id' => $this->savingsTransaction0->account_id,
+            'transaction_date' => $this->savingsTransaction0->transaction_date,
+            'bank_identifier' => $this->savingsTransaction0->bank_identifier,
+            'amount' => $this->savingsTransaction0->amount,
+            'credit' => $this->savingsTransaction0->credit,
+            'note' => $this->savingsTransaction0->note,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat1->hex_color,
+                        'cat_id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                    ],
+                    'percent' => 100
+
+                ],
+            ],
+        ];
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->savingsTransaction0->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->savingsTransaction0->createBuddyTransaction(
+            $this->creditCardAccount,
+            'buddy note'
+        );
+        $this->savingsTransaction0->createRecurringSeries(
+            $endDate,
+            'biweekly'
+        );
+        $this->assertEquals(54, $this->user->transactions()->count());
+
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $this->assertEquals(true, $this->savingsTransaction0->credit);
+        // sanity check before making the request
+        $this->assertEquals($originalData['account_id'], $this->savingsTransaction0->account_id);
+        $this->assertEquals($originalData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($originalData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($originalData['amount'], $this->savingsTransaction0->amount);
+        $this->assertEquals($originalData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($originalData['note'], $this->savingsTransaction0->note);
+        $this->_checkCategories($this->savingsTransaction0, $originalData);
+        $buddy = $this->savingsTransaction0->buddyTransaction();
+        $this->_checkCategories($buddy, $originalData);
+        foreach ($this->savingsTransaction0->children() as $child) {
+            $this->_checkCategories($child, $originalData);
+            $childBuddy = $child->buddyTransaction();
+            $this->assertCount(count($originalData['categories']), $childBuddy->categories);
+            $this->_checkCategories($childBuddy, $originalData);
+        }
+
+        $child = $this->savingsTransaction0->children()->first();
+        $response = $this->patch(
+            '/transactions/update/' . $child->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+
+        // parent trans should be untouched
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals($originalData['account_id'], $this->savingsTransaction0->account_id);
+        $this->assertEquals($originalData['transaction_date'], $this->savingsTransaction0->transaction_date);
+        $this->assertEquals($originalData['bank_identifier'], $this->savingsTransaction0->bank_identifier);
+        $this->assertEquals($originalData['amount'], $this->savingsTransaction0->amount);
+        $this->assertEquals($originalData['credit'], $this->savingsTransaction0->credit);
+        $this->assertEquals($originalData['note'], $this->savingsTransaction0->note);
+        $this->_checkCategories($this->savingsTransaction0, $originalData);
+        $buddy = $this->savingsTransaction0->buddyTransaction();
+        $this->_checkCategories($buddy, $originalData);
+
+        // first child on should be updated
+        $this->_checkChildrenAfterPatch($this->savingsTransaction0->children(), $updateData, $originalData);
+    }
+
+    private function _checkChildrenAfterPatch(Collection $children, $expectedUpdatedData, $expectedOriginalData = [])
+    {
+        foreach ($children as $child) {
+            $this->assertEquals($expectedUpdatedData['amount'] * 100, $child->amount);
+            $this->assertEquals($expectedUpdatedData['account_id'], $child->account_id);
+            $this->assertGreaterThanOrEqual($expectedUpdatedData['transaction_date'], $child->transaction_date);
+            $this->assertEquals($expectedUpdatedData['credit'], $child->credit);
+            $this->assertEquals($expectedUpdatedData['note'], $child->note);
+            $this->_checkCategories($child, $expectedUpdatedData);
+            if ($expectedOriginalData) {
+                $childBuddy = $child->buddyTransaction();
+                $this->assertEquals($expectedUpdatedData['amount'] * 100, $childBuddy->amount);
+                $this->assertEquals(! $expectedUpdatedData['credit'], $childBuddy->credit);
+                $this->_checkCategories($childBuddy, $expectedOriginalData);
+            }
+        }
+    }
+    private function _checkCategories(Transaction $transaction, $updateData)
+    {
+        $this->assertCount(count($updateData['categories']), $transaction->categories);
+        foreach ($transaction->categories as $cat) {
+            $firstCatPercent = $updateData['categories'][0]['percent'];
+            if ($cat->id === $updateData['categories'][0]['cat_data']['cat_id']) {
+                $this->assertEquals($firstCatPercent, $cat->pivot->percentage / 100);
+            } else {
+                $this->assertEquals(100 - $firstCatPercent, $cat->pivot->percentage / 100);
+                $this->assertEquals(
+                    $updateData['categories'][1]['cat_data']['name'],
+                    $cat->name
+                );
+            }
+        }
+    }
+
     public function test_transaction_get_two_transactions_in_range()
     {
         $this->actingAs($user = User::factory()->create());
@@ -160,10 +990,6 @@ class TransactionTest extends TestCase
         );
     }
 
-    /**
-     *
-     * @return void
-     */
     public function test_transaction_get_one_transaction_in_range()
     {
         $this->actingAs($user = User::factory()->create());
@@ -179,9 +1005,9 @@ class TransactionTest extends TestCase
             'end' => '2024-06-30',
         ];
         $query = http_build_query($params);
-        $response = $this->get('/transactions?' . $query);
-
-        $response->assertInertia(fn (Assert $page) => $page
+        $this->get(
+            '/transactions?' . $query
+        )->assertInertia(fn (Assert $page) => $page
                  ->component('Transactions')
                  ->has('data.transactions_in_range', 1,  fn (Assert $page) => $page
                     ->where('amount', $transaction->amount / 100)
@@ -191,10 +1017,6 @@ class TransactionTest extends TestCase
         );
     }
 
-    /**
-     *
-     * @return void
-     */
     public function test_transaction_get_with_account_filter()
     {
         $this->savingsTransaction0->transaction_date = '2024-06-15';
@@ -213,7 +1035,7 @@ class TransactionTest extends TestCase
             function (Assert $page) {
                 $data = $page->toArray()['props']['data'];
                 $transactions_in_range = $data['transactions_in_range'];
-                $this->assertEquals(3, count($transactions_in_range));
+                $this->assertCount(3, $transactions_in_range);
                 $expected_transactions = [
                     $this->savingsTransaction0,
                     $this->savingsTransaction1,
@@ -227,6 +1049,211 @@ class TransactionTest extends TestCase
             }
         );
     }
+
+    public function test_destroy()
+    {
+        $this->assertCount(5, $this->user->transactions);
+        $response = $this->delete(route('transactions.destroy', [ 'id' => $this->savingsTransaction0->id ]));
+        $response->assertStatus(302);
+        $this->user->refresh();
+        $this->assertCount(4, $this->user->transactions);
+    }
+
+    public function test_destroy_invalid_id()
+    {
+        $this->assertCount(5, $this->user->transactions);
+        $response = $this->delete(route('transactions.destroy', [ 'id' => -99 ]));
+        $response->assertStatus(302);
+        $this->assertEquals(5, $this->user->transactions()->count());
+    }
+
+    public function test_destroy_buddy()
+    {
+        $buddyTrans =  $this->savingsTransaction2->createBuddyTransaction(
+            $this->creditCardAccount,
+            'SavingsTransaction2 buddy note',
+        );
+        $this->assertEquals(6, $this->user->transactions()->count());
+        $response = $this->delete(
+            route(
+                'transactions.destroy',
+                [
+                    'id' => $buddyTrans,
+                ]
+            )
+        );
+        $this->assertEquals(4, $this->user->transactions()->count());
+        $response->assertStatus(302);
+    }
+
+    public function test_destroy_parent()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertCount(1, $this->user->transactions);
+        $this->creditTransaction2->createRecurringSeries();
+        $this->assertEquals(13, $this->user->transactions()->count());
+        $response = $this->delete(
+            route(
+                'transactions.destroy',
+                [
+                    'id' => $this->creditTransaction2->id,
+                ]
+            )
+        );
+        $this->assertNull(Transaction::find($this->creditTransaction2->id));
+        $this->assertEquals(12, $this->user->transactions()->count());
+        $newParent = Transaction::whereColumn('parent_id', 'id')->first();
+        $this->assertEquals($newParent->parent_id, $newParent->id);
+        $series = Transaction::where('parent_id', $newParent->id)->get();
+        foreach ($series as $trans) {
+            $this->assertEquals($newParent->id, $trans->parent_id);
+        }
+        $response->assertStatus(302);
+    }
+
+    public function test_destroy_parent_and_recurring()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->creditTransaction2->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->creditTransaction2->createRecurringSeries(
+            $endDate,
+            'biweekly'
+        );
+        $this->assertEquals(27, $this->user->transactions()->count());
+
+        $response = $this->delete(
+            route(
+                'transactions.destroy',
+                [
+                    'id' => $this->creditTransaction2->id,
+                    'delete_child_transactions' => true
+                ]
+            )
+        );
+        $response->assertStatus(302);
+        $this->assertEquals(0, $this->user->transactions()->count());
+    }
+
+    public function test_destroy_parent_and_buddy()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->creditTransaction2->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P2Y'))->format('Y-m-d');
+        $this->creditTransaction2->createBuddyTransaction(
+            $this->savingsAccount,
+            'buddy note'
+        );
+        $this->creditTransaction2->createRecurringSeries($endDate);
+        $this->assertEquals(50, $this->user->transactions()->count());
+        $response = $this->delete(
+            route(
+                'transactions.destroy',
+                [
+                    'id' => $this->creditTransaction2->id,
+                ]
+            )
+        );
+        $response->assertStatus(302);
+        $this->assertEquals(48, $this->user->transactions()->count());
+        $newParent = Transaction::whereColumn('parent_id', 'id')->first();
+        $this->assertEquals($newParent->parent_id, $newParent->id);
+        $series = Transaction::where('parent_id', $newParent->id)->get();
+        foreach ($series as $trans) {
+            $this->assertEquals($newParent->id, $trans->parent_id);
+        }
+        $response->assertStatus(302);
+    }
+
+    public function test_destroy_buddy_of_parent()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->creditTransaction2->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P2Y'))->format('Y-m-d');
+        $buddyTrans = $this->creditTransaction2->createBuddyTransaction(
+            $this->savingsAccount,
+            'buddy note'
+        );
+        $buddyTrans->createRecurringSeries($endDate);
+        $this->assertEquals(50, $this->user->transactions()->count());
+        $response = $this->delete(
+            route(
+                'transactions.destroy',
+                [
+                    'id' => $this->creditTransaction2->id,
+                ]
+            )
+        );
+        $response->assertStatus(302);
+        $this->assertEquals(48, $this->user->transactions()->count());
+        $newParent = Transaction::whereColumn('parent_id', 'id')->first();
+        $this->assertEquals($newParent->parent_id, $newParent->id);
+        $series = Transaction::where('parent_id', $newParent->id)->get();
+        foreach ($series as $trans) {
+            $this->assertEquals($newParent->id, $trans->parent_id);
+        }
+        $response->assertStatus(302);
+    }
+
+    public function test_destroy_parent_and_recurring_buddies()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $endDate = new \DateTime($this->creditTransaction2->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->creditTransaction2->createBuddyTransaction(
+            $this->savingsAccount,
+            'buddy note'
+        );
+        $this->creditTransaction2->createRecurringSeries(
+            $endDate,
+            'quarterly'
+        );
+        $this->assertEquals(10, $this->user->transactions()->count());
+        $response = $this->delete(
+            route(
+                'transactions.destroy',
+                [
+                    'id' => $this->creditTransaction2->id,
+                    'delete_child_transactions' => true
+                ]
+            )
+        );
+        $response->assertStatus(302);
+        $this->assertEquals(0, $this->user->transactions()->count());
+    }
+
+    /*
+     * Private helper functions
+     */
 
     private function _checkTransaction(
         array $trans_to_check,
@@ -265,6 +1292,61 @@ class TransactionTest extends TestCase
                 }
             }
             $this->assertEquals($percentage / 100, $cat['percent']);
+        }
+    }
+    private function _deleteMockTransactions(array $transIdsToDelete)
+    {
+        // clean up the other transactions so they don't interfere with the test
+        $mockTransactions = [
+            $this->creditTransaction1,
+            $this->creditTransaction2,
+            $this->savingsTransaction0,
+            $this->savingsTransaction1,
+            $this->savingsTransaction2
+        ];
+        foreach ($mockTransactions as $trans) {
+            if (in_array($trans->id, $transIdsToDelete)) {
+                $trans->delete();
+            }
+        }
+    }
+    private function _checkChildrenAfterPost(
+        Transaction $parent,
+        array $expectedCatPercents,
+        int $expectedChildCount,
+        int $expectedChildCatCount,
+        Account $expectedChildAccount,
+        bool $checkChildBuddy = false,
+        Account $expectedChildBuddyAccount = null,
+        int $expectedChildBuddyCatCount = null
+    ) {
+        $children = $parent->children();
+        $this->assertEquals($expectedChildCount, $children->count());
+        foreach ($children as $child) {
+            $this->assertEquals($parent->amount, $child->amount);
+            $this->assertEquals($expectedChildAccount->id, $child->account_id);
+            $this->assertEquals($expectedChildCatCount, count($child->categories));
+            foreach ($child->categories as $cat) {
+                $this->assertEquals($expectedCatPercents[$cat->id], $cat->pivot->percentage / 100);
+            }
+
+            if ($checkChildBuddy) {
+                $buddy = $child->buddyTransaction();
+                $this->assertEquals($parent->amount, $buddy->amount);
+                $this->assertEquals($expectedChildBuddyAccount->id, $buddy->account_id);
+                $this->assertEquals($expectedChildBuddyCatCount, count($buddy->categories));
+                foreach ($buddy->categories as $cat) {
+                    $this->assertEquals($expectedCatPercents[$cat->id], $cat->pivot->percentage / 100);
+                }
+            }
+            /* $buddy_trans = Transaction::where('buddy_id', $trans->id)->first(); */
+            /* $this->assertEquals($parent_trans->amount, $buddy_trans->amount); */
+            /* $this->isTrue($buddy_trans->credit); */
+            /* $this->assertEquals($this->creditCardAccount->id, $buddy_trans->account_id); */
+            /* $this->assertCount(2, $buddy_trans->categories); */
+            /* foreach ($buddy_trans->categories as $cat) { */
+            /*     $this->assertEquals($expected_cats[$cat->id], $cat->pivot->percentage / 100); */
+            /* } */
         }
     }
 }
