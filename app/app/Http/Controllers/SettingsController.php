@@ -64,7 +64,7 @@ class SettingsController extends Controller
                 'active' => ($cat->active) ? true : false,
                 'category_type_name' => ($catt) ? $catt->name : null,
                 'category_type_id' => ($catt) ? $catt->id : null,
-                'color' => $cat->hex_color,
+                'hex_color' => $cat->hex_color,
             ];
 
         }
