@@ -198,53 +198,9 @@ class TransactionController extends Controller
                     [ 'use_session_filter_dates' => true ]
                 );
         }
+        $deleteChildren = ($request->delete_child_transactions) ? true : false;
+        $target->deleteTrans($deleteChildren);
 
-        // we're deleting a parent and not wanting to delete all of the children
-        // so we need to move the parent id for all children to the next in line
-        if (! $request->delete_child_transactions && $target->parent_id === $target->id) {
-            $next_child_trans = Transaction::where('parent_id', '=', $target->id)
-                ->where('id', '<>', $target->id)
-                ->first();
-            $child_transactions = Transaction::where('parent_id', '=', $target->id)
-                ->where('id', '<>', $target->id)
-                ->get();
-            foreach ($child_transactions as $child_trans) {
-                $child_trans->parent_id = $next_child_trans->id;
-                $child_trans->save();
-            }
-        }
-        if ($request->delete_child_transactions) {
-            $child_transactions = Transaction::where('parent_id', '=', $target->parent_id)
-                ->where('transaction_date', '>', $target->transaction_date)
-                ->get();
-            foreach ($child_transactions as $child_trans) {
-                if ($child_trans->buddy_id) {
-                    Transaction::destroy($child_trans->buddy_id);
-                }
-                Transaction::destroy($child_trans->id);
-            }
-        }
-
-        // if the target has a buddy, delete that too
-        if ($target->buddy_id) {
-            // if that buddy is the parent to a recurring trans sequence,
-            // then we must cycle the parent ids down to the next in line
-            $buddy = Transaction::where('id', '=', $target->buddy_id)->first();
-            if ($buddy->parent_id === $buddy->id) {
-                $next_child_trans = Transaction::where('parent_id', '=', $buddy->id)
-                    ->where('id', '<>', $buddy->id)
-                    ->first();
-                $child_transactions = Transaction::where('parent_id', '=', $buddy->id)
-                    ->where('id', '<>', $buddy->id)
-                    ->get();
-                foreach ($child_transactions as $child_trans) {
-                    $child_trans->parent_id = $next_child_trans->id;
-                    $child_trans->save();
-                }
-            }
-            Transaction::destroy($buddy->id);
-        }
-        Transaction::destroy($target->id);
         return redirect()
             ->route(
                 'transactions',

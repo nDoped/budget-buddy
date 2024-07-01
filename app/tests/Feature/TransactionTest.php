@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 use Database\Seeders\FeatureTestSeeder;
+use Illuminate\Support\Facades\Log;
 
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -923,7 +924,6 @@ class TransactionTest extends TestCase
         // first child on should be updated
         $this->_checkChildrenAfterPatch($this->savingsTransaction0->children(), $updateData, $originalData);
     }
-
     private function _checkChildrenAfterPatch(Collection $children, $expectedUpdatedData, $expectedOriginalData = [])
     {
         foreach ($children as $child) {
@@ -1097,6 +1097,9 @@ class TransactionTest extends TestCase
         $this->assertCount(1, $this->user->transactions);
         $this->creditTransaction2->createRecurringSeries();
         $this->assertEquals(13, $this->user->transactions()->count());
+        foreach ($this->creditTransaction2->children() as $child) {
+            $this->assertEquals($this->creditTransaction2->id, $child->parent_id);
+        }
         $response = $this->delete(
             route(
                 'transactions.destroy',
@@ -1116,7 +1119,7 @@ class TransactionTest extends TestCase
         $response->assertStatus(302);
     }
 
-    public function test_destroy_parent_and_recurring()
+    public function test_destroy_parent_and_children()
     {
         $this->_deleteMockTransactions([
             $this->creditTransaction1->id,

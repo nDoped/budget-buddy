@@ -36,68 +36,6 @@ class Transaction extends Model
     }
 
     /**
-     * Updates the current transaction with the given data
-     *
-     * @param array{
-     *          amount: int,
-     *          account_id: int,
-     *          transaction_date: string,
-     *          credit: bool,
-     *          categories?: array{
-     *              cat_data: array{
-     *                  cat_id?: int,
-     *                  hex_color: string,
-     *                  name: string
-     *              },
-     *              percent?: float
-     *          },
-     *          trans_buddy?: bool,
-     *          edit_child_transactions?: bool,
-     *          note?: string,
-     *          bank_identifier?: string,
-     *          recurring?: bool,
-     *        } $data
-     *
-     * @return Transaction The updated transaction
-     * @throws \InvalidArgumentException
-     */
-    public function updateTrans(array $data): Transaction
-    {
-        $this->amount = $data['amount'] * 100;
-        $this->account_id = $data['account_id'];
-        $this->credit = $data['credit'];
-        $this->transaction_date = $data['transaction_date'];
-        if (array_key_exists('bank_identifier', $data)) {
-            $this->bank_identifier = strip_tags($data['bank_identifier']);
-        }
-        $updateChildren = (array_key_exists('edit_child_transactions', $data)
-            && $data['edit_child_transactions']);
-
-        if (array_key_exists('note', $data)) {
-            $this->note = strip_tags($data['note']);
-        }
-
-        $this->_syncBuddyTransaction();
-
-        if ($updateChildren) {
-            foreach ($this->children() as $child) {
-                $child->amount = $data['amount'] * 100;
-                $child->credit = $data['credit'];
-                $child->account_id = $data['account_id'];
-                if ($data['note']) {
-                    $child->note = $data['note'];
-                }
-
-                $child->_syncBuddyTransaction();
-                $child->save();
-            }
-        }
-        $this->_handleCategories($data['categories'], true, $updateChildren);
-        $this->save();
-        return $this;
-    }
-
-    /**
      * Creates a new transaction with the given data
      *
      * @param array{
@@ -167,6 +105,117 @@ class Transaction extends Model
 
         $this->_handleCategories($data['categories'], false, true);
         return $this;
+    }
+
+    /**
+     * Updates the current transaction with the given data
+     *
+     * @param array{
+     *          amount: int,
+     *          account_id: int,
+     *          transaction_date: string,
+     *          credit: bool,
+     *          categories?: array{
+     *              cat_data: array{
+     *                  cat_id?: int,
+     *                  hex_color: string,
+     *                  name: string
+     *              },
+     *              percent?: float
+     *          },
+     *          trans_buddy?: bool,
+     *          edit_child_transactions?: bool,
+     *          note?: string,
+     *          bank_identifier?: string,
+     *          recurring?: bool,
+     *        } $data
+     *
+     * @return Transaction The updated transaction
+     * @throws \InvalidArgumentException
+     */
+    public function updateTrans(array $data): Transaction
+    {
+        $this->amount = $data['amount'] * 100;
+        $this->account_id = $data['account_id'];
+        $this->credit = $data['credit'];
+        $this->transaction_date = $data['transaction_date'];
+        if (array_key_exists('bank_identifier', $data)) {
+            $this->bank_identifier = strip_tags($data['bank_identifier']);
+        }
+        $updateChildren = (array_key_exists('edit_child_transactions', $data)
+            && $data['edit_child_transactions']);
+
+        if (array_key_exists('note', $data)) {
+            $this->note = strip_tags($data['note']);
+        }
+
+        $this->_syncBuddyTransaction();
+
+        if ($updateChildren) {
+            foreach ($this->children() as $child) {
+                $child->amount = $data['amount'] * 100;
+                $child->credit = $data['credit'];
+                $child->account_id = $data['account_id'];
+                if ($data['note']) {
+                    $child->note = $data['note'];
+                }
+
+                $child->_syncBuddyTransaction();
+                $child->save();
+            }
+        }
+        $this->_handleCategories($data['categories'], true, $updateChildren);
+        $this->save();
+        return $this;
+    }
+
+    /**
+     * Deletes the current transaction
+     *
+     * @param bool $deleteChildren If true, all child transactions will be deleted
+     *
+     * @return bool
+     * @throws \InvalidArgumentException
+     */
+    public function deleteTrans(bool $deleteChildren = false): bool
+    {
+        // we're deleting a parent and not wanting to delete all of the children
+        // so we need to move the parent id for all children to the next in line
+        if (! $deleteChildren && $this->parent_id === $this->id) {
+            $this->promoteFirstChildToParent();
+        }
+
+        if ($deleteChildren) {
+            foreach ($this->children() as $child) {
+                if ($child->buddy_id) {
+                    Transaction::destroy($child->buddy_id);
+                }
+                Transaction::destroy($child->id);
+            }
+        }
+
+        $buddy = $this->buddyTransaction();
+        if ($buddy) {
+            // if that buddy is the parent to a recurring trans sequence,
+            // then we must cycle the parent ids down to the next in line
+            if ($buddy->parent_id === $buddy->id) {
+                $buddy->promoteFirstChildToParent();
+            }
+            Transaction::destroy($buddy->id);
+        }
+        Transaction::destroy($this->id);
+        return true;
+    }
+
+    public function promoteFirstChildToParent()
+    {
+        $firstChild = $this->children()->first();
+        foreach ($firstChild->children() as $child) {
+            $child->parent_id = $firstChild->id;
+            $child->save();
+        }
+        $firstChild->parent_id = $firstChild->id;
+        $firstChild->save();
     }
 
     /**
