@@ -41,12 +41,12 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => [ 'required', 'max:50' ],
-            'color' => [ 'required' ],
+            'hex_color' => [ 'required' ],
         ]);
 
 
         $category->name = $request->name;
-        $category->hex_color = $request->color;
+        $category->hex_color = $request->hex_color;
         $category->category_type_id = $request->category_type;
         $category->active = $request->active;
         $category->save();

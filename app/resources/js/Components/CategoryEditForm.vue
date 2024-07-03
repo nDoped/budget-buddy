@@ -86,7 +86,7 @@
 
   function submit() {
     /* global route */
-    form.post(route('categories.update', { category: props.category.id }), {
+    form.patch(route('categories.update', { category: props.category.id }), {
       preserveScroll: true,
       onSuccess: () => success(false),
       onError: (err) =>  {

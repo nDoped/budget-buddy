@@ -121,7 +121,7 @@
   );
 
   const catSelectBorder = (cat) => {
-    return `border: solid ${cat.cat_data.color}; border-radius: 5px;`;
+    return `border: solid ${cat.cat_data.hex_color}; border-radius: 5px;`;
   };
   const uuid = crypto.randomUUID();
   const getUuid = (el, i) => {
@@ -145,14 +145,14 @@
         name: filteredCats.value[0].name,
         cat_type_id: filteredCats.value[0].cat_type_id,
         cat_type_name: filteredCats.value[0].cat_type_name,
-        hex_color: filteredCats.value[0].color,
+        hex_color: filteredCats.value[0].hex_color,
       },
       percent: 0,
     });
   };
   const createCategory = (i, data) => {
     catsRef.value[i].cat_data.name = data.name;
-    catsRef.value[i].cat_data.hex_color = data.color;
+    catsRef.value[i].cat_data.hex_color = data.hex_color;
     catsRef.value[i].cat_data.cat_type_id = data.type;
   };
   const createANewCategory = () => {
