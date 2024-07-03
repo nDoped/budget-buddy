@@ -168,7 +168,7 @@
     });
   };
   watch(
-    catsRef.value, catChange,
+    catsRef, catChange,
     {
       deep: true
     }
