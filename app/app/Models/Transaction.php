@@ -143,7 +143,8 @@ class Transaction extends Model
             $this->bank_identifier = strip_tags($data['bank_identifier']);
         }
         $updateChildren = (array_key_exists('edit_child_transactions', $data)
-            && $data['edit_child_transactions']);
+            && $data['edit_child_transactions'])
+            && $this->parent_id;
 
         if (array_key_exists('note', $data)) {
             $this->note = strip_tags($data['note']);
@@ -601,7 +602,8 @@ class Transaction extends Model
      */
     public function children() : Collection
     {
-        return Transaction::where('parent_id', '=', $this->parent_id)
+        return Transaction::whereNotNull('parent_id')
+            ->where('parent_id', '=', $this->parent_id)
             ->where('id', '!=', $this->id)
             ->where('transaction_date', '>=', $this->transaction_date)
             ->orderBy('transaction_date', 'asc')

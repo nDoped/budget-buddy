@@ -434,6 +434,7 @@ class TransactionTest extends TestCase
             'amount' => 1000,
             'credit' => true,
             'note' => 'an updated note',
+            'edit_child_transactions' => true,
             'categories' => [
                 [
                     'cat_data' => [
@@ -453,6 +454,17 @@ class TransactionTest extends TestCase
                 ]
             ],
         ];
+        $savingsTrans1Cats = $this->savingsTransaction1->categories;
+        $this->assertCount(2, $savingsTrans1Cats);
+        foreach ($savingsTrans1Cats as $cat) {
+            if ($cat->id === $this->cat3->id) {
+                $this->assertEquals($this->actualCatPercentage2, $cat->pivot->percentage / 10000);
+            } else {
+                $this->assertEquals($this->cat1->id, $cat->id);
+                $this->assertEquals($this->actualCatPercentage1, $cat->pivot->percentage / 10000);
+            }
+        }
+
         $response = $this->patch(
             '/transactions/update/' . $this->savingsTransaction0->id,
             $updateData
@@ -475,6 +487,18 @@ class TransactionTest extends TestCase
                     $updateData['categories'][1]['cat_data']['name'],
                     $cat->name
                 );
+            }
+        }
+
+        $this->savingsTransaction1->refresh();
+        $savingsTrans1Cats = $this->savingsTransaction1->categories;
+        $this->assertCount(2, $savingsTrans1Cats);
+        foreach ($savingsTrans1Cats as $cat) {
+            if ($cat->id === $this->cat3->id) {
+                $this->assertEquals($this->actualCatPercentage2, $cat->pivot->percentage / 10000);
+            } else {
+                $this->assertEquals($this->cat1->id, $cat->id);
+                $this->assertEquals($this->actualCatPercentage1, $cat->pivot->percentage / 10000);
             }
         }
     }

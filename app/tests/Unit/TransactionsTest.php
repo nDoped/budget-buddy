@@ -89,6 +89,8 @@ class TransactionsTest extends TestCase
             $this->creditTransaction2->id,
             $this->savingsTransaction2->id
         ]);
+        $this->assertCount(0, $this->savingsTransaction1->children());
+        $this->assertCount(0, $this->savingsTransaction2->children());
         $endDate = new \DateTime($this->savingsTransaction0->transaction_date);
         $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
         $this->savingsTransaction0->createRecurringSeries(
