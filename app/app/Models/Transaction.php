@@ -253,7 +253,7 @@ class Transaction extends Model
                         throw new \InvalidArgumentException('Missing category name');
                     }
                     $catModel->name = $catData['name'];
-                    if (! array_key_exists('hex_color', $catData)) {
+                    if (array_key_exists('hex_color', $catData)) {
                         $catModel->hex_color = $catData['hex_color'];
                     }
                     if (array_key_exists('cat_type_id', $catData)) {

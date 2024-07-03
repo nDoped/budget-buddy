@@ -239,7 +239,7 @@
             :id="getUuid('category-inputs', i)"
             :type="category.cat_data.cat_type_id"
             :name="category.cat_data.name"
-            :color="category.cat_data.color"
+            :color="category.cat_data.hex_color"
             :category-types="categoryTypes"
             :errors="getError(i)"
             @field-update="(data) => createCategory(i, data)"

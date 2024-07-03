@@ -46,7 +46,7 @@
   watch(
     [catName, catColor, catType, catActive ],
     ([newName, newColor, newType, newActive ]) => {
-      emit('fieldUpdate', { name: newName, color: newColor, type: newType, active: newActive});
+      emit('fieldUpdate', { name: newName, hex_color: newColor, type: newType, active: newActive});
     }
   );
   const uuid = crypto.randomUUID();
