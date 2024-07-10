@@ -221,10 +221,10 @@
               </div>
             </div>
           </div>
-
-          <div class="m-4 bg-slate-500 ">
+          <div class="m-4 bg-slate-500">
             <TransactionCategory
               :available-categories="categories"
+              :total-amount="form.amount"
               :category-types="categoryTypes"
               :key="transCatCounter"
               :errors="form.errors"

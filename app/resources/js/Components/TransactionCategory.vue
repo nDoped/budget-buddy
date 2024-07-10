@@ -1,5 +1,4 @@
 <script setup>
-  import Multiselect from 'vue-multiselect';
   import {
     toRaw,
     ref,
@@ -10,13 +9,16 @@
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
   import CategoryInputs from '@/Components/CategoryInputs.vue';
+  import CategorySelect from '@/Components/CategorySelect.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
-  import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['category-update', 'invalid-category-state']);
-
   const props = defineProps({
+    totalAmount: {
+      type: Number,
+      default: 0
+    },
     categories: {
       type: Array,
       default: () => []
@@ -34,59 +36,129 @@
       default: () => {return {}}
     },
   });
-  // @todo: This doesn't work but i'm leaving it for now
-  // untill i can fix it
-  //const preventBackspaceNavigation = (ev) => {
-  //  if (ev.key === 'Backspace') {
-  //    console.log({
-  //      'resources/js/Components/TransactionCategory.vue:27 ev.key' : ev.key,
-  //    });
-  //    return ev.preventDefault();
-  //  }
-  //};
+
+  const calcCatsByReciept = ref(false);
 
   const filteredCats = computed(() => {
     return props.availableCategories.filter((ac) => {
       return ! catsRef.value.find(cr => cr.cat_data.cat_id == ac.cat_id);
     });
   });
-  const fetchFilteredCatsOptions = (cat) => {
-    let cats = [ ...filteredCats.value, cat.cat_data ];
-    cats.sort(function(a, b) {
-      if (a.cat_type_name !== b.cat_type_name) {
-        if (a.cat_type_name < b.cat_type_name) return -1;
-        if (a.cat_type_name > b.cat_type_name) return 1;
-      } else {
-        if (a.name < b.name) return -1;
-        if (a.name > b.name) return 1;
-      }
-      return 0;
-    });
-    let ret = [
-      {
-        'category_type': "No Category Type",
-        'categories': []
-      }
-    ];
-    cats.forEach((c) => {
-      if (! c.cat_type_id) {
-        let noCatType = ret.find((r) => r.category_type === "No Category Type");
-        noCatType.categories.push(c);
-        return;
-      }
-      let existing = ret.find((r) => r.category_type === c.cat_type_name);
-      if (existing) {
-        existing.categories.push(c);
-      } else {
-        ret.push({
-          'category_type': c.cat_type_name,
-          'categories': [c]
+
+  /*
+   * Receipt logic
+   */
+  const taxAmount = ref(null);
+  const lineItems = ref([]);
+  const showCalcPercentBtn = computed(() => {
+    return lineItems.value.length > 0 && (lineItemSum.value === (props.totalAmount - taxAmount.value));
+  });
+  const lineItemSum = computed(() => {
+    return lineItems.value.reduce((acc, item) => {
+      return acc + item.price;
+    }, 0);
+  });
+  const calculatePercentages = () => {
+    let subTotal = lineItemSum.value;
+    catsRef.value = [];
+
+    let catTotals = {
+      new: []
+    };
+    lineItems.value.forEach((li) => {
+      if (! li.cat_data.cat_id) {
+        catTotals.new.push({
+          sub_total: li.price,
+          cat_data: li.cat_data,
         });
+      } else {
+        if (! catTotals[li.cat_data.cat_id]) {
+          catTotals[li.cat_data.cat_id] = {
+            sub_total: li.price,
+            cat_data: li.cat_data,
+          };
+        } else {
+          catTotals[li.cat_data.cat_id].sub_total += li.price;
+        }
       }
     });
-    return ret;
+    for (let catId in catTotals) {
+      if (catId === 'new') {
+        continue;
+      }
+      let catSubTotal = catTotals[catId].sub_total;
+      let catData = catTotals[catId].cat_data;
+
+      catsRef.value.push({
+        "cat_data": {
+          cat_id: catData.cat_id,
+          name: catData.name,
+          cat_type_id: catData.cat_type_id,
+          cat_type_name: catData.cat_type_name,
+          hex_color: catData.hex_color,
+        },
+        percent: Math.round(((catSubTotal / subTotal) * 100 + Number.EPSILON) * 100) / 100,
+      });
+    }
+    // add the to be created cats
+    catTotals.new.forEach((c) => {
+      catsRef.value.push({
+        "cat_data": {
+          cat_id: c.cat_data.cat_id,
+          name: c.cat_data.name,
+          cat_type_id: c.cat_data.cat_type_id,
+          cat_type_name: c.cat_data.cat_type_name,
+          hex_color: c.cat_data.hex_color,
+        },
+        percent: Math.round(((c.sub_total / subTotal) * 100 + Number.EPSILON) * 100) / 100,
+      });
+    });
+    calcCatsByReciept.value = false;
+  };
+  const addLineItem = () => {
+    let lastEnteredCatIndex = 0;
+    if (lineItems.value.length > 0) {
+      lastEnteredCatIndex = props.availableCategories.findIndex((c) => c.cat_id === lineItems.value[lineItems.value.length - 1].cat_data.cat_id);
+    }
+    if (lastEnteredCatIndex < 0) {
+      lastEnteredCatIndex = 0;
+    }
+    lineItems.value.push({
+      "cat_data": {
+        cat_id: props.availableCategories[lastEnteredCatIndex].cat_id,
+        name: props.availableCategories[lastEnteredCatIndex].name,
+        cat_type_id: props.availableCategories[lastEnteredCatIndex].cat_type_id,
+        cat_type_name: props.availableCategories[lastEnteredCatIndex].cat_type_name,
+        hex_color: props.availableCategories[lastEnteredCatIndex].hex_color,
+      },
+      price: null,
+    });
+    focusElement(getUuid('line-item-amount', lineItems.value.length - 1));
+  };
+  const removeLineItem = (i) => {
+    lineItems.value.splice(i, 1);
+  };
+  const createLineItemCategory = (i, data) => {
+    lineItems.value[i].cat_data.name = data.name;
+    lineItems.value[i].cat_data.hex_color = data.hex_color;
+    lineItems.value[i].cat_data.cat_type_id = data.type;
+  };
+  const createANewLineItemCategory = () => {
+    lineItems.value.push({
+      "cat_data" : {
+        cat_id: null,
+        name: null,
+        cat_type_id: null,
+        cat_type_name: null,
+        hex_color: '#000000',
+      },
+      price: null,
+    });
   };
 
+  /*
+   * Percent logic
+   */
   const catsRef = ref(structuredClone(toRaw(props.categories)));
   watch(
     () => props.categories,
@@ -136,8 +208,7 @@
     }
   };
 
-  const catSelected = (opt, id) => {
-    let catRefId = id.split('-')[2];
+  const catSelected = (catRefId) => {
     focusElement(getUuid('category-percent', catRefId), true);
   };
 
@@ -194,127 +265,209 @@
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
-    <PrimaryButton
-      class="m-4"
-      type="button"
-      @click="addCategory"
-    >
-      Add an Existing Cat
-    </PrimaryButton>
-    <PrimaryButton
-      class="m-4"
-      type="button"
-      @click="createANewCategory"
-    >
-      Create a New Cat
-    </PrimaryButton>
-  </div>
+  <div>
+    <div class="bg-slate-500 inline-block rounded">
+      <label class="relative flex justify-start items-center p-2 text-l">
+        <input
+          type="checkbox"
+          v-model="calcCatsByReciept"
+          class="absolute left-1/2 -translate-x-1/2 opacity-0 w-full h-full peer appearance-none rounded-md"
+        >
+        <span
+          class="w-16 h-5 m-2 flex items-center flex-shrink-0 ml-4 p-1 bg-gray-300 rounded-full duration-300 ease-in-out peer-checked:bg-green-400 after:w-8 after:h-3 after:bg-white after:rounded-full after:shadow-md after:duration-300 peer-checked:after:translate-x-6"
+        />
+        Enter receipt line items
+      </label>
+    </div>
 
-  <InputError :message="percentError" />
-  <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
-    <div
-      class="flex flex-wrap bg-slate-500 mr-4"
-      :class="{'border border-red-600 dark:border-red-400': percentError}"
-    >
-      <div
-        v-for="(category, i) in catsRef"
-        :key="i"
-        class="m-2"
-      >
-        <template v-if="category.cat_data.cat_id">
-          <InputLabel
-            :for="getUuid('category-select', i)"
-            value="Category"
-          />
+    <template v-if="! calcCatsByReciept">
+      <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
+        <PrimaryButton
+          class="m-4"
+          type="button"
+          @click="addCategory"
+        >
+          Add an Existing Cat
+        </PrimaryButton>
+        <PrimaryButton
+          class="m-4"
+          type="button"
+          @click="createANewCategory"
+        >
+          Create a New Cat
+        </PrimaryButton>
+      </div>
 
-          <div :style="catSelectBorder(category)">
-            <Multiselect
-              :id="getUuid('category-select', i)"
-              class="my-multiselect"
-              v-model="catsRef[i].cat_data"
-              track-by="cat_id"
-              label="name"
-              placeholder="Select a Category"
-              deselect-label=""
-              group-label="category_type"
-              group-values="categories"
-              :group-select="false"
-              select-label=""
-              :options="fetchFilteredCatsOptions(category)"
-              :allow-empty="false"
-              @select="catSelected"
-              :searchable="true"
+      <InputError :message="percentError" />
+      <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
+        <div
+          class="flex flex-wrap bg-slate-500 mr-4"
+          :class="{'border border-red-600 dark:border-red-400': percentError}"
+        >
+          <div
+            v-for="(category, i) in catsRef"
+            :key="i"
+            class="m-2"
+          >
+            <template v-if="category.cat_data.cat_id">
+              <CategorySelect
+                :select-id="getUuid('category-select', i)"
+                :available-categories="filteredCats"
+                v-model="catsRef[i].cat_data"
+                @update:model-value="catSelected(i)"
+              />
+            </template>
+
+            <template v-else>
+              <h2 class="text-xl">
+                Create a New Category
+              </h2>
+              <CategoryInputs
+                :id="getUuid('category-inputs', i)"
+                :type="category.cat_data.cat_type_id"
+                :name="category.cat_data.name"
+                :color="category.cat_data.hex_color"
+                :category-types="categoryTypes"
+                :errors="getError(i)"
+                @field-update="(data) => createCategory(i, data)"
+              />
+            </template>
+
+            <InputLabel
+              :for="getUuid('category-percent', i)"
+              value="Percentage of Transaction Total"
+              class="mt-2"
             />
-            <!-- @keyup.prevent.stop="preventBackspaceNavigation" -->
+            <input
+              :id="getUuid('category-percent', i)"
+              type="number"
+              min=".1"
+              step=".01"
+              v-model="catsRef[i].percent"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              :style="catSelectBorder(category)"
+            >
+            <DangerButton
+              class="max-h-1 "
+              type="button"
+              @click="removeCategory(i)"
+            >
+              Remove
+            </DangerButton>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
+        <div class="m-4">
+          <InputLabel
+            :for="getUuid('tax-amount')"
+            value="Tax"
+            class="mt-2"
+          />
+          <input
+            :id="getUuid('tax-amount')"
+            type="number"
+            min=".1"
+            step=".01"
+            v-model="taxAmount"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+        </div>
+        <div v-if="! totalAmount || ! taxAmount">
+          <p class="m-4">
+            Please enter a total amount and tax amount
+          </p>
+        </div>
+        <template v-else>
+          <div class="m-4">
+            <PrimaryButton
+              class="m-4"
+              type="button"
+              @click="addLineItem"
+            >
+              Add a line item
+            </PrimaryButton>
+
+            <PrimaryButton
+              class="m-4"
+              type="button"
+              @click="createANewLineItemCategory"
+            >
+              Add a line item and create a new category
+            </PrimaryButton>
+            <PrimaryButton
+              v-if="showCalcPercentBtn"
+              class="m-4"
+              type="button"
+              @click="calculatePercentages"
+            >
+              Calculate Percentages
+            </PrimaryButton>
           </div>
         </template>
-
-        <template v-else>
-          <h2 class="text-xl">
-            Create a New Category
-          </h2>
-          <CategoryInputs
-            :id="getUuid('category-inputs', i)"
-            :type="category.cat_data.cat_type_id"
-            :name="category.cat_data.name"
-            :color="category.cat_data.hex_color"
-            :category-types="categoryTypes"
-            :errors="getError(i)"
-            @field-update="(data) => createCategory(i, data)"
-          />
-        </template>
-
-        <InputLabel
-          :for="getUuid('category-percent', i)"
-          value="Percentage of Transaction Total"
-          class="mt-2"
-        />
-        <input
-          :id="getUuid('category-percent', i)"
-          type="number"
-          min=".1"
-          step=".01"
-          v-model="catsRef[i].percent"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          :style="catSelectBorder(category)"
-        >
-        <DangerButton
-          class="max-h-1 max-w-1"
-          type="button"
-          @click="removeCategory(i)"
-        >
-          Remove
-        </DangerButton>
       </div>
-    </div>
+
+      <InputError :message="percentError" />
+      <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
+        <div
+          class="flex flex-wrap bg-slate-500 mr-4"
+          :class="{'border border-red-600 dark:border-red-400': percentError}"
+        >
+          <div
+            v-for="(item, i) in lineItems"
+            :key="i"
+            class="m-2"
+          >
+            <InputLabel
+              :for="getUuid('line-item-amount', i)"
+              value="Price"
+              class="mt-2"
+            />
+            <input
+              :id="getUuid('line-item-amount', i)"
+              type="number"
+              min=".1"
+              step=".01"
+              v-model="lineItems[i].price"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              :style="catSelectBorder(item)"
+            >
+            <template v-if="item.cat_data.cat_id">
+              <CategorySelect
+                :select-id="getUuid('category-select', i)"
+                :available-categories="availableCategories"
+                v-model="lineItems[i].cat_data"
+              />
+            </template>
+
+            <template v-else>
+              <h2 class="text-xl">
+                Create a New Category
+              </h2>
+              <CategoryInputs
+                :id="getUuid('category-inputs', i)"
+                :type="item.cat_data.cat_type_id"
+                :name="item.cat_data.name"
+                :color="item.cat_data.hex_color"
+                :category-types="categoryTypes"
+                :errors="getError(i)"
+                @field-update="(data) => createLineItemCategory(i, data)"
+              />
+            </template>
+
+            <DangerButton
+              class="max-h-1"
+              type="button"
+              @click="removeLineItem(i)"
+            >
+              Remove
+            </DangerButton>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
-
-<style lang="css" src="vue-multiselect/dist/vue-multiselect.css"></style>
-
-<style>
-
-.my-multiselect .multiselect__tags {
-  @apply bg-gray-400;
-  min-height: 32px;
-  display: block;
-  padding: 3px 40px 0 8px;
-  border-radius: 5px;
-  border: 1px solid #e8e8e8;
-  background: #fff;
-  font-size: 14px;
-}
-.my-multiselect .multiselect {
-  @apply bg-gray-400;
-}
-.my-multiselect .multiselect__option--highlight .multiselect__option {
-  @apply bg-gray-400;
-}
-.my-multiselect .multiselect__single {
-  @apply bg-gray-400;
-}
-.my-multiselect .multiselect__input {
-  @apply bg-gray-400;
-}
-</style>

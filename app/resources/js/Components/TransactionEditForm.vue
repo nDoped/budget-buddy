@@ -335,6 +335,7 @@
           <!-- categories -->
           <div class="m-2 bg-slate-500 border-t border-b border-gray-200">
             <TransactionCategory
+              :total-amount="form.amount"
               :categories="props.transaction.categories"
               :category-types="categoryTypes"
               :available-categories="props.categories"
