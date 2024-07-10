@@ -77,9 +77,9 @@
     });
   };
 
-  const updateInputs = ({ name, color, type, active }) => {
+  const updateInputs = ({ name, hex_color, type, active }) => {
     form.name = name;
-    form.hex_color = color;
+    form.hex_color = hex_color;
     form.category_type = type;
     form.active = active;
   };

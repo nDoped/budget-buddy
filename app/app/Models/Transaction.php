@@ -293,7 +293,7 @@ class Transaction extends Model
             foreach ($data as $cat) {
                 $percentSum += $cat['percentage'];
             }
-            if ($percentSum != 100) {
+            if (round($percentSum, 2) != 100) {
                 throw new \InvalidArgumentException('Category percentages do not sum to 100');
             }
         }
