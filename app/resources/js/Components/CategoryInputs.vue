@@ -5,6 +5,7 @@
   import Checkbox from '@/Components/Checkbox.vue';
   import {
     ref,
+    onMounted,
     watch
   } from 'vue';
   const emit = defineEmits([ 'fieldUpdate' ]);
@@ -53,6 +54,10 @@
   const getUuid = (el) => {
     return `${el}-${uuid}`;
   };
+  const nameEl = ref(null);
+  onMounted(() => {
+    nameEl.value.focus();
+  });
 </script>
 
 <template>
@@ -64,6 +69,7 @@
       />
       <TextInput
         :id="getUuid('cat-name')"
+        ref="nameEl"
         v-model="catName"
         type="text"
         class="mt-1 block w-full"

@@ -4,6 +4,7 @@
     toRaw,
     ref,
     watch,
+    nextTick,
     computed
   } from 'vue';
   import InputLabel from '@/Components/InputLabel.vue';
@@ -135,8 +136,24 @@
     }
   };
 
+  const catSelected = (opt, id) => {
+    let catRefId = id.split('-')[2];
+    focusElement(getUuid('category-percent', catRefId), true);
+  };
+
   const removeCategory = (i) => {
     catsRef.value.splice(i, 1);
+  };
+  const focusElement = (id, select = false) => {
+    nextTick(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.focus();
+        if (select) {
+          element.select();
+        }
+      }
+    });
   };
   const addCategory = () => {
     catsRef.value.push({
@@ -149,6 +166,7 @@
       },
       percent: 0,
     });
+    focusElement(getUuid('category-select', catsRef.value.length - 1));
   };
   const createCategory = (i, data) => {
     catsRef.value[i].cat_data.name = data.name;
@@ -225,6 +243,7 @@
               select-label=""
               :options="fetchFilteredCatsOptions(category)"
               :allow-empty="false"
+              @select="catSelected"
               :searchable="true"
             />
             <!-- @keyup.prevent.stop="preventBackspaceNavigation" -->
