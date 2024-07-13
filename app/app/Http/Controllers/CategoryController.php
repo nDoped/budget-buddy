@@ -23,7 +23,7 @@ class CategoryController extends Controller
         ]);
         $cat = new Category();
         $cat->name = $request->name;
-        $cat->hex_color = $request->color;
+        $cat->hex_color = $request->hex_color;
         $cat->user_id = $current_user->id;
         $cat->category_type_id = $request->category_type;
         $cat->save();

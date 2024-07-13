@@ -22,12 +22,12 @@
 
   const form = useForm({
     name: null,
-    color: '#000000',
+    hex_color: '#000000',
     category_type: '',
   });
-  const updateInputs = ({ name, color, type }) => {
+  const updateInputs = ({ name, hex_color, type }) => {
     form.name = name;
-    form.color = color;
+    form.hex_color = hex_color;
     form.category_type = type;
   };
   const inputIncrementer = ref(0);
