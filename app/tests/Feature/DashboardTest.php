@@ -65,9 +65,7 @@ class DashboardTest extends TestCase
         $this->creditTransaction2 = Transaction::find(100010);
     }
 
-    /**
-     * @group dashboard
-     */
+    #[Group('dashboard')]
     public function test_dashboard(): void
     {
         $parms = [
