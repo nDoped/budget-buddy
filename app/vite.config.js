@@ -9,6 +9,10 @@ export default defineConfig({
       },
     },
     usePolling: true,
+    test:{
+      globals:true,
+      environment: 'happy-dom'
+    },
     plugins: [
         laravel({
             input: 'resources/js/app.js',
