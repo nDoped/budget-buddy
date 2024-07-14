@@ -9,6 +9,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use \PHPUnit\Framework\Attributes\Group;
 use Database\Seeders\FeatureTestSeeder;
 
 
@@ -68,6 +69,7 @@ class TransactionsTest extends TestCase
         $this->creditTransaction2 = Transaction::find(100010);
     }
 
+    #[Group('transactions')]
     public function test_create_recurring_series()
     {
         // with invalid frequency
@@ -82,6 +84,7 @@ class TransactionsTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_children()
     {
         $this->_deleteMockTransactions([

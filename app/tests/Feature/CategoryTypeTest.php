@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\CategoryType;
+use \PHPUnit\Framework\Attributes\Group;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Util;
@@ -30,6 +31,7 @@ class CategoryTypeTest extends TestCase
         $this->catType2 = $this->cat2->categoryType;
     }
 
+    #[Group('category_types')]
     public function test_category_type_post()
     {
         $this->assertCount(2, $this->user->categoryTypes);
@@ -52,6 +54,7 @@ class CategoryTypeTest extends TestCase
         $this->assertEquals($payload['note'], $newCat->note);
     }
 
+    #[Group('category_types')]
     public function test_category_type_post_missing_name()
     {
         $this->assertCount(2, $this->user->categoryTypes);
@@ -61,6 +64,7 @@ class CategoryTypeTest extends TestCase
         $this->assertCount(2, $this->user->categoryTypes);
     }
 
+    #[Group('category_types')]
     public function test_category_type_patch()
     {
         $this->assertCount(2, $this->user->categoryTypes);
@@ -82,6 +86,7 @@ class CategoryTypeTest extends TestCase
         $this->assertEquals($payload['active'], $updatedCatType->active);
     }
 
+    #[Group('category_types')]
     public function test_category_type_destroy_linked_category()
     {
         $this->assertCount(2, $this->user->categoryTypes);
@@ -93,6 +98,7 @@ class CategoryTypeTest extends TestCase
         $this->assertEquals('This category type is used by at least 1 category and cannot be deleted', $errors->first());
     }
 
+    #[Group('category_types')]
     public function test_category_type_destroy_invalid_id()
     {
         $this->assertCount(2, $this->user->categoryTypes);
@@ -104,6 +110,7 @@ class CategoryTypeTest extends TestCase
         $this->assertEquals('Invalid category type id', $errors->first());
     }
 
+    #[Group('category_types')]
     public function test_category_type_destroy()
     {
         $this->assertCount(2, $this->user->categoryTypes);

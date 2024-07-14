@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
+use \PHPUnit\Framework\Attributes\Group;
 use Database\Seeders\FeatureTestSeeder;
 
 class DashboardTest extends TestCase
@@ -268,6 +269,7 @@ class DashboardTest extends TestCase
         );
     }
 
+    #[Group('dashboard')]
     public function test_dashboard_all_transactions(): void
     {
         $this->creditTransaction2->credit = true;

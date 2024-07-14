@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Account;
 use Inertia\Testing\AssertableInertia as Assert;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use \PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Database\Seeders\FeatureTestSeeder;
 class SettingsTest extends TestCase
@@ -34,6 +35,7 @@ class SettingsTest extends TestCase
         $this->catType2 = $this->cat2->categoryType;
     }
 
+    #[Group('settings')]
     public function test_index()
     {
         $this->assertCount(3, $this->user->categories);
@@ -55,6 +57,5 @@ class SettingsTest extends TestCase
                 }
             }
         );
-
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 use Database\Seeders\FeatureTestSeeder;
+use \PHPUnit\Framework\Attributes\Group;
 use Illuminate\Support\Facades\Log;
 use Tests\Util;
 
@@ -71,6 +72,7 @@ class TransactionTest extends TestCase
         $this->creditTransaction2 = Transaction::find(100010);
     }
 
+    #[Group('transactions')]
     public function test_transaction_post()
     {
         $response = $this->post(
@@ -120,6 +122,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_post_with_new_category()
     {
         $newCatPercent = 32.73;
@@ -180,6 +183,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_post_with_invalid_percentage()
     {
         $firstCatPercent = 12.01;
@@ -222,6 +226,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_post_recurring_biweekly()
     {
         $initial_trans_cnt = $this->user->transactions->count();
@@ -278,6 +283,7 @@ class TransactionTest extends TestCase
         );
     }
 
+    #[Group('transactions')]
     public function test_transaction_post_recurring_monthly()
     {
         $initial_trans_cnt = $this->user->transactions->count();
@@ -333,6 +339,7 @@ class TransactionTest extends TestCase
         );
     }
 
+    #[Group('transactions')]
     public function test_transaction_post_recurring_with_buddies()
     {
         $initial_trans_cnt = $this->user->transactions->count();
@@ -394,6 +401,7 @@ class TransactionTest extends TestCase
         );
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch()
     {
         $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
@@ -423,6 +431,7 @@ class TransactionTest extends TestCase
         $this->assertCount(0, $this->savingsTransaction0->categories);
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch_update_categories()
     {
         $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
@@ -504,6 +513,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch_update_categories_with_invalid_id()
     {
         $firstCatPercent = 15.92;
@@ -546,6 +556,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch_update_recurring()
     {
         Util::deleteMockTransactions([
@@ -619,6 +630,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch_update_recurring_with_buddies()
     {
         Util::deleteMockTransactions([
@@ -722,6 +734,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch_child_update()
     {
         Util::deleteMockTransactions([
@@ -836,6 +849,7 @@ class TransactionTest extends TestCase
         $this->_checkChildrenAfterPatch($this->savingsTransaction0->children(), $updateData);
     }
 
+    #[Group('transactions')]
     public function test_transaction_patch_child_update_with_buddies()
     {
         Util::deleteMockTransactions([
@@ -983,6 +997,7 @@ class TransactionTest extends TestCase
         }
     }
 
+    #[Group('transactions')]
     public function test_transaction_get_two_transactions_in_range()
     {
         $this->actingAs($user = User::factory()->create());
@@ -1015,6 +1030,7 @@ class TransactionTest extends TestCase
         );
     }
 
+    #[Group('transactions')]
     public function test_transaction_get_one_transaction_in_range()
     {
         $this->actingAs($user = User::factory()->create());
@@ -1042,6 +1058,7 @@ class TransactionTest extends TestCase
         );
     }
 
+    #[Group('transactions')]
     public function test_transaction_get_with_account_filter()
     {
         $this->savingsTransaction0->transaction_date = '2024-06-15';
@@ -1075,6 +1092,7 @@ class TransactionTest extends TestCase
         );
     }
 
+    #[Group('transactions')]
     public function test_destroy()
     {
         $this->assertCount(5, $this->user->transactions);
@@ -1084,6 +1102,7 @@ class TransactionTest extends TestCase
         $this->assertCount(4, $this->user->transactions);
     }
 
+    #[Group('transactions')]
     public function test_destroy_invalid_id()
     {
         $this->assertCount(5, $this->user->transactions);
@@ -1092,6 +1111,7 @@ class TransactionTest extends TestCase
         $this->assertEquals(5, $this->user->transactions()->count());
     }
 
+    #[Group('transactions')]
     public function test_destroy_buddy()
     {
         $buddyTrans =  $this->savingsTransaction2->createBuddyTransaction(
@@ -1111,6 +1131,7 @@ class TransactionTest extends TestCase
         $response->assertStatus(302);
     }
 
+    #[Group('transactions')]
     public function test_destroy_parent()
     {
         Util::deleteMockTransactions([
@@ -1144,6 +1165,7 @@ class TransactionTest extends TestCase
         $response->assertStatus(302);
     }
 
+    #[Group('transactions')]
     public function test_destroy_parent_and_children()
     {
         Util::deleteMockTransactions([
@@ -1174,6 +1196,7 @@ class TransactionTest extends TestCase
         $this->assertEquals(0, $this->user->transactions()->count());
     }
 
+    #[Group('transactions')]
     public function test_destroy_parent_and_buddy()
     {
         Util::deleteMockTransactions([
@@ -1210,6 +1233,7 @@ class TransactionTest extends TestCase
         $response->assertStatus(302);
     }
 
+    #[Group('transactions')]
     public function test_destroy_buddy_of_parent()
     {
         Util::deleteMockTransactions([
@@ -1246,6 +1270,7 @@ class TransactionTest extends TestCase
         $response->assertStatus(302);
     }
 
+    #[Group('transactions')]
     public function test_destroy_parent_and_recurring_buddies()
     {
         Util::deleteMockTransactions([

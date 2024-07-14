@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use \PHPUnit\Framework\Attributes\Group;
 use Tests\Util;
 use Database\Seeders\FeatureTestSeeder;
 
@@ -41,6 +42,7 @@ class CategoryTest extends TestCase
         $this->creditTransaction2 = Transaction::find(100010);
     }
 
+    #[Group('categories')]
     public function test_category_post()
     {
         $this->assertCount(3, $this->user->categories);
@@ -63,6 +65,7 @@ class CategoryTest extends TestCase
         $this->assertEquals($payload['category_type'], $newCat->categoryType->id);
     }
 
+    #[Group('categories')]
     public function test_category_post_missing_name()
     {
         $this->assertCount(3, $this->user->categories);
@@ -72,6 +75,7 @@ class CategoryTest extends TestCase
         $this->assertCount(3, $this->user->categories);
     }
 
+    #[Group('categories')]
     public function test_category_patch()
     {
         $this->assertCount(3, $this->user->categories);
@@ -96,6 +100,7 @@ class CategoryTest extends TestCase
         $this->assertEquals($payload['active'], $updatedCat->active);
     }
 
+    #[Group('categories')]
     public function test_category_destroy_linked_transaction()
     {
         $this->assertCount(3, $this->user->categories);
@@ -107,6 +112,7 @@ class CategoryTest extends TestCase
         $this->assertEquals('This category appears on at least 1 transaction and cannot be deleted', $errors->first());
     }
 
+    #[Group('categories')]
     public function test_category_destroy_invalid_id()
     {
         $this->assertCount(3, $this->user->categories);
@@ -118,6 +124,7 @@ class CategoryTest extends TestCase
         $this->assertEquals('Invalid category id', $errors->first());
     }
 
+    #[Group('categories')]
     public function test_category_destroy()
     {
         $this->assertCount(3, $this->user->categories);
