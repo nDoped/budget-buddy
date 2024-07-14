@@ -124,7 +124,7 @@ class SettingsController extends Controller
     private function _fetch_account_types() : array
     {
         $current_user = Auth::user();
-        $acct_types = AccountType::where('user_id', '=', $current_user->id)->get();
+        $acct_types = $current_user->accountTypes;
         $ret = [];
         foreach ($acct_types as $type) {
             $ret[] = [
@@ -142,13 +142,14 @@ class SettingsController extends Controller
     private function _fetch_accounts() : array
     {
         $current_user = Auth::user();
-        $accts = Account::where('user_id', '=', $current_user->id)->get();
+        $accts = $current_user->accounts;
         $ret = [];
         foreach ($accts as $acct) {
             $type = AccountType::find($acct->type_id);
             $user = User::find($acct->user_id);
             $ret[] = [
                 'name' => $acct->name,
+                'id' => $acct->id,
                 'type' => $type->name,
                 'asset' => $type->asset,
                 'interest_rate' => $acct->interest_rate,

@@ -27,6 +27,7 @@ class FeatureTestSeeder extends Seeder
         $savingsAccntType = $savingsAcct->accountType;
         $savingsAccntType->name = 'Savings';
         $savingsAccntType->asset = true;
+        $savingsAccntType->user_id = $testingUser->id;
         $savingsAccntType->save();
         $creditCardAccount = Account::factory()->for($testingUser)->create([
             'name' => "My Credit Card",
@@ -35,6 +36,7 @@ class FeatureTestSeeder extends Seeder
         $creditAccountType = $creditCardAccount->accountType;
         $creditAccountType->name = 'Credit';
         $creditAccountType->asset = false;
+        $creditAccountType->user_id = $testingUser->id;
         $creditAccountType->save();
         $cat1 = Category::factory()->for($testingUser)->create([
             'id' => 100003,
