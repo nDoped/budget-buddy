@@ -19,11 +19,12 @@ class CategoryTypeController extends Controller
         $current_user = Auth::user();
         $request->validate([
             'name' => ['required', 'max:50'],
+            'hex_color' => ['required'],
         ]);
         $cat_type = new CategoryType();
         $cat_type->name = $request->name;
         $cat_type->note = $request->note;
-        $cat_type->hex_color = $request->color;
+        $cat_type->hex_color = $request->hex_color;
         $cat_type->user_id = $current_user->id;
         $cat_type->save();
         return redirect()->route('settings.category_types');
@@ -38,31 +39,36 @@ class CategoryTypeController extends Controller
      */
     public function update(Request $request, CategoryType $categoryType)
     {
+        $request->validate([
+            'name' => [ 'required', 'max:50' ],
+            'hex_color' => [ 'required' ],
+        ]);
         $categoryType->name = $request->name;
         $categoryType->note = $request->note;
-        $categoryType->hex_color = $request->color;
+        $categoryType->hex_color = $request->hex_color;
         $categoryType->save();
+        return redirect()->route('settings.category_types');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy($id) : \Illuminate\Http\RedirectResponse
+    public function destroy(Request $request) : \Illuminate\Http\RedirectResponse
     {
-        $cat_type = CategoryType::find($id);
-        if ($cat_type) {
-            $linked_categories = $cat_type->categories();
-            if ($linked_categories->count() > 0) {
+        $catType = CategoryType::where('id', '=', $request->id)->first();
+        if ($catType) {
+            $linkedCategories = $catType->categories();
+            if ($linkedCategories->count() > 0) {
                 return redirect()->back()->withErrors([
                     'message' => 'This category type is used by at least 1 category and cannot be deleted'
                 ]);
             }
-            CategoryType::destroy($id);
+            CategoryType::destroy($catType->id);
         } else {
-            return redirect()->back()->withErrors('shit went down');
+            return redirect()->back()->withErrors('Invalid category type id');
         }
         return redirect()->route('settings.category_types');
     }

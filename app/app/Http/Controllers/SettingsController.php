@@ -51,9 +51,8 @@ class SettingsController extends Controller
     {
         $cats = [];
         $current_user = Auth::user();
-        $cat_itty = Category::where('user_id', '=', $current_user->id)
-            ->orderBy('name')
-            ->get();
+
+        $cat_itty = $current_user->categories;
         foreach ($cat_itty as $cat) {
             $catt = CategoryType::find($cat->category_type_id);
             $cats[] = [

@@ -27,7 +27,7 @@
   const form = useForm({
     name: props.categoryType.name,
     note: props.categoryType.note,
-    color: props.categoryType.color,
+    hex_color: props.categoryType.hex_color,
   });
 
   watch(
@@ -35,7 +35,7 @@
     () => {
       form.name = props.categoryType.name;
       form.note = props.categoryType.note;
-      form.color = props.categoryType.color;
+      form.hex_color = props.categoryType.hex_color;
       deleteCategoryTypeForm.id = props.categoryType.id;
     }
   );
@@ -76,7 +76,7 @@
 
   function submit() {
     /* global route */
-    form.post(route('category_types.update', { categoryType: props.categoryType.id }), {
+    form.patch(route('category_types.update', { categoryType: props.categoryType.id }), {
       preserveScroll: true,
       onSuccess: () => success(false),
       onError: (err) =>  {
@@ -134,7 +134,7 @@
                 <input
                   :id="getUuid('catt-color')"
                   type="color"
-                  v-model="form.color"
+                  v-model="form.hex_color"
                 >
               </div>
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Tests\TestCase;
 use Database\Seeders\FeatureTestSeeder;
 use Illuminate\Support\Facades\Log;
+use Tests\Util;
 
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -547,7 +548,7 @@ class TransactionTest extends TestCase
 
     public function test_transaction_patch_update_recurring()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->creditTransaction2->id,
             $this->savingsTransaction1->id,
@@ -620,7 +621,7 @@ class TransactionTest extends TestCase
 
     public function test_transaction_patch_update_recurring_with_buddies()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->creditTransaction2->id,
             $this->savingsTransaction1->id,
@@ -723,7 +724,7 @@ class TransactionTest extends TestCase
 
     public function test_transaction_patch_child_update()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->creditTransaction2->id,
             $this->savingsTransaction1->id,
@@ -837,7 +838,7 @@ class TransactionTest extends TestCase
 
     public function test_transaction_patch_child_update_with_buddies()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->creditTransaction2->id,
             $this->savingsTransaction1->id,
@@ -1112,7 +1113,7 @@ class TransactionTest extends TestCase
 
     public function test_destroy_parent()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->savingsTransaction0->id,
             $this->savingsTransaction1->id,
@@ -1145,7 +1146,7 @@ class TransactionTest extends TestCase
 
     public function test_destroy_parent_and_children()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->savingsTransaction0->id,
             $this->savingsTransaction1->id,
@@ -1175,7 +1176,7 @@ class TransactionTest extends TestCase
 
     public function test_destroy_parent_and_buddy()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->savingsTransaction0->id,
             $this->savingsTransaction1->id,
@@ -1211,7 +1212,7 @@ class TransactionTest extends TestCase
 
     public function test_destroy_buddy_of_parent()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->savingsTransaction0->id,
             $this->savingsTransaction1->id,
@@ -1247,7 +1248,7 @@ class TransactionTest extends TestCase
 
     public function test_destroy_parent_and_recurring_buddies()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->savingsTransaction0->id,
             $this->savingsTransaction1->id,
@@ -1319,22 +1320,6 @@ class TransactionTest extends TestCase
                 }
             }
             $this->assertEquals($percentage / 100, $cat['percent']);
-        }
-    }
-    private function _deleteMockTransactions(array $transIdsToDelete)
-    {
-        // clean up the other transactions so they don't interfere with the test
-        $mockTransactions = [
-            $this->creditTransaction1,
-            $this->creditTransaction2,
-            $this->savingsTransaction0,
-            $this->savingsTransaction1,
-            $this->savingsTransaction2
-        ];
-        foreach ($mockTransactions as $trans) {
-            if (in_array($trans->id, $transIdsToDelete)) {
-                $trans->delete();
-            }
         }
     }
     private function _checkChildrenAfterPost(

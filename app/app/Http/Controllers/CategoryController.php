@@ -42,8 +42,8 @@ class CategoryController extends Controller
         $request->validate([
             'name' => [ 'required', 'max:50' ],
             'hex_color' => [ 'required' ],
+            'active' => [ 'required' ],
         ]);
-
 
         $category->name = $request->name;
         $category->hex_color = $request->hex_color;
@@ -61,10 +61,7 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request) : \Illuminate\Http\RedirectResponse
     {
-        $request->validate([
-            'id' => [ 'required' ],
-        ]);
-        $category = Category::find($request->id);
+        $category = Category::where('id', '=', $request->id)->first();
         if ($category) {
             $linked_transactions = $category->transactions();
             if ($linked_transactions->count() > 0) {
@@ -74,7 +71,7 @@ class CategoryController extends Controller
             }
             Category::destroy($request->id);
         } else {
-            return redirect()->back()->withErrors('shit went down');
+            return redirect()->back()->withErrors('Invalid category id');
         }
         return redirect()->route('settings.categories');
     }
