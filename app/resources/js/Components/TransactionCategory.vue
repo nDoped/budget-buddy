@@ -198,7 +198,7 @@
     return `border: solid ${cat.cat_data.hex_color}; border-radius: 5px;`;
   };
   const uuid = crypto.randomUUID();
-  const getUuid = (el, i) => {
+  const getUuid = (el, i = 0) => {
     return `${el}-${i}-${uuid}`;
   };
   const catChange = () => {
@@ -275,6 +275,7 @@
     <template v-if="! calcCatsByReciept">
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <PrimaryButton
+          :id="getUuid('add-cat-button')"
           class="m-4"
           type="button"
           @click="addCategory"
@@ -282,6 +283,7 @@
           Add an Existing Cat
         </PrimaryButton>
         <PrimaryButton
+          :id="getUuid('create-cat-button')"
           class="m-4"
           type="button"
           @click="createANewCategory"

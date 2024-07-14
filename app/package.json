@@ -4,7 +4,9 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "test": "vitest --dom",
+        "test": "vitest run --dom",
+        "test-watch": "vitest --dom",
+        "coverage": "vitest run --coverage",
         "watch": "vite build --watch"
     },
     "devDependencies": {
@@ -12,6 +14,7 @@
         "@tailwindcss/forms": "^0.5.2",
         "@tailwindcss/typography": "^0.5.2",
         "@vitejs/plugin-vue": "^4.0.0",
+        "@vitest/coverage-v8": "^2.0.2",
         "@vue/test-utils": "^2.4.6",
         "autoprefixer": "^10.4.7",
         "axios": "^1.1.2",
@@ -19,6 +22,7 @@
         "eslint-config-prettier": "^8.6.0",
         "eslint-plugin-prettier": "^4.2.1",
         "eslint-plugin-vue": "^9.9.0",
+        "happy-dom": "^14.0",
         "laravel-vite-plugin": "^1.0",
         "lodash": "^4.17.21",
         "postcss": "^8.4.14",
@@ -32,7 +36,6 @@
         "chart.js": "^4.3.0",
         "chartjs-plugin-datalabels": "^2.2.0",
         "fast-sort": "^3.2.1",
-        "happy-dom": "^6.0.4",
         "vue-chartjs": "^5.2.0",
         "vue-multiselect": "^3.0.0",
         "vue3-toastify": "^0.1.0"

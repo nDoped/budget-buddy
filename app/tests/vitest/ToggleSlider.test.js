@@ -1,7 +1,9 @@
-
+/* global expect */
+/* global beforeEach */
+/* global test */
+/* global it */
 import {mount} from "@vue/test-utils";
 import ToggleSlider from '@/Components/ToggleSlider.vue';
-// import { expect, test } from "vitest";
 let wrapper;
 
 beforeEach(() => {
@@ -38,6 +40,6 @@ test('modelValue should be updated', async () => {
     }
   })
   expect(wrapper.props('modelValue')).toBe(false)
-  const ac = await wrapper.get("input").setChecked(true);
+  await wrapper.get("input").setChecked(true);
   expect(wrapper.props('modelValue')).toBe(true)
 })
