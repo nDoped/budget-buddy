@@ -75,6 +75,8 @@ class TransactionTest extends TestCase
     #[Group('transactions')]
     public function test_transaction_post()
     {
+        $savingsTransactions = $this->savingsAccount->transactions;
+        $this->assertCount(3, $savingsTransactions);
         $response = $this->post(
             '/transactions/store',
             [
@@ -120,6 +122,10 @@ class TransactionTest extends TestCase
                 break;
             }
         }
+        $this->savingsAccount->refresh();
+        $savingsTransactions = $this->savingsAccount->transactions;
+        $this->assertCount(4, $savingsTransactions);
+
     }
 
     #[Group('transactions')]

@@ -110,6 +110,8 @@ class SettingsTest extends TestCase
     #[Group('settings')]
     public function test_store_account()
     {
+        $this->assertCount(1, $this->creditAccountType->accounts);
+        $this->assertEquals($this->user, $this->creditAccountType->user);
         $this->assertCount(2, $this->user->accounts);
         $payload = [
             'name' => 'New Account',

@@ -11,19 +11,19 @@ class AccountType extends Model
 {
     use HasFactory;
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function accounts() : HasMany
+    {
+        return $this->hasMany(Account::class, 'type_id');
+    }
+
+    /**
      * Get the user that owns the account type
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user() : BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function accounts() : HasMany
-    {
-        return $this->hasMany(Account::class);
     }
 }

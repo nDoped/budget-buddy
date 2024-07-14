@@ -35,6 +35,7 @@ class CategoryTypeTest extends TestCase
     public function test_category_type_post()
     {
         $this->assertCount(2, $this->user->categoryTypes);
+        $this->assertEquals($this->user->id, $this->catType1->user->id);
         $payload = [
             'name' => 'a new type',
             'hex_color' => '#000000',
