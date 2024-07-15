@@ -148,7 +148,6 @@ class ImportData extends Command
                     $trans->categories()->save($cat_model, [ 'percentage' => $percent * 100 ]);
                 }
 
-                /*
                 Log::info([
                     "transaction_date" => $transaction_date,
                     "amount" => $amount,
@@ -161,7 +160,6 @@ class ImportData extends Command
                     'bank_ident' => $bank_ident,
                     'data' => $data
                 ]);
-                 */
             }
         }
     }

@@ -22,5 +22,8 @@
     <include>
       <directory suffix=".php">./app</directory>
     </include>
+    <exclude>
+      <file>app/Console/Commands/ImportData.php</file>
+    </exclude>
   </source>
 </phpunit>
