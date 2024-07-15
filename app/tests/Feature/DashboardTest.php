@@ -10,6 +10,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
 use \PHPUnit\Framework\Attributes\Group;
+use Tests\Util;
 use Database\Seeders\FeatureTestSeeder;
 
 class DashboardTest extends TestCase
@@ -160,6 +161,722 @@ class DashboardTest extends TestCase
                 $this->assertEquals(1, count($savings_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
                 $this->assertEquals($this->savingsTransaction1->amount - $this->savingsTransaction2->amount, $savings_daily_net_growths['2024-06-14']);
+
+                /*
+                 * category_type_breakdowns
+                 */
+                $category_type_breakdowns = $data['category_type_breakdowns'];
+                $this->assertEquals(2, count($category_type_breakdowns));
+
+                // CatType1
+                $cat_type1 = $category_type_breakdowns[$this->catType1->id];
+                $this->assertEquals($this->catType1->name, $cat_type1['name']);
+                $this->assertEquals($this->catType1->hex_color, $cat_type1['hex_color']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction1->amount * $this->actualCatPercentage1)
+                        + ($this->savingsTransaction2->amount * $this->actualCatPercentage1)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage1)) / 100,
+                        2
+                    ),
+                    $cat_type1['total']
+                );
+
+                $cat_type_1_categories = $cat_type1['data'];
+                $this->assertEquals(1, count($cat_type_1_categories));
+
+                $cat1_data = $cat_type_1_categories[$this->cat1->id];
+                $this->assertEquals($this->cat1->name, $cat1_data['name']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction1->amount * $this->actualCatPercentage1)
+                        + ($this->savingsTransaction2->amount * $this->actualCatPercentage1)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage1)) / 100,
+                        2
+                    ),
+                    $cat1_data['value']
+                );
+                $this->assertEquals($this->cat1->hex_color, $cat1_data['hex_color']);
+
+                $cat1_transactions = $cat1_data['transactions'];
+                $this->assertEquals(3, count($cat1_transactions));
+                $expected_transactions = [
+                    $this->savingsTransaction1,
+                    $this->savingsTransaction2,
+                    $this->creditTransaction1
+                ];
+                foreach ($cat1_transactions as $transaction) {
+                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat1->id);
+                }
+
+                // CatType2
+                $cat_type2 = $category_type_breakdowns[$this->catType2->id];
+                $this->assertEquals($this->catType2->name, $cat_type2['name']);
+                $this->assertEquals($this->catType2->hex_color, $cat_type2['hex_color']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction1->amount * $this->actualCatPercentage2)
+                        + ($this->savingsTransaction2->amount * $this->actualCatPercentage2)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage2)) / 100,
+                        2
+                    ),
+                    $cat_type2['total']
+                );
+
+                $cat_type_2_categories = $cat_type2['data'];
+                $this->assertEquals(2, count($cat_type_2_categories));
+                $this->assertContains($this->cat2->id, array_keys($cat_type_2_categories));
+                $this->assertContains($this->cat3->id, array_keys($cat_type_2_categories));
+
+                $cat2_data = $cat_type_2_categories[$this->cat2->id];
+                $this->assertEquals($this->cat2->name, $cat2_data['name']);
+                $this->assertEquals($this->cat2->hex_color, $cat2_data['hex_color']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction2->amount * $this->actualCatPercentage2)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage2)) / 100,
+                        2
+                    ),
+                    $cat2_data['value']
+                );
+
+                $cat2_transactions = $cat2_data['transactions'];
+                $this->assertEquals(2, count($cat2_transactions));
+                $expected_transactions = [
+                    $this->savingsTransaction2,
+                    $this->creditTransaction1
+                ];
+                foreach ($cat2_transactions as $transaction) {
+                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat2->id);
+                }
+
+                $cat3_data = $cat_type_2_categories[$this->cat3->id];
+                $this->assertEquals($this->cat3->name, $cat3_data['name']);
+                $this->assertEquals($this->cat3->hex_color, $cat3_data['hex_color']);
+                $this->assertEquals(
+                    round(($this->savingsTransaction1->amount * $this->actualCatPercentage2) / 100, 2),
+                    $cat3_data['value']
+                );
+
+                $cat3_transactions = $cat3_data['transactions'];
+                $this->assertEquals(1, count($cat3_transactions));
+                $expected_transactions = [ $this->savingsTransaction1 ];
+                foreach ($cat3_transactions as $transaction) {
+                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat3->id);
+                }
+
+                return $page->component('Dashboard');
+            }
+        );
+    }
+
+    public function test_dashboard_no_params(): void
+    {
+        Util::deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $currentTrans = Transaction::factory()->for($this->creditCardAccount)->create([
+            'transaction_date' =>  date('Y-m-d'),
+            'amount' => 32734, // $327.34
+            'credit' => true,
+            'note' => 'credit trans to debt acct'
+        ]);
+        $this->get(
+            route('dashboard'),
+        )->assertInertia(
+            function (Assert $page) use ($currentTrans) {
+                $data = $page->toArray()['props']['data'];
+                $this->assertEquals(7, count($data));
+                $this->assertEquals(
+                    $currentTrans->amount / 100,
+                    $data['total_economic_growth']
+                );
+
+                /*
+                 * account_growth_line_data
+                 */
+                $this->assertEquals(2, count($data['account_growth_line_data']));
+                $account_growth_line_data = $data['account_growth_line_data'];
+                $this->assertEquals(1, count($account_growth_line_data['daily_economic_growth']));
+                $daily_economic_growth = $account_growth_line_data['daily_economic_growth'];
+                $this->assertEquals(
+                    $currentTrans->amount / 100,
+                    $daily_economic_growth[date('Y-m-d')]
+                );
+                $total_economic_growth = $account_growth_line_data['total_economic_growth'];
+                $this->assertEquals(
+                    $currentTrans->amount / 100,
+                    $total_economic_growth[date('Y-m-d')]
+                );
+
+                /*
+                 * debt_accounts
+                 */
+                $this->assertEquals(2, count($data['debt_accounts']));
+                $credit_card = $data['debt_accounts'][0];
+                $this->isFalse($credit_card['asset']);
+                $this->assertEquals($this->creditCardAccount->name, $credit_card['name']);
+                $this->assertEquals(
+                    -$currentTrans->amount / 100
+                    , $credit_card['in_range_net_growth']
+                );
+                // this is a raw value, i don't think the front end uses it, but it's included so lets check it */
+                $this->assertEquals(
+                    0,
+                    $credit_card['pre_range_net_growth']
+                );
+                $this->assertTrue($credit_card['overdrawn_or_overpaid']);
+                $this->assertEquals(
+                    0,
+                    $credit_card['start_balance']
+                );
+                $this->assertEquals(
+                    -$currentTrans->amount / 100,
+                    $credit_card['end_balance']
+                );
+
+                $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
+                $this->assertEquals(
+                    0,
+                    $cc_daily_balance_line_graph_data['Start']
+                );
+                $this->assertEquals(
+                    -$currentTrans->amount / 100,
+                    $cc_daily_balance_line_graph_data[date('Y-m-d')]
+                );
+                $cc_daily_net_growths = $credit_card['daily_net_growths'];
+                $this->assertEquals(1, count($cc_daily_net_growths));
+                // this is raw..idk if it's actually used on the front end
+                $this->assertEquals(
+                    -$currentTrans->amount,
+                    $cc_daily_net_growths[date('Y-m-d')]
+                );
+                $debt_accounts_totals = $data['debt_accounts'][1];
+                $this->assertEquals(6, count($debt_accounts_totals));
+                $this->assertEquals('Totals', $debt_accounts_totals['name']);
+                $this->assertEquals(
+                    0,
+                    $debt_accounts_totals['start_balance']
+                );
+                $this->assertEquals(
+                    -$currentTrans->amount / 100,
+                    $debt_accounts_totals['in_range_net_growth']
+                );
+                $this->assertEquals(
+                    -$currentTrans->amount / 100,
+                    $debt_accounts_totals['end_balance']
+                );
+                $this->isFalse($debt_accounts_totals['asset']);
+
+                /*
+                 * asset_accounts
+                 */
+                $asset_accounts = $data['asset_accounts'];
+                $this->assertEquals(2, count($asset_accounts));
+                $savings = $asset_accounts[0];
+                $this->isTrue($savings['asset']);
+                $this->assertEquals($this->savingsAccount->name, $savings['name']);
+                $this->assertEquals(
+                    0,
+                    $savings['in_range_net_growth']);
+                // this is a raw value, i don't think the front end uses it, but it's included so lets check it
+                $this->assertEquals(
+                    0,
+                    $savings['pre_range_net_growth']
+                );
+                $this->assertFalse($savings['overdrawn_or_overpaid']);
+                $this->assertEquals(0, $savings['start_balance']);
+                $this->assertEquals(0, $savings['end_balance']);
+                $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
+                $this->assertEquals(0, $savings_daily_balance_line_graph_data['Start']);
+                $savings_daily_net_growths = $savings['daily_net_growths'];
+                $this->assertEquals(0, count($savings_daily_net_growths));
+
+                // no category breakdowns since we didn't set the cat on the trans
+                $category_type_breakdowns = $data['category_type_breakdowns'];
+                $this->assertEquals(0, count($category_type_breakdowns));
+
+                return $page->component('Dashboard');
+            }
+        );
+    }
+
+    #[Group('dashboard')]
+    public function test_dashboard_with_extra_to_range_transactions(): void
+    {
+        $toRangeCreditToDebitAcctTrans = Transaction::factory()->for($this->creditCardAccount)->create([
+            'transaction_date' => '2024-05-01',
+            'amount' => 32734, // $327.34
+            'credit' => true,
+            'note' => 'credit trans to debt acct'
+        ]);
+        $toRangeDebitToAssetAcctTrans = Transaction::factory()->for($this->savingsAccount)->create([
+            'transaction_date' => '2024-05-01',
+            'amount' => 23435, // $324.25
+            'credit' => false,
+            'note' => 'debit trans to asset acct'
+        ]);
+        $parms = [
+            'start' => '2024-06-01',
+            'end' => '2024-06-30',
+        ];
+        $query = http_build_query($parms);
+        $this->get(
+            '/dashboard?' . $query,
+        )->assertInertia(
+            function (Assert $page) use (
+                $toRangeCreditToDebitAcctTrans,
+                $toRangeDebitToAssetAcctTrans
+            ) {
+                $data = $page->toArray()['props']['data'];
+                $this->assertEquals(7, count($data));
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    - $this->creditTransaction1->amount) / 100,
+                    $data['total_economic_growth']
+                );
+
+                /*
+                 * account_growth_line_data
+                 */
+                $this->assertEquals(2, count($data['account_growth_line_data']));
+                $account_growth_line_data = $data['account_growth_line_data'];
+                $this->assertEquals(2, count($account_growth_line_data['daily_economic_growth']));
+                $daily_economic_growth = $account_growth_line_data['daily_economic_growth'];
+                $this->assertEquals(
+                    -$this->creditTransaction1->amount / 100,
+                    $daily_economic_growth['2024-06-01']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100,
+                    $daily_economic_growth['2024-06-14']
+                );
+                $total_economic_growth = $account_growth_line_data['total_economic_growth'];
+                $this->assertEquals(
+                    -$this->creditTransaction1->amount / 100,
+                    $total_economic_growth['2024-06-01']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount  - $this->savingsTransaction2->amount - $this->creditTransaction1->amount) / 100,
+                    $total_economic_growth['2024-06-14']
+                );
+
+                /*
+                 * debt_accounts
+                 */
+                $this->assertEquals(2, count($data['debt_accounts']));
+                $credit_card = $data['debt_accounts'][0];
+                $this->isFalse($credit_card['asset']);
+                $this->assertEquals($this->creditCardAccount->name, $credit_card['name']);
+                $this->assertEquals($this->creditTransaction1->amount / 100, $credit_card['in_range_net_growth']);
+                // this is a raw value, i don't think the front end uses it, but it's included so lets check it */
+                $this->assertEquals(
+                    $this->creditTransaction2->amount - $toRangeCreditToDebitAcctTrans->amount,
+                    $credit_card['pre_range_net_growth']
+                );
+                $this->assertFalse($credit_card['overdrawn_or_overpaid']);
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    $credit_card['start_balance']
+                );
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount
+                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    $credit_card['end_balance']
+                );
+
+                $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    $cc_daily_balance_line_graph_data['Start']
+                    );
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount
+                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    $cc_daily_balance_line_graph_data['2024-06-01']
+                );
+                $cc_daily_net_growths = $credit_card['daily_net_growths'];
+                $this->assertEquals(1, count($cc_daily_net_growths));
+                // this is raw..idk if it's actually used on the front end
+                $this->assertEquals($this->creditTransaction1->amount, $cc_daily_net_growths['2024-06-01']);
+                $debt_accounts_totals = $data['debt_accounts'][1];
+                $this->assertEquals(6, count($debt_accounts_totals));
+                $this->assertEquals('Totals', $debt_accounts_totals['name']);
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    $debt_accounts_totals['start_balance']
+                );
+                $this->assertEquals($this->creditTransaction1->amount / 100, $debt_accounts_totals['in_range_net_growth']);
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount
+                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    $debt_accounts_totals['end_balance']
+                );
+                $this->isFalse($debt_accounts_totals['asset']);
+
+                /*
+                 * asset_accounts
+                 */
+                $asset_accounts = $data['asset_accounts'];
+                $this->assertEquals(2, count($asset_accounts));
+                $savings = $asset_accounts[0];
+                $this->isTrue($savings['asset']);
+                $this->assertEquals($this->savingsAccount->name, $savings['name']);
+                $this->assertEquals(($this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings['in_range_net_growth']);
+                // this is a raw value, i don't think the front end uses it, but it's included so lets check it
+                $this->assertEquals(
+                    $this->savingsTransaction0->amount - $toRangeDebitToAssetAcctTrans->amount,
+                    $savings['pre_range_net_growth']
+                );
+                $this->assertFalse($savings['overdrawn_or_overpaid']);
+                $this->assertEquals(
+                    ($this->savingsTransaction0->amount - $toRangeDebitToAssetAcctTrans->amount) / 100,
+                    $savings['start_balance']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction0->amount
+                    + $this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    - $toRangeDebitToAssetAcctTrans->amount) / 100,
+                    $savings['end_balance']
+                );
+                $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
+                $this->assertEquals(
+                    ($this->savingsTransaction0->amount
+                    - $toRangeDebitToAssetAcctTrans->amount) / 100,
+                    $savings_daily_balance_line_graph_data['Start']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction0->amount
+                    + $this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    - $toRangeDebitToAssetAcctTrans->amount) / 100,
+                    $savings_daily_balance_line_graph_data['2024-06-14']
+                );
+                $savings_daily_net_growths = $savings['daily_net_growths'];
+                $this->assertEquals(1, count($savings_daily_net_growths));
+                // this is raw..idk if it's actually used on the front end
+                $this->assertEquals(
+                    $this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount,
+                    $savings_daily_net_growths['2024-06-14']
+                );
+
+                /*
+                 * category_type_breakdowns
+                 */
+                $category_type_breakdowns = $data['category_type_breakdowns'];
+                $this->assertEquals(2, count($category_type_breakdowns));
+
+                // CatType1
+                $cat_type1 = $category_type_breakdowns[$this->catType1->id];
+                $this->assertEquals($this->catType1->name, $cat_type1['name']);
+                $this->assertEquals($this->catType1->hex_color, $cat_type1['hex_color']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction1->amount * $this->actualCatPercentage1)
+                        + ($this->savingsTransaction2->amount * $this->actualCatPercentage1)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage1)) / 100,
+                        2
+                    ),
+                    $cat_type1['total']
+                );
+
+                $cat_type_1_categories = $cat_type1['data'];
+                $this->assertEquals(1, count($cat_type_1_categories));
+
+                $cat1_data = $cat_type_1_categories[$this->cat1->id];
+                $this->assertEquals($this->cat1->name, $cat1_data['name']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction1->amount * $this->actualCatPercentage1)
+                        + ($this->savingsTransaction2->amount * $this->actualCatPercentage1)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage1)) / 100,
+                        2
+                    ),
+                    $cat1_data['value']
+                );
+                $this->assertEquals($this->cat1->hex_color, $cat1_data['hex_color']);
+
+                $cat1_transactions = $cat1_data['transactions'];
+                $this->assertEquals(3, count($cat1_transactions));
+                $expected_transactions = [
+                    $this->savingsTransaction1,
+                    $this->savingsTransaction2,
+                    $this->creditTransaction1
+                ];
+                foreach ($cat1_transactions as $transaction) {
+                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat1->id);
+                }
+
+                // CatType2
+                $cat_type2 = $category_type_breakdowns[$this->catType2->id];
+                $this->assertEquals($this->catType2->name, $cat_type2['name']);
+                $this->assertEquals($this->catType2->hex_color, $cat_type2['hex_color']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction1->amount * $this->actualCatPercentage2)
+                        + ($this->savingsTransaction2->amount * $this->actualCatPercentage2)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage2)) / 100,
+                        2
+                    ),
+                    $cat_type2['total']
+                );
+
+                $cat_type_2_categories = $cat_type2['data'];
+                $this->assertEquals(2, count($cat_type_2_categories));
+                $this->assertContains($this->cat2->id, array_keys($cat_type_2_categories));
+                $this->assertContains($this->cat3->id, array_keys($cat_type_2_categories));
+
+                $cat2_data = $cat_type_2_categories[$this->cat2->id];
+                $this->assertEquals($this->cat2->name, $cat2_data['name']);
+                $this->assertEquals($this->cat2->hex_color, $cat2_data['hex_color']);
+                $this->assertEquals(
+                    round(
+                        (($this->savingsTransaction2->amount * $this->actualCatPercentage2)
+                        + ($this->creditTransaction1->amount * $this->actualCatPercentage2)) / 100,
+                        2
+                    ),
+                    $cat2_data['value']
+                );
+
+                $cat2_transactions = $cat2_data['transactions'];
+                $this->assertEquals(2, count($cat2_transactions));
+                $expected_transactions = [
+                    $this->savingsTransaction2,
+                    $this->creditTransaction1
+                ];
+                foreach ($cat2_transactions as $transaction) {
+                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat2->id);
+                }
+
+                $cat3_data = $cat_type_2_categories[$this->cat3->id];
+                $this->assertEquals($this->cat3->name, $cat3_data['name']);
+                $this->assertEquals($this->cat3->hex_color, $cat3_data['hex_color']);
+                $this->assertEquals(
+                    round(($this->savingsTransaction1->amount * $this->actualCatPercentage2) / 100, 2),
+                    $cat3_data['value']
+                );
+
+                $cat3_transactions = $cat3_data['transactions'];
+                $this->assertEquals(1, count($cat3_transactions));
+                $expected_transactions = [ $this->savingsTransaction1 ];
+                foreach ($cat3_transactions as $transaction) {
+                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat3->id);
+                }
+
+                return $page->component('Dashboard');
+            }
+        );
+    }
+
+    #[Group('dashboard')]
+    public function test_dashboard_with_extra_in_range_transactions(): void
+    {
+        $inRangeCreditToDebitAcctTrans = Transaction::factory()->for($this->creditCardAccount)->create([
+            'transaction_date' => $this->creditTransaction1->transaction_date,
+            'amount' => 32734, // $327.34
+            'credit' => true,
+            'note' => 'credit trans to debt acct'
+        ]);
+        $inRangeCreditToAssetAcctTrans = Transaction::factory()->for($this->savingsAccount)->create([
+            'transaction_date' => $this->savingsTransaction1->transaction_date,
+            'amount' => 72435,
+            'credit' => true,
+            'note' => 'credit trans to asset acct'
+        ]);
+        $parms = [
+            'start' => '2024-06-01',
+            'end' => '2024-06-30',
+        ];
+        $query = http_build_query($parms);
+        $this->get(
+            '/dashboard?' . $query,
+        )->assertInertia(
+            function (Assert $page) use (
+                $inRangeCreditToDebitAcctTrans,
+                $inRangeCreditToAssetAcctTrans
+            ) {
+                $data = $page->toArray()['props']['data'];
+                $this->assertEquals(7, count($data));
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount
+                    + $inRangeCreditToAssetAcctTrans->amount
+                    - $this->savingsTransaction2->amount
+                    - $this->creditTransaction1->amount
+                    + $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $data['total_economic_growth']
+                );
+
+                /*
+                 * account_growth_line_data
+                 */
+                $this->assertEquals(2, count($data['account_growth_line_data']));
+                $account_growth_line_data = $data['account_growth_line_data'];
+                $this->assertEquals(2, count($account_growth_line_data['daily_economic_growth']));
+                $daily_economic_growth = $account_growth_line_data['daily_economic_growth'];
+                $this->assertEquals(
+                    ($inRangeCreditToDebitAcctTrans->amount
+                    - $this->creditTransaction1->amount) / 100,
+                    $daily_economic_growth['2024-06-01']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    + $inRangeCreditToAssetAcctTrans->amount
+                    ) / 100,
+                    $daily_economic_growth['2024-06-14']
+                );
+                $total_economic_growth = $account_growth_line_data['total_economic_growth'];
+                $this->assertEquals(
+                    ($inRangeCreditToDebitAcctTrans->amount
+                    - $this->creditTransaction1->amount) / 100,
+                    $total_economic_growth['2024-06-01']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    + $inRangeCreditToDebitAcctTrans->amount
+                    + $inRangeCreditToAssetAcctTrans->amount
+                    - $this->creditTransaction1->amount) / 100,
+                    $total_economic_growth['2024-06-14']
+                );
+
+                /*
+                 * debt_accounts
+                 */
+                $this->assertEquals(2, count($data['debt_accounts']));
+                $credit_card = $data['debt_accounts'][0];
+                $this->isFalse($credit_card['asset']);
+                $this->assertEquals($this->creditCardAccount->name, $credit_card['name']);
+                $this->assertEquals(
+                    ($this->creditTransaction1->amount
+                    - $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $credit_card['in_range_net_growth']
+                );
+                // this is a raw value, i don't think the front end uses it, but it's included so lets check it */
+                $this->assertEquals(
+                    //$this->creditTransaction2->amount - $toRangeCreditToDebitAcctTrans->amount,
+                    $this->creditTransaction2->amount,
+                    $credit_card['pre_range_net_growth']
+                );
+                $this->assertFalse($credit_card['overdrawn_or_overpaid']);
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    //- $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    ) / 100,
+                    $credit_card['start_balance']
+                );
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount
+                    - $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $credit_card['end_balance']
+                );
+
+                $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    //- $toRangeCreditToDebitAcctTrans->amount) / 100,
+                    ) / 100,
+                    $cc_daily_balance_line_graph_data['Start']
+                    );
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount
+                    - $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $cc_daily_balance_line_graph_data['2024-06-01']
+                );
+                $cc_daily_net_growths = $credit_card['daily_net_growths'];
+                $this->assertEquals(1, count($cc_daily_net_growths));
+                // this is raw..idk if it's actually used on the front end
+                $this->assertEquals(
+                    $this->creditTransaction1->amount - $inRangeCreditToDebitAcctTrans->amount,
+                    $cc_daily_net_growths['2024-06-01']
+                );
+                $debt_accounts_totals = $data['debt_accounts'][1];
+                $this->assertEquals(6, count($debt_accounts_totals));
+                $this->assertEquals('Totals', $debt_accounts_totals['name']);
+                $this->assertEquals(
+                    $this->creditTransaction2->amount / 100,
+                    $debt_accounts_totals['start_balance']
+                );
+                $this->assertEquals(
+                    ($this->creditTransaction1->amount
+                    - $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $debt_accounts_totals['in_range_net_growth']
+                );
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount
+                    - $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $debt_accounts_totals['end_balance']
+                );
+                $this->isFalse($debt_accounts_totals['asset']);
+
+                /*
+                 * asset_accounts
+                 */
+                $asset_accounts = $data['asset_accounts'];
+                $this->assertEquals(2, count($asset_accounts));
+                $savings = $asset_accounts[0];
+                $this->isTrue($savings['asset']);
+                $this->assertEquals($this->savingsAccount->name, $savings['name']);
+                $this->assertEquals(
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    + $inRangeCreditToAssetAcctTrans->amount) / 100,
+                    $savings['in_range_net_growth']
+                );
+                // this is a raw value, i don't think the front end uses it, but it's included so lets check it
+                $this->assertEquals(
+                    $this->savingsTransaction0->amount,
+                    $savings['pre_range_net_growth']
+                );
+                $this->assertFalse($savings['overdrawn_or_overpaid']);
+                $this->assertEquals(
+                    $this->savingsTransaction0->amount / 100,
+                    $savings['start_balance']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction0->amount
+                    + $this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    + $inRangeCreditToAssetAcctTrans->amount) / 100,
+                    $savings['end_balance']
+                );
+                $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
+                $this->assertEquals(
+                    $this->savingsTransaction0->amount / 100,
+                    $savings_daily_balance_line_graph_data['Start']
+                );
+                $this->assertEquals(
+                    ($this->savingsTransaction0->amount
+                    + $this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    + $inRangeCreditToAssetAcctTrans->amount) / 100,
+                    $savings_daily_balance_line_graph_data['2024-06-14']
+                );
+                $savings_daily_net_growths = $savings['daily_net_growths'];
+                $this->assertEquals(1, count($savings_daily_net_growths));
+                // this is raw..idk if it's actually used on the front end
+                $this->assertEquals(
+                    $this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    + $inRangeCreditToAssetAcctTrans->amount,
+                    $savings_daily_net_growths['2024-06-14']
+                );
 
                 /*
                  * category_type_breakdowns
