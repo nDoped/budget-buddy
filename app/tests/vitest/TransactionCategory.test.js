@@ -42,6 +42,8 @@ const props = {
 };
 let addCatBtnId = null;
 let createCatBtnId = null;
+let addLineItemBttnId = null;
+let calcPercentagesButtonId = null;
 let taxElId = null;
 beforeEach(() => {
   wrapper = mount(TransactionCategory,
@@ -53,6 +55,8 @@ beforeEach(() => {
   addCatBtnId = `add-cat-button-0-${uuid}`;
   taxElId = `tax-amount-0-${uuid}`;
   createCatBtnId = `create-cat-button-0-${uuid}`;
+  addLineItemBttnId = `add-line-item-button-0-${uuid}`;
+  calcPercentagesButtonId = `calculate-percentages-button-0-${uuid}`;
 });
 
 test("test that ToggleSlider functions", async () => {
@@ -71,6 +75,128 @@ test("test that ToggleSlider functions", async () => {
   expect(wrapper.find("#" + taxElId).exists()).toBe(true);
   expect(wrapper.find("#" + addCatBtnId).exists()).toBe(false);
   expect(wrapper.find("#" + createCatBtnId).exists()).toBe(false);
+});
+
+test("test receipt line items with two items in the same cat", async () => {
+  expect(wrapper.vm.calcCatsByReciept).toBe(false);
+  // should not show the tax input
+  expect(wrapper.find("#" + taxElId).exists()).toBe(false);
+  expect(wrapper.find("#" + addCatBtnId).exists()).toBe(true);
+  expect(wrapper.find("#" + createCatBtnId).exists()).toBe(true);
+
+  const toggle = wrapper.getComponent(ToggleSlider);
+  expect(toggle.text()).toBe("Enter receipt line items");
+
+  await toggle.vm.$emit('update:modelValue', true);
+
+  expect(wrapper.vm.calcCatsByReciept).toBe(true);
+  expect(wrapper.find("#" + addCatBtnId).exists()).toBe(false);
+  expect(wrapper.find("#" + createCatBtnId).exists()).toBe(false);
+  expect(wrapper.text()).toContain('Please enter a total amount and tax amount');
+  const taxEl = wrapper.get("#" + taxElId);
+  await taxEl.setValue(10);
+  const addLineItemBttn = wrapper.get("#" + addLineItemBttnId);
+  await addLineItemBttn.trigger('click');
+  let expectedLineItems = [
+    {
+      cat_data: props.availableCategories[0],
+      price: null
+    }
+  ];
+  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
+  await addLineItemBttn.trigger('click');
+  expectedLineItems = [
+    {
+      cat_data: props.availableCategories[0],
+      price: null
+    },
+    {
+      cat_data: props.availableCategories[0],
+      price: null
+    }
+  ];
+  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
+  expect(wrapper.vm.showCalcPercentBtn).toBe(false);
+  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem0PriceInputId).setValue(45);
+  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(45);
+  expect(wrapper.vm.showCalcPercentBtn).toBe(true);
+  expect(wrapper.vm.catsRef).toEqual([]);
+  const calcPercentagesButton = wrapper.get("#" + calcPercentagesButtonId);
+  await calcPercentagesButton.trigger('click');
+  let expectedCatsRef = [
+    {
+      cat_data: props.availableCategories[0],
+      percent: 100
+    },
+  ];
+  expect(wrapper.vm.catsRef).toEqual(expectedCatsRef);
+});
+
+test("test receipt line items with two items in different cats", async () => {
+  expect(wrapper.vm.calcCatsByReciept).toBe(false);
+  // should not show the tax input
+  expect(wrapper.find("#" + taxElId).exists()).toBe(false);
+  expect(wrapper.find("#" + addCatBtnId).exists()).toBe(true);
+  expect(wrapper.find("#" + createCatBtnId).exists()).toBe(true);
+
+  const toggle = wrapper.getComponent(ToggleSlider);
+  expect(toggle.text()).toBe("Enter receipt line items");
+
+  await toggle.vm.$emit('update:modelValue', true);
+
+  expect(wrapper.vm.calcCatsByReciept).toBe(true);
+  expect(wrapper.find("#" + addCatBtnId).exists()).toBe(false);
+  expect(wrapper.find("#" + createCatBtnId).exists()).toBe(false);
+  expect(wrapper.text()).toContain('Please enter a total amount and tax amount');
+  const taxEl = wrapper.get("#" + taxElId);
+  await taxEl.setValue(10);
+  const addLineItemBttn = wrapper.get("#" + addLineItemBttnId);
+  await addLineItemBttn.trigger('click');
+  let expectedLineItems = [
+    {
+      cat_data: props.availableCategories[0],
+      price: null
+    }
+  ];
+  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
+  await addLineItemBttn.trigger('click');
+  wrapper.vm.lineItems[1] = {
+      cat_data: props.availableCategories[1],
+      price: null
+  };
+  expectedLineItems = [
+    {
+      cat_data: props.availableCategories[0],
+      price: null
+    },
+    {
+      cat_data: props.availableCategories[1],
+      price: null
+    }
+  ];
+  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
+  expect(wrapper.vm.showCalcPercentBtn).toBe(false);
+  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem0PriceInputId).setValue(23.34);
+  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(90 - 23.34);
+  expect(wrapper.vm.showCalcPercentBtn).toBe(true);
+  expect(wrapper.vm.catsRef).toEqual([]);
+  const calcPercentagesButton = wrapper.get("#" + calcPercentagesButtonId);
+  await calcPercentagesButton.trigger('click');
+  let expectedCatsRef = [
+    {
+      cat_data: props.availableCategories[0],
+      percent: 25.93 // 23.34 / 90 = 0.2593333
+    },
+    {
+      cat_data: props.availableCategories[1],
+      percent: 74.07 // (90 - 23.34) / 90 = 0.7406666
+    },
+  ];
+  expect(wrapper.vm.catsRef).toEqual(expectedCatsRef);
 });
 
 test("test Add an Existing Cat button", async () => {

@@ -378,6 +378,7 @@
         <template v-else>
           <div class="m-4">
             <PrimaryButton
+              :id="getUuid('add-line-item-button')"
               class="m-4"
               type="button"
               @click="addLineItem"
@@ -393,6 +394,7 @@
               Add a line item and create a new category
             </PrimaryButton>
             <PrimaryButton
+              :id="getUuid('calculate-percentages-button')"
               v-if="showCalcPercentBtn"
               class="m-4"
               type="button"
