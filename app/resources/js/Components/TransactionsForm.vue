@@ -10,6 +10,7 @@
   import TransactionCategory from '@/Components/TransactionCategory.vue';
   import TextInput from '@/Components/TextInput.vue';
   import Checkbox from '@/Components/Checkbox.vue';
+  import { forceNumericalInput } from '@/lib.js';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
@@ -130,6 +131,7 @@
                   v-model="form.amount"
                   autofocus
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  @keypress="forceNumericalInput($event)"
                 >
                 <InputError
                   :message="form.errors.amount"

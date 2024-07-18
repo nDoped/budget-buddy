@@ -2,7 +2,9 @@
   import {
     toRaw,
     ref,
+    toRef,
     watch,
+    watchEffect,
     nextTick,
     computed
   } from 'vue';
@@ -13,6 +15,7 @@
   import ToggleSlider from '@/Components/ToggleSlider.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
+  import { forceNumericalInput } from '@/lib.js';
 
   const emit = defineEmits(['category-update', 'invalid-category-state']);
   const props = defineProps({
@@ -50,15 +53,41 @@
    * Receipt logic
    */
   const taxAmount = ref(null);
+  const subTotalError = ref(null);
+  const total = toRef(props, 'totalAmount');
   const lineItems = ref([]);
   const showCalcPercentBtn = computed(() => {
-    return lineItems.value.length > 0 && (lineItemSum.value === (props.totalAmount - taxAmount.value));
+    return lineItems.value.length > 0 && (lineItemSum.value === (total.value - taxAmount.value));
   });
   const lineItemSum = computed(() => {
-    return lineItems.value.reduce((acc, item) => {
-      return acc + item.price;
-    }, 0);
+    if (lineItems.value.length === 0) {
+      return 0;
+    } else {
+      return parseFloat(lineItems.value.reduce((acc, item) => {
+        return acc + parseFloat(item.price);
+      }, 0).toFixed(2));
+    }
   });
+  watchEffect(
+    () => {
+      if (lineItems.value.length > 0) {
+        if (lineItemSum.value === (total.value - taxAmount.value)) {
+          subTotalError.value = null
+        } else {
+          let msg = "Line items must sum to the total amount minus tax.";
+          let delta = Math.round(((lineItemSum.value - (total.value - taxAmount.value)) + Number.EPSILON) * 100) / 100;
+          if (isNaN(delta)) {
+            delta = taxAmount.value - total.value;
+          }
+          if (delta > 0) {
+            subTotalError.value = msg + " You are over by $" + delta;
+          } else {
+            subTotalError.value = msg + " You are under by $" + Math.abs(delta);
+          }
+        }
+      }
+    }
+  );
   const calculatePercentages = () => {
     let subTotal = lineItemSum.value;
     catsRef.value = [];
@@ -368,6 +397,7 @@
             step=".01"
             v-model="taxAmount"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            @keypress="forceNumericalInput($event)"
           >
         </div>
         <div v-if="! totalAmount || ! taxAmount">
@@ -406,11 +436,11 @@
         </template>
       </div>
 
-      <InputError :message="percentError" />
+      <InputError :message="subTotalError" />
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div
           class="flex flex-wrap bg-slate-500 mr-4"
-          :class="{'border border-red-600 dark:border-red-400': percentError}"
+          :class="{'border border-red-600 dark:border-red-400': subTotalError}"
         >
           <div
             v-for="(item, i) in lineItems"
@@ -430,6 +460,7 @@
               v-model="lineItems[i].price"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               :style="catSelectBorder(item)"
+              @keypress="forceNumericalInput($event)"
             >
             <template v-if="item.cat_data.cat_id">
               <CategorySelect
@@ -462,6 +493,15 @@
               Remove
             </DangerButton>
           </div>
+          <PrimaryButton
+            v-if="lineItems.length > 0"
+            :id="getUuid('add-line-item-button')"
+            class="h-6 m-4"
+            type="button"
+            @click="addLineItem"
+          >
+            +
+          </PrimaryButton>
         </div>
       </div>
     </template>
