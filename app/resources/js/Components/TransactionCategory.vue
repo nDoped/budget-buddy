@@ -5,7 +5,6 @@
     toRef,
     watch,
     watchEffect,
-    nextTick,
     computed
   } from 'vue';
   import InputLabel from '@/Components/InputLabel.vue';
@@ -15,7 +14,10 @@
   import ToggleSlider from '@/Components/ToggleSlider.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
-  import { forceNumericalInput } from '@/lib.js';
+  import {
+    forceNumericalInput,
+    focusElement,
+  } from '@/lib.js';
 
   const emit = defineEmits(['category-update', 'invalid-category-state']);
   const props = defineProps({
@@ -85,6 +87,8 @@
             subTotalError.value = msg + " You are under by $" + Math.abs(delta);
           }
         }
+      } else {
+        subTotalError.value = null;
       }
     }
   );
@@ -245,17 +249,6 @@
   const removeCategory = (i) => {
     catsRef.value.splice(i, 1);
   };
-  const focusElement = (id, select = false) => {
-    nextTick(() => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.focus();
-        if (select) {
-          element.select();
-        }
-      }
-    });
-  };
   const addCategory = () => {
     catsRef.value.push({
       "cat_data": {
@@ -292,12 +285,18 @@
       deep: true
     }
   );
+  const receiptToggleEventHandler = (value) => {
+    calcCatsByReciept.value = value;
+    if (value) {
+      focusElement(getUuid('tax-amount'), true);
+    }
+  };
 </script>
 
 <template>
   <div>
     <ToggleSlider
-      v-model="calcCatsByReciept"
+      @update:model-value="receiptToggleEventHandler"
       label="Enter receipt line items"
     />
 
@@ -401,9 +400,24 @@
             @keypress="forceNumericalInput($event)"
           >
         </div>
-        <div v-if="! totalAmount || ! taxAmount">
-          <p class="m-4">
-            Please enter a total amount and tax amount
+        <div v-if="! total || ! taxAmount">
+          <p
+            v-if="! total && ! taxAmount"
+            class="m-4"
+          >
+            Please enter the transaction total and tax paid
+          </p>
+          <p
+            v-else-if="! total"
+            class="m-4"
+          >
+            Please enter the transaction total
+          </p>
+          <p
+            v-else
+            class="m-4"
+          >
+            Please enter the tax paid
           </p>
         </div>
         <template v-else>

@@ -1,12 +1,18 @@
 <script setup>
   import Multiselect from 'vue-multiselect';
-  import { computed } from 'vue';
+  import {
+    computed,
+    onMounted,
+    ref
+  } from 'vue';
+  import { focusElement } from '@/lib.js';
   //import InputLabel from '@/Components/InputLabel.vue';
   import 'vue3-toastify/dist/index.css';
 
   defineEmits([ 'update:modelValue' ]);
 
   const model = defineModel();
+
   const props = defineProps({
     selectId: {
       type: String,
@@ -21,16 +27,21 @@
       default: () => []
     },
   });
-  // @todo: This doesn't work but i'm leaving it for now
-  // untill i can fix it
-  //const preventBackspaceNavigation = (ev) => {
-  //  if (ev.key === 'Backspace') {
-  //    console.log({
-  //      'resources/js/Components/TransactionCategory.vue:27 ev.key' : ev.key,
-  //    });
-  //    return ev.preventDefault();
-  //  }
-  //};
+  const query = ref('');
+  const multiSelect = ref(null);
+  onMounted(() => {
+    multiSelect.value.$refs.search.focus();
+    multiSelect.value.$refs.search.addEventListener('keydown', preventBackspaceNavigation);
+  });
+  const preventBackspaceNavigation = (ev) => {
+    if (ev.key === 'Backspace') {
+      if (! query.value.length) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        focusElement(props.selectId);
+      }
+    }
+  };
 
   const catSelectBorder = computed(() => {
     return `border: solid ${model.value.hex_color}; border-radius: 5px;`;
@@ -83,6 +94,7 @@
 
     <Multiselect
       :id="selectId"
+      ref="multiSelect"
       class="my-multiselect"
       v-model="model"
       track-by="cat_id"
@@ -96,11 +108,9 @@
       :options="fetchFilteredCatsOptions"
       :allow-empty="false"
       :searchable="true"
+      @search-change="(search) => query = search"
     />
   </div>
-  <!--
-    @keyup.prevent.stop="preventBackspaceNavigation"
-    -->
 </template>
 
 <style lang="css" src="vue-multiselect/dist/vue-multiselect.css"></style>

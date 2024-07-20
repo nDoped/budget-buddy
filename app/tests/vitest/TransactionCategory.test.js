@@ -8,7 +8,7 @@ import CategoryInputs from '@/Components/CategoryInputs.vue';
 let wrapper;
 
 const props = {
-  totalAmount: 100,
+  totalAmount: null,
   categories: [],
   categoryTypes: [
     {
@@ -81,6 +81,7 @@ test("test receipt line items with two items in the same cat", async () => {
   expect(wrapper.vm.calcCatsByReciept).toBe(false);
   // should not show the tax input
   expect(wrapper.find("#" + taxElId).exists()).toBe(false);
+  // should show the add cat and create cat buttons
   expect(wrapper.find("#" + addCatBtnId).exists()).toBe(true);
   expect(wrapper.find("#" + createCatBtnId).exists()).toBe(true);
 
@@ -92,8 +93,13 @@ test("test receipt line items with two items in the same cat", async () => {
   expect(wrapper.vm.calcCatsByReciept).toBe(true);
   expect(wrapper.find("#" + addCatBtnId).exists()).toBe(false);
   expect(wrapper.find("#" + createCatBtnId).exists()).toBe(false);
-  expect(wrapper.text()).toContain('Please enter a total amount and tax amount');
+  expect(wrapper.text()).toContain('Please enter the transaction total and tax paid');
   const taxEl = wrapper.get("#" + taxElId);
+  await taxEl.setValue(10);
+  expect(wrapper.text()).toContain('Please enter the transaction total');
+  await wrapper.setProps({ totalAmount: 90 });
+  await taxEl.setValue(null);
+  expect(wrapper.text()).toContain('Please enter the tax paid');
   await taxEl.setValue(10);
   const addLineItemBttn = wrapper.get("#" + addLineItemBttnId);
   await addLineItemBttn.trigger('click');
@@ -121,7 +127,11 @@ test("test receipt line items with two items in the same cat", async () => {
   await wrapper.get('#' + lineItem0PriceInputId).setValue(45);
   const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
   await wrapper.get('#' + lineItem1PriceInputId).setValue(45);
-  expect(wrapper.vm.showCalcPercentBtn).toBe(true);
+  expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are over by $10');
+  expect(wrapper.vm.showCalcPercentBtn).toBe(false);
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(25);
+  expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are under by $10');
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(35);
   expect(wrapper.vm.catsRef).toEqual([]);
   const calcPercentagesButton = wrapper.get("#" + calcPercentagesButtonId);
   await calcPercentagesButton.trigger('click');
@@ -135,6 +145,7 @@ test("test receipt line items with two items in the same cat", async () => {
 });
 
 test("test receipt line items with two items in different cats", async () => {
+  await wrapper.setProps({ totalAmount: 100 });
   expect(wrapper.vm.calcCatsByReciept).toBe(false);
   // should not show the tax input
   expect(wrapper.find("#" + taxElId).exists()).toBe(false);
@@ -149,7 +160,6 @@ test("test receipt line items with two items in different cats", async () => {
   expect(wrapper.vm.calcCatsByReciept).toBe(true);
   expect(wrapper.find("#" + addCatBtnId).exists()).toBe(false);
   expect(wrapper.find("#" + createCatBtnId).exists()).toBe(false);
-  expect(wrapper.text()).toContain('Please enter a total amount and tax amount');
   const taxEl = wrapper.get("#" + taxElId);
   await taxEl.setValue(10);
   const addLineItemBttn = wrapper.get("#" + addLineItemBttnId);
