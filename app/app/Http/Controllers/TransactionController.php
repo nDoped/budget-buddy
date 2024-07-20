@@ -77,19 +77,18 @@ class TransactionController extends Controller
             $request->session()->forget([ 'filter_accounts' ]);
         }
 
-        $args = [
-            'start_date' => $start,
-            'end_date' => $end,
-            'include_to_range' => false,
-            'order_by' => 'desc',
-            'filter_account_ids' => $filter_accounts
-        ];
-        $data = Transaction::fetch_transaction_data_for_current_user($args);
+        $current_user = Auth::user();
+        $data = $current_user->fetchTransactionData(
+            $start,
+            $end,
+            'desc',
+            false,
+            $filter_accounts
+        );
         $data['start'] = $start;
         $data['end'] = $end;
         $data['categories'] = $this->_fetch_categories();
         $data['category_types'] = $this->_fetch_category_types();
-        $current_user = Auth::user();
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
         foreach ($accounts as $acct) {
             $data['accounts'][] = [

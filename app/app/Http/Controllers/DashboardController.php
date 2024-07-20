@@ -25,15 +25,16 @@ class DashboardController extends Controller
             $start = $end = null;
         }
 
-        $args = [
-            'start_date' => $start,
-            'end_date' => $end,
-            'jsonify_categories' => false,
-            'include_to_range' => true,
-            'order_by' => 'asc',
-        ];
-        $trans_data = Transaction::fetch_transaction_data_for_current_user($args);
-        $account_data = $this->_fetch_account_data();
+        $user = Auth::user();
+        $trans_data = $user->fetchTransactionData(
+            $start,
+            $end,
+            'asc',
+            true, // $includeToRange
+            null, // $filterAccountIds
+            true  // $includeCategoryTypeBreakdowns
+        );
+        $account_data = $user->fetchAccountData();
 
         foreach ($trans_data['transactions_to_range'] as $trans) {
             $acct = $account_data[$trans['account_id']];
@@ -294,33 +295,4 @@ class DashboardController extends Controller
         ]);
     }
 
-    /*
-     * @return array
-     */
-    private function _fetch_account_data() : array
-    {
-        $ret = [];
-        $current_user = Auth::user();
-        $accounts = DB::table('accounts')
-            ->join('account_types', 'accounts.type_id', '=', 'account_types.id')
-            ->where('accounts.user_id', '=', $current_user->id)
-            ->select('accounts.*', 'account_types.asset')
-            ->get();
-
-        foreach ($accounts as $acct) {
-            $ret[$acct->id] = [
-                'name' => $acct->name,
-                'init_balance' => $acct->initial_balance / 100,
-                'init_balance_raw' => $acct->initial_balance,
-                'asset' => $acct->asset,
-                'url' => $acct->url,
-                'in_range_net_growth' => 0,
-                'pre_range_net_growth' => 0,
-                'expand' => true,
-                'daily_net_growths' => [],
-                'end_balance' => 0
-            ];
-        }
-        return $ret;
-    }
 }
