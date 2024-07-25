@@ -333,7 +333,7 @@
           >
             <template v-if="category.cat_data.cat_id">
               <CategorySelect
-                :select-id="getUuid('category-select', i)"
+                :select-id="getUuid('category-select-line-item', i)"
                 :available-categories="filteredCats"
                 v-model="catsRef[i].cat_data"
                 @update:model-value="catSelected(i)"
@@ -510,7 +510,7 @@
           </div>
           <PrimaryButton
             v-if="lineItems.length > 0"
-            :id="getUuid('add-line-item-button')"
+            :id="getUuid('add-line-item-toggle-button')"
             class="h-6 m-4"
             type="button"
             @click="addLineItem"

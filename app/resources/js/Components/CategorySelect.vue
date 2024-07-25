@@ -30,7 +30,6 @@
   const query = ref('');
   const multiSelect = ref(null);
   onMounted(() => {
-    multiSelect.value.$refs.search.focus();
     multiSelect.value.$refs.search.addEventListener('keydown', preventBackspaceNavigation);
   });
   const preventBackspaceNavigation = (ev) => {
