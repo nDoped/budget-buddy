@@ -26,7 +26,7 @@ if [ $? != 0 ]; then
     tmux send-keys "nvim "
 
     tmux new-window -n $mysql_win
-    tmux send-keys "cd app && vim exact_model_budget.sql" Enter
+    tmux send-keys "cd database && vim exact_model_budget.sql" Enter
 
     tmux new-window -n $tests_win
     tmux send-keys "cd app/tests && nvim Feature/DashboardTest.php" Enter
