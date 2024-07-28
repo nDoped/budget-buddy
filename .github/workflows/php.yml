@@ -67,7 +67,8 @@ jobs:
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
         DB_PASSWORD: secret
-        DB_HOST: mysql 
+        DB_HOST: localhost
+        DB_CONNECTION: mysql
 
     - name: Clear Config
       run: cd app && php artisan config:clear
