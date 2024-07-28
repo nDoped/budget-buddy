@@ -4,13 +4,13 @@ A budget and financial tracking app built on a VITL stack (Vue, Inertia, Tailwin
 
 Create a budget, track your expenses, and see how you're doing with your financial goals.
 
-Categories and Category Types are fully customizable. You decide how you want to categories your expenditure tracking.
+Categories and Category Types are fully customizable. You decide how you want to categorize your expenditure tracking.
 
-Set up recurring transactions to track incoming or outgoing adjustments. Use this to track recurring bi-weekly, monthly, quarterly, and annual incomes and debits.
+Set up recurring transactions to track incoming or outgoing adjustments. Use this to track recurring bi-weekly, monthly, quarterly, and annual credits and debits.
 
-Create Buddy Transactions to track movement between accounts.
+Create Buddy Transactions to track financial movements between accounts.
 
-Track all of this in a comprehensive dashboard that shows your daily and total economic growth, tracks the balances of all your accounts as they change over time, and shows you a breakdown of all the expenses by category and category type.
+Display all of this in a comprehensive dashboard that shows your daily and total economic growth, the balances of all your accounts as they change over time, and a breakdown of all the expenses by category and category type.
 
 That's about it for now. More to come as I build out the app.
 
