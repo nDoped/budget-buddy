@@ -50,19 +50,19 @@ jobs:
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
-   - name: Create APP_KEY
-     run: echo "APP_KEY=" > .env
+    - name: Create APP_KEY
+      run: echo "APP_KEY=" > .env
 
-   - name: Generate APP_KEY
-     run: php artisan key:generate
+    - name: Generate APP_KEY
+      run: php artisan key:generate
 
-   - name: Clear Config
-     run: php artisan config:clear
+    - name: Clear Config
+      run: php artisan config:clear
 
-   - name: Run Testsuite
-     run: vendor/bin/phpunit
-     env:
-       DB_PORT: ${{ job.services.mysql.ports['3306'] }}
+    - name: Run Testsuite
+      run: vendor/bin/phpunit
+      env:
+        DB_PORT: ${{ job.services.mysql.ports['3306'] }}
 
     - name: Run test suite
       run: cd app && composer run-script test
