@@ -67,7 +67,7 @@ jobs:
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
         DB_PASSWORD: secret
-        DB_HOST: localhost
+        DB_HOST: mysql
         DB_CONNECTION: mysql
 
     - name: Clear Config
@@ -80,7 +80,7 @@ jobs:
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
         DB_PASSWORD: secret
-        DB_HOST: localhost
+        DB_HOST: mysql
         DB_CONNECTION: mysql
         
     #- name: Run test suite
