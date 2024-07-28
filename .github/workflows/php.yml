@@ -65,7 +65,7 @@ jobs:
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
         DB_DATABASE: testdb
         DB_USERNAME: testrootpass
-        DB_HOST: mysql 
+        DB_HOST: localhost 
         
     #- name: Run test suite
     # run: cd app && composer run-script test
