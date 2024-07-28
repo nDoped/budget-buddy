@@ -10,5 +10,10 @@ Set up recurring transactions to track incoming or outgoing adjustments. Use thi
 
 Create Buddy Transactions to track movement between accounts.
 
+Track all of this in a comprehensive dashboard that shows your daily and total economic growth, tracks the balances of all your accounts as they change over time, and shows you a breakdown of all the expenses by category and category type.
+
 That's about it for now. More to come as I build out the app.
 
+## History
+
+The idea of this app grew out of a question I received one day, "What are our recurring monthly expenses?". I had no clue, so I opened a google spreadsheet and went through my bank statements to create a list of recurring transactions. The simple spreadsheet turned into a full blown spreadsheet program in google sheets. This repo started with budget_master.js, a Google Apps Script that integrates with the original spreadsheet program. Eventually, I asked myself, "Why am I doing this?" and created this app in Laravel and Vue, using all of the functionality of the spreadsheet program as a starting point.
