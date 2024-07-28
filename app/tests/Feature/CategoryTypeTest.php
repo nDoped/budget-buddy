@@ -9,7 +9,7 @@ use \PHPUnit\Framework\Attributes\Group;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Util;
-use Database\Seeders\FeatureTestSeeder;
+use Database\Seeders\TestHarnessSeeder;
 class CategoryTypeTest extends TestCase
 {
     use RefreshDatabase;
@@ -22,11 +22,11 @@ class CategoryTypeTest extends TestCase
     protected function setup(): void
     {
         parent::setUp();
-        $this->seed(FeatureTestSeeder::class);
-        $this->user = User::find(100000);
+        $this->seed(TestHarnessSeeder::class);
+        $this->user = User::find(TestHarnessSeeder::TESTING_USER_ID);
         $this->actingAs($this->user);
-        $this->cat1 = Category::find(100003);
-        $this->cat2 = Category::find(100004);
+        $this->cat1 = Category::find(TestHarnessSeeder::CAT1_ID);
+        $this->cat2 = Category::find(TestHarnessSeeder::CAT2_ID);
         $this->catType1 = $this->cat1->categoryType;
         $this->catType2 = $this->cat2->categoryType;
     }

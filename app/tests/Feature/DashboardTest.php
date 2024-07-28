@@ -11,7 +11,7 @@ use App\Models\Category;
 use App\Models\Transaction;
 use \PHPUnit\Framework\Attributes\Group;
 use Tests\Util;
-use Database\Seeders\FeatureTestSeeder;
+use Database\Seeders\TestHarnessSeeder;
 
 class DashboardTest extends TestCase
 {
@@ -34,22 +34,26 @@ class DashboardTest extends TestCase
     protected function setup(): void
     {
         parent::setUp();
-        $this->seed(FeatureTestSeeder::class);
-        $user = User::find(100000);
+        $this->seed(TestHarnessSeeder::class);
+        $user = User::find(TestHarnessSeeder::TESTING_USER_ID);
         $this->actingAs($user);
-        $this->savingsAccount = Account::find(100001);
-        $this->creditCardAccount = Account::find(100002);
+        $this->savingsAccount = Account::find(TestHarnessSeeder::SAVINGS_ACCOUNT_ID);
+        $this->creditCardAccount
+            = Account::find(TestHarnessSeeder::CREDIT_CARD_ACCOUNT_ID);
 
-        $this->cat1 = Category::find(100003);
-        $this->cat2 = Category::find(100004);
-        $this->cat3 = Category::find(100005);
+        $this->cat1 = Category::find(TestHarnessSeeder::CAT1_ID);
+        $this->cat2 = Category::find(TestHarnessSeeder::CAT2_ID);
+        $this->cat3 = Category::find(TestHarnessSeeder::CAT3_ID);
         $this->catType1 = $this->cat1->categoryType;
         $this->catType2 = $this->cat2->categoryType;
 
         // 100% cat1
-        $this->savingsTransaction0 = Transaction::find(100006);
-        $this->savingsTransaction1 = Transaction::find(100007);
-        // savingsTransaction1 is cat1 and cat3.. we need to get the actual percentages for the tests
+        $this->savingsTransaction0
+            = Transaction::find(TestHarnessSeeder::SAVINGS_TRANS0_ID);
+        $this->savingsTransaction1
+            = Transaction::find(TestHarnessSeeder::SAVINGS_TRANS1_ID);
+        // savingsTransaction1 is cat1 and cat3..
+        // we need to get the actual percentages for the tests
         foreach ($this->savingsTransaction1->categories as $cat) {
             $percent = $cat->pivot->percentage;
             switch ($cat->id) {
@@ -62,9 +66,12 @@ class DashboardTest extends TestCase
             }
         }
 
-        $this->savingsTransaction2 = Transaction::find(100008);
-        $this->creditTransaction1 = Transaction::find(100009);
-        $this->creditTransaction2 = Transaction::find(100010);
+        $this->savingsTransaction2
+            = Transaction::find(TestHarnessSeeder::SAVINGS_TRANS2_ID);
+        $this->creditTransaction1
+            = Transaction::find(TestHarnessSeeder::CREDIT_TRANS1_ID);
+        $this->creditTransaction2
+            = Transaction::find(TestHarnessSeeder::CREDIT_TRANS2_ID);
     }
 
     #[Group('dashboard')]

@@ -8,8 +8,20 @@ use App\Models\Account;
 use App\Models\Transaction;
 use App\Models\Category;
 
-class FeatureTestSeeder extends Seeder
+class TestHarnessSeeder extends Seeder
 {
+    public const TESTING_USER_ID = 100000;
+    public const SAVINGS_ACCOUNT_ID = 100001;
+    public const CREDIT_CARD_ACCOUNT_ID = 100002;
+    public const CAT1_ID = 100003;
+    public const CAT2_ID = 100004;
+    public const CAT3_ID = 100005;
+    public const SAVINGS_TRANS0_ID = 100006;
+    public const SAVINGS_TRANS1_ID = 100007;
+    public const SAVINGS_TRANS2_ID = 100008;
+    public const CREDIT_TRANS1_ID = 100009;
+    public const CREDIT_TRANS2_ID = 100010;
+
     /**
      * Seed the database for feature tests
      *
@@ -18,11 +30,11 @@ class FeatureTestSeeder extends Seeder
     public function run()
     {
         $testingUser = User::factory()->create([
-            'id' => 100000
+            'id' => self::TESTING_USER_ID,
         ]);
         $savingsAcct = Account::factory()->for($testingUser)->create([
             'name' => "My Kick Ass Savings Account",
-            'id' => 100001
+            'id' => self::SAVINGS_ACCOUNT_ID
         ]);
         $savingsAccntType = $savingsAcct->accountType;
         $savingsAccntType->name = 'Savings';
@@ -31,7 +43,7 @@ class FeatureTestSeeder extends Seeder
         $savingsAccntType->save();
         $creditCardAccount = Account::factory()->for($testingUser)->create([
             'name' => "My Credit Card",
-            'id' => 100002
+            'id' => self::CREDIT_CARD_ACCOUNT_ID
         ]);
         $creditAccountType = $creditCardAccount->accountType;
         $creditAccountType->name = 'Credit';
@@ -39,17 +51,17 @@ class FeatureTestSeeder extends Seeder
         $creditAccountType->user_id = $testingUser->id;
         $creditAccountType->save();
         $cat1 = Category::factory()->for($testingUser)->create([
-            'id' => 100003,
+            'id' => self::CAT1_ID,
             'name' => 'cat1',
             'hex_color' => '#000000',
         ]);
         $cat2 = Category::factory()->for($testingUser)->create([
-            'id' => 100004,
+            'id' => self::CAT2_ID,
             'name' => 'cat2',
             'hex_color' => '#ffffff',
         ]);
         $cat3 = Category::factory()->for($testingUser)->create([
-            'id' => 100005,
+            'id' => self::CAT3_ID,
             'name' => 'cat3',
             'hex_color' => '#aaaaaa',
         ]);
@@ -68,7 +80,7 @@ class FeatureTestSeeder extends Seeder
         $rawCatPercentage2 = 7487;
 
         $savingsTransaction0 = Transaction::factory()->for($savingsAcct)->create([
-            'id' => 100006,
+            'id' => self::SAVINGS_TRANS0_ID,
             'transaction_date' => '2024-05-14',
             'amount' => 42000, // $420.00
             'credit' => true,
@@ -79,7 +91,7 @@ class FeatureTestSeeder extends Seeder
         $savingsTransaction0->save();
 
         $savingsTransaction1 = Transaction::factory()->for($savingsAcct)->create([
-            'id' => 100007,
+            'id' => self::SAVINGS_TRANS1_ID,
             'transaction_date' => '2024-06-14',
             'amount' => 223444, // $2233.44
             'credit' => true,
@@ -91,7 +103,7 @@ class FeatureTestSeeder extends Seeder
         $savingsTransaction1->save();
 
         $savingsTransaction2 = Transaction::factory()->for($savingsAcct)->create([
-            'id' => 100008,
+            'id' => self::SAVINGS_TRANS2_ID,
             'transaction_date' => '2024-06-14',
             'amount' => 25119, // $251.19
             'credit' => false,
@@ -102,7 +114,7 @@ class FeatureTestSeeder extends Seeder
         $savingsTransaction2->save();
 
         $creditTransaction1 = Transaction::factory()->for($creditCardAccount)->create([
-            'id' => 100009,
+            'id' => self::CREDIT_TRANS1_ID,
             'transaction_date' => '2024-06-01',
             'amount' => 52523, // $525.23
             'credit' => false,
@@ -113,7 +125,7 @@ class FeatureTestSeeder extends Seeder
         $creditTransaction1->save();
 
         $creditTransaction2 = Transaction::factory()->for($creditCardAccount)->create([
-            'id' => 100010,
+            'id' => self::CREDIT_TRANS2_ID,
             'transaction_date' => '2024-05-01',
             'amount' => 145634, // $1456.34
             'credit' => false,
