@@ -5,11 +5,11 @@ php artisan down
 echo "Creating database dump"
 
 
-if [ ! -d "./database-dumps" ]; then
-    mkdir "./database-dumps"
+if [ ! -d "${HOME}/database-dumps" ]; then
+    mkdir "${HOME}/database-dumps"
 fi
 file_date=$(date +%F_%H_%M_%S)
-sudo mysqldump  mykickass_db > "database-dumps/${file_date}_mykickass_db.sql"
+sudo mysqldump  mykickass_db > "${HOME}/database-dumps/${file_date}_mykickass_db.sql"
 
 echo "Pulling updates"
 git pull --rebase
