@@ -55,6 +55,9 @@ jobs:
 
     - name: Generate APP_KEY
       run: cd app && php artisan key:generate
+    
+    - name: Migrate DB
+      run: cd app && php artisan migrate
 
     - name: Clear Config
       run: cd app && php artisan config:clear
@@ -65,7 +68,7 @@ jobs:
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
         DB_DATABASE: testdb
         DB_USERNAME: testrootpass
-        DB_HOST: localhost 
+        DB_HOST: mysql 
         
     #- name: Run test suite
     # run: cd app && composer run-script test
