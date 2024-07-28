@@ -58,6 +58,8 @@ jobs:
     
     - name: Migrate DB
       run: cd app && php artisan migrate
+      env:
+        APP_DEBUG: true      
 
     - name: Clear Config
       run: cd app && php artisan config:clear
