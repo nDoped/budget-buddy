@@ -79,7 +79,8 @@ jobs:
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
         DB_PASSWORD: secret
-        DB_HOST: mysql 
+        DB_HOST: mysql
+        DB_CONNECTION: mysql
         
     #- name: Run test suite
     # run: cd app && composer run-script test
