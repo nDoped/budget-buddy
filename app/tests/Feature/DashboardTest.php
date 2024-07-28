@@ -102,20 +102,20 @@ class DashboardTest extends TestCase
                 $daily_economic_growth = $account_growth_line_data['daily_economic_growth'];
                 $this->assertEquals(
                     -$this->creditTransaction1->amount / 100,
-                    $daily_economic_growth['2024-06-01']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100,
-                    $daily_economic_growth['2024-06-14']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
                 $total_economic_growth = $account_growth_line_data['total_economic_growth'];
                 $this->assertEquals(
                     -$this->creditTransaction1->amount / 100,
-                    $total_economic_growth['2024-06-01']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction1->amount  - $this->savingsTransaction2->amount - $this->creditTransaction1->amount) / 100,
-                    $total_economic_growth['2024-06-14']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*
@@ -134,11 +134,11 @@ class DashboardTest extends TestCase
 
                 $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
                 $this->assertEquals($this->creditTransaction2->amount / 100, $cc_daily_balance_line_graph_data['Start']);
-                $this->assertEquals(($this->creditTransaction2->amount + $this->creditTransaction1->amount) / 100, $cc_daily_balance_line_graph_data['2024-06-01']);
+                $this->assertEquals(($this->creditTransaction2->amount + $this->creditTransaction1->amount) / 100, $cc_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE2]);
                 $cc_daily_net_growths = $credit_card['daily_net_growths'];
                 $this->assertEquals(1, count($cc_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
-                $this->assertEquals($this->creditTransaction1->amount, $cc_daily_net_growths['2024-06-01']);
+                $this->assertEquals($this->creditTransaction1->amount, $cc_daily_net_growths[TestHarnessSeeder::TRANS_DATE2]);
                 $debt_accounts_totals = $data['debt_accounts'][1];
                 $this->assertEquals(6, count($debt_accounts_totals));
                 $this->assertEquals('Totals', $debt_accounts_totals['name']);
@@ -163,11 +163,11 @@ class DashboardTest extends TestCase
                 $this->assertEquals(($this->savingsTransaction0->amount + $this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings['end_balance']);
                 $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
                 $this->assertEquals($this->savingsTransaction0->amount / 100, $savings_daily_balance_line_graph_data['Start']);
-                $this->assertEquals(($this->savingsTransaction0->amount + $this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings_daily_balance_line_graph_data['2024-06-14']);
+                $this->assertEquals(($this->savingsTransaction0->amount + $this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE3]);
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertEquals(1, count($savings_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
-                $this->assertEquals($this->savingsTransaction1->amount - $this->savingsTransaction2->amount, $savings_daily_net_growths['2024-06-14']);
+                $this->assertEquals($this->savingsTransaction1->amount - $this->savingsTransaction2->amount, $savings_daily_net_growths[TestHarnessSeeder::TRANS_DATE3]);
 
                 /*
                  * category_type_breakdowns
@@ -286,12 +286,14 @@ class DashboardTest extends TestCase
             $this->savingsTransaction1->id,
             $this->savingsTransaction2->id
         ]);
-        $currentTrans = Transaction::factory()->for($this->creditCardAccount)->create([
-            'transaction_date' =>  date('Y-m-d'),
-            'amount' => 32734, // $327.34
-            'credit' => true,
-            'note' => 'credit trans to debt acct'
-        ]);
+        $currentTrans = Transaction::factory()
+            ->for($this
+            ->creditCardAccount)->create([
+                'transaction_date' =>  date('Y-m-d'),
+                'amount' => 32734, // $327.34
+                'credit' => true,
+                'note' => 'credit trans to debt acct'
+            ]);
         $this->get(
             route('dashboard'),
         )->assertInertia(
@@ -415,18 +417,22 @@ class DashboardTest extends TestCase
     #[Group('dashboard')]
     public function test_dashboard_with_extra_to_range_transactions(): void
     {
-        $toRangeCreditToDebitAcctTrans = Transaction::factory()->for($this->creditCardAccount)->create([
-            'transaction_date' => '2024-05-01',
-            'amount' => 32734, // $327.34
-            'credit' => true,
-            'note' => 'credit trans to debt acct'
-        ]);
-        $toRangeDebitToAssetAcctTrans = Transaction::factory()->for($this->savingsAccount)->create([
-            'transaction_date' => '2024-05-01',
-            'amount' => 23435, // $324.25
-            'credit' => false,
-            'note' => 'debit trans to asset acct'
-        ]);
+        $toRangeCreditToDebitAcctTrans = Transaction::factory()
+            ->for($this->creditCardAccount)
+            ->create([
+                'transaction_date' => '2024-05-01',
+                'amount' => 32734, // $327.34
+                'credit' => true,
+                'note' => 'credit trans to debt acct'
+            ]);
+        $toRangeDebitToAssetAcctTrans = Transaction::factory()
+            ->for($this->savingsAccount)
+            ->create([
+                'transaction_date' => '2024-05-01',
+                'amount' => 23435, // $324.25
+                'credit' => false,
+                'note' => 'debit trans to asset acct'
+            ]);
         $parms = [
             'start' => '2024-06-01',
             'end' => '2024-06-30',
@@ -453,24 +459,32 @@ class DashboardTest extends TestCase
                  */
                 $this->assertEquals(2, count($data['account_growth_line_data']));
                 $account_growth_line_data = $data['account_growth_line_data'];
-                $this->assertEquals(2, count($account_growth_line_data['daily_economic_growth']));
-                $daily_economic_growth = $account_growth_line_data['daily_economic_growth'];
+                $this->assertEquals(
+                    2,
+                    count($account_growth_line_data['daily_economic_growth'])
+                );
+                $daily_economic_growth
+                    = $account_growth_line_data['daily_economic_growth'];
                 $this->assertEquals(
                     -$this->creditTransaction1->amount / 100,
-                    $daily_economic_growth['2024-06-01']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
-                    ($this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100,
-                    $daily_economic_growth['2024-06-14']
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount) / 100,
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
-                $total_economic_growth = $account_growth_line_data['total_economic_growth'];
+                $total_economic_growth
+                    = $account_growth_line_data['total_economic_growth'];
                 $this->assertEquals(
                     -$this->creditTransaction1->amount / 100,
-                    $total_economic_growth['2024-06-01']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
-                    ($this->savingsTransaction1->amount  - $this->savingsTransaction2->amount - $this->creditTransaction1->amount) / 100,
-                    $total_economic_growth['2024-06-14']
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount
+                    - $this->creditTransaction1->amount) / 100,
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*
@@ -479,11 +493,19 @@ class DashboardTest extends TestCase
                 $this->assertEquals(2, count($data['debt_accounts']));
                 $credit_card = $data['debt_accounts'][0];
                 $this->isFalse($credit_card['asset']);
-                $this->assertEquals($this->creditCardAccount->name, $credit_card['name']);
-                $this->assertEquals($this->creditTransaction1->amount / 100, $credit_card['in_range_net_growth']);
-                // this is a raw value, i don't think the front end uses it, but it's included so lets check it */
                 $this->assertEquals(
-                    $this->creditTransaction2->amount - $toRangeCreditToDebitAcctTrans->amount,
+                    $this->creditCardAccount->name,
+                    $credit_card['name']
+                );
+                $this->assertEquals(
+                    $this->creditTransaction1->amount / 100,
+                    $credit_card['in_range_net_growth']
+                );
+                // this is a raw value, i don't think the front end uses it,
+                // but it's included so lets check it
+                $this->assertEquals(
+                    $this->creditTransaction2->amount
+                    - $toRangeCreditToDebitAcctTrans->amount,
                     $credit_card['pre_range_net_growth']
                 );
                 $this->assertFalse($credit_card['overdrawn_or_overpaid']);
@@ -499,22 +521,26 @@ class DashboardTest extends TestCase
                     $credit_card['end_balance']
                 );
 
-                $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
+                $cc_daily_balance_line_graph_data
+                    = $credit_card['daily_balance_line_graph_data'];
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
                     - $toRangeCreditToDebitAcctTrans->amount) / 100,
                     $cc_daily_balance_line_graph_data['Start']
-                    );
+                );
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
                     + $this->creditTransaction1->amount
                     - $toRangeCreditToDebitAcctTrans->amount) / 100,
-                    $cc_daily_balance_line_graph_data['2024-06-01']
+                    $cc_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $cc_daily_net_growths = $credit_card['daily_net_growths'];
                 $this->assertEquals(1, count($cc_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
-                $this->assertEquals($this->creditTransaction1->amount, $cc_daily_net_growths['2024-06-01']);
+                $this->assertEquals(
+                    $this->creditTransaction1->amount,
+                    $cc_daily_net_growths[TestHarnessSeeder::TRANS_DATE2]
+                );
                 $debt_accounts_totals = $data['debt_accounts'][1];
                 $this->assertEquals(6, count($debt_accounts_totals));
                 $this->assertEquals('Totals', $debt_accounts_totals['name']);
@@ -523,7 +549,10 @@ class DashboardTest extends TestCase
                     - $toRangeCreditToDebitAcctTrans->amount) / 100,
                     $debt_accounts_totals['start_balance']
                 );
-                $this->assertEquals($this->creditTransaction1->amount / 100, $debt_accounts_totals['in_range_net_growth']);
+                $this->assertEquals(
+                    $this->creditTransaction1->amount / 100,
+                    $debt_accounts_totals['in_range_net_growth']
+                );
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
                     + $this->creditTransaction1->amount
@@ -540,15 +569,22 @@ class DashboardTest extends TestCase
                 $savings = $asset_accounts[0];
                 $this->isTrue($savings['asset']);
                 $this->assertEquals($this->savingsAccount->name, $savings['name']);
-                $this->assertEquals(($this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings['in_range_net_growth']);
-                // this is a raw value, i don't think the front end uses it, but it's included so lets check it
                 $this->assertEquals(
-                    $this->savingsTransaction0->amount - $toRangeDebitToAssetAcctTrans->amount,
+                    ($this->savingsTransaction1->amount
+                    - $this->savingsTransaction2->amount) / 100,
+                    $savings['in_range_net_growth']
+                );
+                // this is a raw value, i don't think the front end uses it,
+                // but it's included so lets check it
+                $this->assertEquals(
+                    $this->savingsTransaction0->amount
+                    - $toRangeDebitToAssetAcctTrans->amount,
                     $savings['pre_range_net_growth']
                 );
                 $this->assertFalse($savings['overdrawn_or_overpaid']);
                 $this->assertEquals(
-                    ($this->savingsTransaction0->amount - $toRangeDebitToAssetAcctTrans->amount) / 100,
+                    ($this->savingsTransaction0->amount
+                    - $toRangeDebitToAssetAcctTrans->amount) / 100,
                     $savings['start_balance']
                 );
                 $this->assertEquals(
@@ -558,7 +594,8 @@ class DashboardTest extends TestCase
                     - $toRangeDebitToAssetAcctTrans->amount) / 100,
                     $savings['end_balance']
                 );
-                $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
+                $savings_daily_balance_line_graph_data
+                    = $savings['daily_balance_line_graph_data'];
                 $this->assertEquals(
                     ($this->savingsTransaction0->amount
                     - $toRangeDebitToAssetAcctTrans->amount) / 100,
@@ -569,7 +606,7 @@ class DashboardTest extends TestCase
                     + $this->savingsTransaction1->amount
                     - $this->savingsTransaction2->amount
                     - $toRangeDebitToAssetAcctTrans->amount) / 100,
-                    $savings_daily_balance_line_graph_data['2024-06-14']
+                    $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE3]
                 );
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertEquals(1, count($savings_daily_net_growths));
@@ -577,7 +614,7 @@ class DashboardTest extends TestCase
                 $this->assertEquals(
                     $this->savingsTransaction1->amount
                     - $this->savingsTransaction2->amount,
-                    $savings_daily_net_growths['2024-06-14']
+                    $savings_daily_net_growths[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*
@@ -589,7 +626,10 @@ class DashboardTest extends TestCase
                 // CatType1
                 $cat_type1 = $category_type_breakdowns[$this->catType1->id];
                 $this->assertEquals($this->catType1->name, $cat_type1['name']);
-                $this->assertEquals($this->catType1->hex_color, $cat_type1['hex_color']);
+                $this->assertEquals(
+                    $this->catType1->hex_color,
+                    $cat_type1['hex_color']
+                );
                 $this->assertEquals(
                     round(
                         (($this->savingsTransaction1->amount * $this->actualCatPercentage1)
@@ -624,7 +664,11 @@ class DashboardTest extends TestCase
                     $this->creditTransaction1
                 ];
                 foreach ($cat1_transactions as $transaction) {
-                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat1->id);
+                    $this->_checkTransaction(
+                        $transaction,
+                        $expected_transactions,
+                        $this->cat1->id
+                    );
                 }
 
                 // CatType2
@@ -643,8 +687,14 @@ class DashboardTest extends TestCase
 
                 $cat_type_2_categories = $cat_type2['data'];
                 $this->assertEquals(2, count($cat_type_2_categories));
-                $this->assertContains($this->cat2->id, array_keys($cat_type_2_categories));
-                $this->assertContains($this->cat3->id, array_keys($cat_type_2_categories));
+                $this->assertContains(
+                    $this->cat2->id,
+                    array_keys($cat_type_2_categories)
+                );
+                $this->assertContains(
+                    $this->cat3->id,
+                    array_keys($cat_type_2_categories)
+                );
 
                 $cat2_data = $cat_type_2_categories[$this->cat2->id];
                 $this->assertEquals($this->cat2->name, $cat2_data['name']);
@@ -665,14 +715,22 @@ class DashboardTest extends TestCase
                     $this->creditTransaction1
                 ];
                 foreach ($cat2_transactions as $transaction) {
-                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat2->id);
+                    $this->_checkTransaction(
+                        $transaction,
+                        $expected_transactions,
+                        $this->cat2->id
+                    );
                 }
 
                 $cat3_data = $cat_type_2_categories[$this->cat3->id];
                 $this->assertEquals($this->cat3->name, $cat3_data['name']);
                 $this->assertEquals($this->cat3->hex_color, $cat3_data['hex_color']);
                 $this->assertEquals(
-                    round(($this->savingsTransaction1->amount * $this->actualCatPercentage2) / 100, 2),
+                    round(
+                        ($this->savingsTransaction1->amount
+                        * $this->actualCatPercentage2) / 100,
+                        2
+                    ),
                     $cat3_data['value']
                 );
 
@@ -680,7 +738,11 @@ class DashboardTest extends TestCase
                 $this->assertEquals(1, count($cat3_transactions));
                 $expected_transactions = [ $this->savingsTransaction1 ];
                 foreach ($cat3_transactions as $transaction) {
-                    $this->_checkTransaction($transaction, $expected_transactions, $this->cat3->id);
+                    $this->_checkTransaction(
+                        $transaction,
+                        $expected_transactions,
+                        $this->cat3->id
+                    );
                 }
 
                 return $page->component('Dashboard');
@@ -691,18 +753,22 @@ class DashboardTest extends TestCase
     #[Group('dashboard')]
     public function test_dashboard_with_extra_in_range_transactions(): void
     {
-        $inRangeCreditToDebitAcctTrans = Transaction::factory()->for($this->creditCardAccount)->create([
-            'transaction_date' => $this->creditTransaction1->transaction_date,
-            'amount' => 32734, // $327.34
-            'credit' => true,
-            'note' => 'credit trans to debt acct'
-        ]);
-        $inRangeCreditToAssetAcctTrans = Transaction::factory()->for($this->savingsAccount)->create([
-            'transaction_date' => $this->savingsTransaction1->transaction_date,
-            'amount' => 72435,
-            'credit' => true,
-            'note' => 'credit trans to asset acct'
-        ]);
+        $inRangeCreditToDebitAcctTrans = Transaction::factory()
+            ->for($this->creditCardAccount)
+            ->create([
+                'transaction_date' => $this->creditTransaction1->transaction_date,
+                'amount' => 32734, // $327.34
+                'credit' => true,
+                'note' => 'credit trans to debt acct'
+            ]);
+        $inRangeCreditToAssetAcctTrans = Transaction::factory()
+            ->for($this->savingsAccount)
+            ->create([
+                'transaction_date' => $this->savingsTransaction1->transaction_date,
+                'amount' => 72435,
+                'credit' => true,
+                'note' => 'credit trans to asset acct'
+            ]);
         $parms = [
             'start' => '2024-06-01',
             'end' => '2024-06-30',
@@ -736,20 +802,20 @@ class DashboardTest extends TestCase
                 $this->assertEquals(
                     ($inRangeCreditToDebitAcctTrans->amount
                     - $this->creditTransaction1->amount) / 100,
-                    $daily_economic_growth['2024-06-01']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction1->amount
                     - $this->savingsTransaction2->amount
                     + $inRangeCreditToAssetAcctTrans->amount
                     ) / 100,
-                    $daily_economic_growth['2024-06-14']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
                 $total_economic_growth = $account_growth_line_data['total_economic_growth'];
                 $this->assertEquals(
                     ($inRangeCreditToDebitAcctTrans->amount
                     - $this->creditTransaction1->amount) / 100,
-                    $total_economic_growth['2024-06-01']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction1->amount
@@ -757,7 +823,7 @@ class DashboardTest extends TestCase
                     + $inRangeCreditToDebitAcctTrans->amount
                     + $inRangeCreditToAssetAcctTrans->amount
                     - $this->creditTransaction1->amount) / 100,
-                    $total_economic_growth['2024-06-14']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*
@@ -803,14 +869,14 @@ class DashboardTest extends TestCase
                     ($this->creditTransaction2->amount
                     + $this->creditTransaction1->amount
                     - $inRangeCreditToDebitAcctTrans->amount) / 100,
-                    $cc_daily_balance_line_graph_data['2024-06-01']
+                    $cc_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $cc_daily_net_growths = $credit_card['daily_net_growths'];
                 $this->assertEquals(1, count($cc_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
                 $this->assertEquals(
                     $this->creditTransaction1->amount - $inRangeCreditToDebitAcctTrans->amount,
-                    $cc_daily_net_growths['2024-06-01']
+                    $cc_daily_net_growths[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $debt_accounts_totals = $data['debt_accounts'][1];
                 $this->assertEquals(6, count($debt_accounts_totals));
@@ -873,7 +939,7 @@ class DashboardTest extends TestCase
                     + $this->savingsTransaction1->amount
                     - $this->savingsTransaction2->amount
                     + $inRangeCreditToAssetAcctTrans->amount) / 100,
-                    $savings_daily_balance_line_graph_data['2024-06-14']
+                    $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE3]
                 );
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertEquals(1, count($savings_daily_net_growths));
@@ -882,7 +948,7 @@ class DashboardTest extends TestCase
                     $this->savingsTransaction1->amount
                     - $this->savingsTransaction2->amount
                     + $inRangeCreditToAssetAcctTrans->amount,
-                    $savings_daily_net_growths['2024-06-14']
+                    $savings_daily_net_growths[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*
@@ -1027,40 +1093,40 @@ class DashboardTest extends TestCase
                 $this->assertEquals(4, count($daily_economic_growth));
                 $this->assertEquals(
                     $this->creditTransaction2->amount / 100,
-                    $daily_economic_growth['2024-05-01']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE0]
                 );
                 $this->assertEquals(
                     $this->savingsTransaction0->amount / 100,
-                    $daily_economic_growth['2024-05-14']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE1]
                 );
                 $this->assertEquals(
                     -$this->creditTransaction1->amount / 100,
-                    $daily_economic_growth['2024-06-01']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100,
-                    $daily_economic_growth['2024-06-14']
+                    $daily_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
                 $total_economic_growth = $account_growth_line_data['total_economic_growth'];
                 $total_eco_growth_sum = $this->creditTransaction2->amount;
                 $this->assertEquals(
                     $total_eco_growth_sum / 100,
-                    $total_economic_growth['2024-05-01']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE0]
                 );
                 $total_eco_growth_sum += $this->savingsTransaction0->amount;
                 $this->assertEquals(
                     $total_eco_growth_sum / 100,
-                    $total_economic_growth['2024-05-14']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE1]
                 );
                 $total_eco_growth_sum -= $this->creditTransaction1->amount;
                 $this->assertEquals(
                     $total_eco_growth_sum / 100,
-                    $total_economic_growth['2024-06-01']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $total_eco_growth_sum += $this->savingsTransaction1->amount - $this->savingsTransaction2->amount;
                 $this->assertEquals(
                     $total_eco_growth_sum / 100,
-                    $total_economic_growth['2024-06-14']
+                    $total_economic_growth[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*
@@ -1083,14 +1149,14 @@ class DashboardTest extends TestCase
                 $this->assertEquals(0, $cc_daily_balance_line_graph_data['Start']);
                 $this->assertEquals(
                     ($this->creditTransaction1->amount - $this->creditTransaction2->amount) / 100,
-                    $cc_daily_balance_line_graph_data['2024-06-01']
+                    $cc_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $cc_daily_net_growths = $credit_card['daily_net_growths'];
                 $this->assertEquals(2, count($cc_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
                 $this->assertEquals(
                     $this->creditTransaction1->amount,
-                    $cc_daily_net_growths['2024-06-01']
+                    $cc_daily_net_growths[TestHarnessSeeder::TRANS_DATE2]
                 );
                 $debt_accounts_totals = $data['debt_accounts'][1];
                 $this->assertEquals(6, count($debt_accounts_totals));
@@ -1130,24 +1196,24 @@ class DashboardTest extends TestCase
                 $this->assertEquals(0, $savings_daily_balance_line_graph_data['Start']);
                 $this->assertEquals(
                     $this->savingsTransaction0->amount / 100,
-                    $savings_daily_balance_line_graph_data['2024-05-14']
+                    $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE1]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction0->amount
                     + $this->savingsTransaction1->amount
                     - $this->savingsTransaction2->amount) / 100,
-                    $savings_daily_balance_line_graph_data['2024-06-14']
+                    $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE3]
                 );
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertEquals(2, count($savings_daily_net_growths));
                 // this is raw..idk if it's actually used on the front end
                 $this->assertEquals(
                     $this->savingsTransaction0->amount,
-                    $savings_daily_net_growths['2024-05-14']
+                    $savings_daily_net_growths[TestHarnessSeeder::TRANS_DATE1]
                 );
                 $this->assertEquals(
                     $this->savingsTransaction1->amount - $this->savingsTransaction2->amount,
-                    $savings_daily_net_growths['2024-06-14']
+                    $savings_daily_net_growths[TestHarnessSeeder::TRANS_DATE3]
                 );
 
                 /*

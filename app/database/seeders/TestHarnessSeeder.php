@@ -21,6 +21,10 @@ class TestHarnessSeeder extends Seeder
     public const SAVINGS_TRANS2_ID = 100008;
     public const CREDIT_TRANS1_ID = 100009;
     public const CREDIT_TRANS2_ID = 100010;
+    public const TRANS_DATE0 = '2024-05-01';
+    public const TRANS_DATE1 = '2024-05-14';
+    public const TRANS_DATE2 = '2024-06-01';
+    public const TRANS_DATE3 = '2024-06-14';
 
     /**
      * Seed the database for feature tests
@@ -79,60 +83,88 @@ class TestHarnessSeeder extends Seeder
         $rawCatPercentage1 = 2513;
         $rawCatPercentage2 = 7487;
 
-        $savingsTransaction0 = Transaction::factory()->for($savingsAcct)->create([
-            'id' => self::SAVINGS_TRANS0_ID,
-            'transaction_date' => '2024-05-14',
-            'amount' => 42000, // $420.00
-            'credit' => true,
-            'note' => 'SavingsTransaction0'
-        ]);
+        $savingsTransaction0 = Transaction::factory()
+            ->for($savingsAcct)
+            ->create([
+                'id' => self::SAVINGS_TRANS0_ID,
+                'transaction_date' => self::TRANS_DATE1,
+                'amount' => 42000, // $420.00
+                'credit' => true,
+                'note' => 'SavingsTransaction0'
+            ]);
         // like amounts, we store percentages as integers
-        $savingsTransaction0->categories()->save($cat1, ['percentage' => 100 * 100]);
+        $savingsTransaction0
+            ->categories()
+            ->save($cat1, ['percentage' => 100 * 100]);
         $savingsTransaction0->save();
 
-        $savingsTransaction1 = Transaction::factory()->for($savingsAcct)->create([
-            'id' => self::SAVINGS_TRANS1_ID,
-            'transaction_date' => '2024-06-14',
-            'amount' => 223444, // $2233.44
-            'credit' => true,
-            'note' => 'SavingsTransaction1'
-        ]);
+        $savingsTransaction1 = Transaction::factory()
+            ->for($savingsAcct)
+            ->create([
+                'id' => self::SAVINGS_TRANS1_ID,
+                'transaction_date' => self::TRANS_DATE3,
+                'amount' => 223444, // $2233.44
+                'credit' => true,
+                'note' => 'SavingsTransaction1'
+            ]);
         // like amounts, we store percentages as integers
-        $savingsTransaction1->categories()->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
-        $savingsTransaction1->categories()->save($cat3, [ 'percentage' => $rawCatPercentage2 ]);
+        $savingsTransaction1
+            ->categories()
+            ->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
+        $savingsTransaction1
+            ->categories()
+            ->save($cat3, [ 'percentage' => $rawCatPercentage2 ]);
         $savingsTransaction1->save();
 
-        $savingsTransaction2 = Transaction::factory()->for($savingsAcct)->create([
-            'id' => self::SAVINGS_TRANS2_ID,
-            'transaction_date' => '2024-06-14',
-            'amount' => 25119, // $251.19
-            'credit' => false,
-            'note' => 'SavingsTransaction2'
-        ]);
-        $savingsTransaction2->categories()->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
-        $savingsTransaction2->categories()->save($cat2, [ 'percentage' => $rawCatPercentage2 ]);
+        $savingsTransaction2 = Transaction::factory()
+            ->for($savingsAcct)
+            ->create([
+                'id' => self::SAVINGS_TRANS2_ID,
+                'transaction_date' => self::TRANS_DATE3,
+                'amount' => 25119, // $251.19
+                'credit' => false,
+                'note' => 'SavingsTransaction2'
+            ]);
+        $savingsTransaction2
+            ->categories()
+            ->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
+        $savingsTransaction2
+            ->categories()
+            ->save($cat2, [ 'percentage' => $rawCatPercentage2 ]);
         $savingsTransaction2->save();
 
-        $creditTransaction1 = Transaction::factory()->for($creditCardAccount)->create([
-            'id' => self::CREDIT_TRANS1_ID,
-            'transaction_date' => '2024-06-01',
-            'amount' => 52523, // $525.23
-            'credit' => false,
-            'note' => 'CreditTransaction1'
-        ]);
-        $creditTransaction1->categories()->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
-        $creditTransaction1->categories()->save($cat2, [ 'percentage' => $rawCatPercentage2 ]);
+        $creditTransaction1 = Transaction::factory()
+            ->for($creditCardAccount)
+            ->create([
+                'id' => self::CREDIT_TRANS1_ID,
+                'transaction_date' => self::TRANS_DATE2,
+                'amount' => 52523, // $525.23
+                'credit' => false,
+                'note' => 'CreditTransaction1'
+            ]);
+        $creditTransaction1
+            ->categories()
+            ->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
+        $creditTransaction1
+            ->categories()
+            ->save($cat2, [ 'percentage' => $rawCatPercentage2 ]);
         $creditTransaction1->save();
 
-        $creditTransaction2 = Transaction::factory()->for($creditCardAccount)->create([
-            'id' => self::CREDIT_TRANS2_ID,
-            'transaction_date' => '2024-05-01',
-            'amount' => 145634, // $1456.34
-            'credit' => false,
-            'note' => 'CreditTransaction2'
-        ]);
-        $creditTransaction2->categories()->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
-        $creditTransaction2->categories()->save($cat2, [ 'percentage' => $rawCatPercentage2 ]);
+        $creditTransaction2 = Transaction::factory()
+            ->for($creditCardAccount)
+            ->create([
+                'id' => self::CREDIT_TRANS2_ID,
+                'transaction_date' => self::TRANS_DATE0,
+                'amount' => 145634, // $1456.34
+                'credit' => false,
+                'note' => 'CreditTransaction2'
+            ]);
+        $creditTransaction2
+            ->categories()
+            ->save($cat1, [ 'percentage' => $rawCatPercentage1 ]);
+        $creditTransaction2
+            ->categories()
+            ->save($cat2, [ 'percentage' => $rawCatPercentage2 ]);
         $creditTransaction2->save();
     }
 }
