@@ -51,18 +51,18 @@ jobs:
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Create APP_KEY
-      run: echo "APP_KEY=" > .env
+      run: cd app && echo "APP_KEY=" > .env
 
     - name: Generate APP_KEY
-      run: php artisan key:generate
+      run: cd app && php artisan key:generate
 
     - name: Clear Config
-      run: php artisan config:clear
+      run: cd app && php artisan config:clear
 
     - name: Run Testsuite
-      run: vendor/bin/phpunit
+      run: cd app && vendor/bin/phpunit
       env:
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
 
-    - name: Run test suite
-      run: cd app && composer run-script test
+    #- name: Run test suite
+    # run: cd app && composer run-script test
