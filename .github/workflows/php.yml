@@ -82,7 +82,7 @@ jobs:
     - name: Clear Config
       run: cd app && php artisan config:clear
 
-    - name: Run Testsuite
+    - name: Run backend tests
       run: cd app && vendor/bin/phpunit
       env:
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
@@ -92,5 +92,5 @@ jobs:
         DB_HOST: 127.0.0.1
         DB_CONNECTION: mysql
 
-    #- name: Run test suite
-    # run: cd app && composer run-script test
+    - name: Run frontend tests
+      run: cd app && npm run test
