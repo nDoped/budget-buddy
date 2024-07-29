@@ -59,7 +59,7 @@ jobs:
       run: cd app && php artisan key:generate
 
     - name: Wait for MySQL
-      run: sleep 20
+      run: sleep 40
 
     - name: Migrate DB
       run: cd app && php artisan migrate
@@ -70,7 +70,8 @@ jobs:
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
         DB_PASSWORD: secret
-        DB_HOST: mysql
+        #DB_HOST: mysql
+        DB_HOST: 127.0.0.1
         DB_CONNECTION: mysql
 
     - name: Clear Config
@@ -83,7 +84,8 @@ jobs:
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
         DB_PASSWORD: secret
-        DB_HOST: mysql
+        #DB_HOST: mysql
+        DB_HOST: 127.0.0.1
         DB_CONNECTION: mysql
 
     #- name: Run test suite
