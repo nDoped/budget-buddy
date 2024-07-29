@@ -57,12 +57,19 @@ jobs:
 
     - name: Generate APP_KEY
       run: cd app && php artisan key:generate
-    
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -hmysql --silent; do
+          sleep 1
+          echo "Waiting for MySQL to be ready..."
+        done
+
     - name: Migrate DB
       run: cd app && php artisan migrate
       env:
         APP_DEBUG: true
-        APP_ENV: local 
+        APP_ENV: local
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
         DB_DATABASE: testdb
         DB_USERNAME: dbuser
@@ -82,6 +89,6 @@ jobs:
         DB_PASSWORD: secret
         DB_HOST: mysql
         DB_CONNECTION: mysql
-        
+
     #- name: Run test suite
     # run: cd app && composer run-script test
