@@ -59,11 +59,7 @@ jobs:
       run: cd app && php artisan key:generate
 
     - name: Wait for MySQL
-      run: |
-        while ! mysqladmin ping -hmysql --silent; do
-          sleep 1
-          echo "Waiting for MySQL to be ready..."
-        done
+      run: sleep 20
 
     - name: Migrate DB
       run: cd app && php artisan migrate
