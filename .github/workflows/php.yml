@@ -83,7 +83,8 @@ jobs:
       run: cd app && php artisan config:clear
 
     - name: Run backend tests
-      run: cd app && vendor/bin/phpunit
+      #run: cd app && vendor/bin/phpunit
+      run: cd app && php artisan test
       env:
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
         DB_DATABASE: testdb
