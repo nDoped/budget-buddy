@@ -1,8 +1,37 @@
 select count(*) from transactions;
+describe category_transaction;
+show tables;
+delete from transactions;
+select * from category_transaction;
+select * from categories;
+delete from categories;
+describe categories;
+describe accounts;
+describe category_types;
+describe account_types;
+describe users;
+
+select * from transactions;
+select count(*) from transactions;
 select count(*) from categories;
 select count(*) from category_transaction;
 
+
 select * from categories where id = 47\G
+show tables;
+select * from sessions;
+select * from personal_access_tokens;
+select * from users\G;
+delete from sessions;
+
+describe accounts;
+describe transactions;
+describe categories;
+describe accounts;
+describe account_types;
+describe category_types;
+describe account_types;
+select * from category_transaction;
 
 select * from transactions;
 select * from category_transaction ct
@@ -35,6 +64,7 @@ select * from transactions as t
     where a.user_id = (
         select id from users where name = 'Not Sure'
     );
+
 
 
 delete t from transactions as t
