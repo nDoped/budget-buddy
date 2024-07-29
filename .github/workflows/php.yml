@@ -1,4 +1,4 @@
-name: PHP Composer
+name: Build and Tests
 
 on:
   push:
@@ -84,7 +84,7 @@ jobs:
 
     - name: Run backend tests
       #run: cd app && vendor/bin/phpunit
-      run: cd app && php artisanxxx test
+      run: cd app && php artisan test
       env:
         DB_PORT: ${{ job.services.mysql.ports['3306'] }}
         DB_DATABASE: testdb
