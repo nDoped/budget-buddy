@@ -93,4 +93,4 @@ jobs:
         DB_CONNECTION: mysql
 
     - name: Run frontend tests
-      run: cd app && npm run test
+      run: cd app && npm run test -- --mode production
