@@ -58,8 +58,14 @@ jobs:
     - name: Generate APP_KEY
       run: cd app && php artisan key:generate
 
+    - name: Install front end deps
+      run: cd app && npm install
+
+    - name: Build assets
+      run: cd app && npm run build
+
     - name: Wait for MySQL
-      run: sleep 30
+      run: sleep 15
 
     - name: Migrate DB
       run: cd app && php artisan migrate
@@ -75,12 +81,6 @@ jobs:
 
     - name: Clear Config
       run: cd app && php artisan config:clear
-
-    - name: Install front end deps
-      run: cd app && npm install
-
-    - name: Build assets
-      run: cd app && npm run build
 
     - name: Run Testsuite
       run: cd app && vendor/bin/phpunit
