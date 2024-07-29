@@ -76,6 +76,9 @@ jobs:
     - name: Clear Config
       run: cd app && php artisan config:clear
 
+    - name: Install front end deps
+      run: cd app && npm install
+
     - name: Build assets
       run: cd app && npm run build
 
