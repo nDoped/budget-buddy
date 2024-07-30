@@ -279,13 +279,13 @@ class Transaction extends Model
      * does not equal 100
      *
      * @param array{category: Category, percent: float} $data
-     * @param bool $updateBuddies We don't update buddy transactions categories...
-     *                            this should only be set when creating a new transaction
+     * @param bool $isUpdate We don't update buddy transactions categories...
+     *                       They're only synced on create.
      *
      * @return bool
      * @throws \InvalidArgumentException
      */
-    private function _setCategories(array $data, bool $updateBuddies, bool $updateChildren): bool
+    private function _setCategories(array $data, bool $isUpdate, bool $updateChildren): bool
     {
         // verify that percentage adds to 1000
         if ($data) {
@@ -300,7 +300,7 @@ class Transaction extends Model
 
         $this->categories()->detach();
         $transBuddy = null;
-        if (! $updateBuddies) {
+        if (! $isUpdate) {
             $transBuddy = $this->buddyTransaction();
         }
         if ($transBuddy) {
@@ -342,7 +342,7 @@ class Transaction extends Model
                         );
                     // sync buddy categories on create only.. note that there's no
                     // need to detach current categories since none should yet exist
-                    if (! $updateBuddies) {
+                    if (! $isUpdate) {
                         $childBuddy = $child->buddyTransaction();
                         if ($childBuddy) {
                             $childBuddy
