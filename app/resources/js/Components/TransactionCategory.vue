@@ -59,11 +59,11 @@
   const total = toRef(props, 'totalAmount');
   const lineItems = ref([]);
   const showCalcPercentBtn = computed(() => {
-    return lineItems.value.length > 0 && (lineItemSum.value === (total.value - taxAmount.value));
+    return lineItems.value.length > 0 && (lineItemSum.value == (total.value - taxAmount.value).toFixed(2));
   });
   const lineItemSum = computed(() => {
     if (lineItems.value.length === 0) {
-      return 0;
+      return parseFloat(0);
     } else {
       return parseFloat(lineItems.value.reduce((acc, item) => {
         return acc + parseFloat(item.price);
@@ -73,7 +73,7 @@
   watchEffect(
     () => {
       if (lineItems.value.length > 0) {
-        if (lineItemSum.value === (total.value - taxAmount.value)) {
+        if (lineItemSum.value == parseFloat(total.value - taxAmount.value).toFixed(2)) {
           subTotalError.value = null
         } else {
           let msg = "Line items must sum to the total amount minus tax.";
@@ -82,9 +82,9 @@
             delta = taxAmount.value - total.value;
           }
           if (delta > 0) {
-            subTotalError.value = msg + " You are over by $" + delta;
+            subTotalError.value = msg + " You are over by $" + delta.toFixed(2);
           } else {
-            subTotalError.value = msg + " You are under by $" + Math.abs(delta);
+            subTotalError.value = msg + " You are under by $" + Math.abs(delta.toFixed(2));
           }
         }
       } else {
