@@ -163,6 +163,24 @@
       filteredTransactions.value = searchResults;
     });
   };
+
+  const formatParentTransactionDate = (item, key) => {
+    let ret = item.parent_id + ' - ' + new Date(item[key])
+      .toLocaleString('us-en', {
+        timeZone: "utc",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      });
+    return ret;
+  };
+  const getLastTransactionLabel = (item) => {
+    let ret = '';
+    if (item.is_last_child) {
+      ret += 'Last Transaction in Series';
+    }
+    return ret;
+  };
 </script>
 
 <template>
@@ -225,13 +243,11 @@
 
             <div v-else-if="key === 'parent_transaction_date' && value">
               {{
-                item.parent_id + ' - ' + new Date(item[key])
-                  .toLocaleString('us-en', {
-                    timeZone: "utc",
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                  })
+                formatParentTransactionDate(item, key)
+              }}
+              <br>
+              {{
+                getLastTransactionLabel(item)
               }}
             </div>
 

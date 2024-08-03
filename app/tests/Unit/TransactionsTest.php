@@ -92,6 +92,35 @@ class TransactionsTest extends TestCase
     }
 
     #[Group('transactions')]
+    public function test_last_child()
+    {
+        $this->_deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction2->id
+        ]);
+        $this->assertCount(0, $this->savingsTransaction1->children());
+        $this->assertCount(0, $this->savingsTransaction2->children());
+        $endDate = new \DateTime($this->savingsTransaction0->transaction_date);
+        $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
+        $this->savingsTransaction0->createRecurringSeries(
+            $endDate,
+            'quarterly'
+        );
+
+        $this->assertEquals(6, $this->user->transactions()->count());
+        $lastChild = $this->savingsTransaction0->children()->last();
+        foreach ($this->savingsTransaction0->children() as $child) {
+            if ($child->id === $lastChild->id) {
+                $this->assertTrue($child->isLastChild());
+            } else {
+                $this->assertFalse($child->isLastChild());
+            }
+        }
+        $this->assertFalse($this->savingsTransaction1->isLastChild());
+    }
+
+    #[Group('transactions')]
     public function test_children()
     {
         $this->_deleteMockTransactions([

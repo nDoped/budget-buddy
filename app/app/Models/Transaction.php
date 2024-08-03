@@ -427,6 +427,21 @@ class Transaction extends Model
     }
 
     /**
+     * Returns true if this transaction is the last child of a recurring series
+     * False if it doesn't have a parent or if it's not the last child
+     *
+     * @return bool
+     */
+    public function isLastChild() : bool
+    {
+        if (! $this->parent_id) {
+            return false;
+        }
+        return ($this->children()->count() === 0);
+    }
+
+
+    /**
      * Creates a series of recurring transactions based on the current transaction
      *
      * @param string|null $endDate   Default is 1 year from the this transaction_date

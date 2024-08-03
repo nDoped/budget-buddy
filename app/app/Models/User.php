@@ -270,6 +270,7 @@ class User extends Authenticatable
                 'id' => $trans->id,
                 'buddy_id' => $trans->buddy_id,
                 'parent_id' => $trans->parent_id,
+                'is_last_child' => $trans->isLastChild(),
                 'parent_transaction_date' => $trans->parentTransaction()?->transaction_date,
                 'categories' => $categories,
             ];
