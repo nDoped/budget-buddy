@@ -47,12 +47,18 @@
   };
 
   const transCatCounter = ref(0);
-  const success = (deleted) => {
+  const success = (deleted, transactionsUpdatedCount = 0) => {
     transBeingDeleted.value = null;
     transCatCounter.value++;
     editThisTransOnly.value = false;
     editAllFutureRecurring.value = false;
-    toast.success((deleted) ? 'Transaction Deleted!' : 'Transaction Updated!');
+    let toastMsg = "Transaction Update!";
+    if (deleted) {
+      toastMsg = "Transaction Deleted!";
+    } else if (transactionsUpdatedCount > 1) {
+      toastMsg = `${transactionsUpdatedCount} Transactions Updated!`;
+    }
+    toast.success(toastMsg);
     emit('success');
   };
 
@@ -140,7 +146,7 @@
 
     form.patch(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
-      onSuccess: () => success(false),
+      onSuccess: (data) => success(false, data.props.data.transactions_updated_count),
       onError: (err) =>  {
         transCatCounter.value++;
         console.error(err)

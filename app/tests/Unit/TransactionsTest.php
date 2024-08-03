@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use \PHPUnit\Framework\Attributes\Group;
 use Database\Seeders\TestHarnessSeeder;
+use Tests\Util;
 
 
 class TransactionsTest extends TestCase
@@ -92,9 +93,130 @@ class TransactionsTest extends TestCase
     }
 
     #[Group('transactions')]
+    public function test_create()
+    {
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2021-01-01',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $this->assertCount(1, $createdTrans);
+        $newTrans = $createdTrans->first();
+        $this->assertEquals($data['account_id'], $newTrans->account_id);
+        $this->assertEquals($data['amount'] * 100, $newTrans->amount);
+        $this->assertEquals($data['is_credit'], $newTrans->credit);
+        $this->assertEquals($data['transaction_date'], $newTrans->transaction_date);
+    }
+
+    #[Group('transactions')]
+    public function test_create_with_buddy()
+    {
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2021-01-01',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'trans_buddy' => true,
+            'trans_buddy_account' => $this->creditCardAccount->id,
+            'trans_buddy_note' => 'buddy note',
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $this->assertCount(2, $createdTrans);
+    }
+
+    #[Group('transactions')]
+    public function test_create_with_recurring()
+    {
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => (new \DateTime())->format('Y-m-d'),
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'recurring' => true,
+            'recurring_end_date' => (new \DateTime('+1 year'))->format('Y-m-d'),
+            'frequency' => 'monthly',
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $this->assertCount(13, $createdTrans);
+    }
+
+    #[Group('transactions')]
+    public function test_create_with_recurring_buddies()
+    {
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => (new \DateTime())->format('Y-m-d'),
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'trans_buddy' => true,
+            'trans_buddy_account' => $this->creditCardAccount->id,
+            'trans_buddy_note' => 'buddy note',
+            'recurring' => true,
+            'recurring_end_date' => (new \DateTime('+1 year'))->format('Y-m-d'),
+            'frequency' => 'monthly',
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $this->assertCount(26, $createdTrans);
+    }
+
+    #[Group('transactions')]
     public function test_last_child()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->creditTransaction2->id,
             $this->savingsTransaction2->id
@@ -123,7 +245,7 @@ class TransactionsTest extends TestCase
     #[Group('transactions')]
     public function test_children()
     {
-        $this->_deleteMockTransactions([
+        Util::deleteMockTransactions([
             $this->creditTransaction1->id,
             $this->creditTransaction2->id,
             $this->savingsTransaction2->id
@@ -167,22 +289,6 @@ class TransactionsTest extends TestCase
         foreach ($firstTrans1Child->children() as $child) {
             $this->assertNotEquals($this->savingsTransaction1->id, $child->id);
             $this->assertEquals($this->savingsTransaction1->id, $child->parent_id);
-        }
-    }
-    private function _deleteMockTransactions(array $transIdsToDelete)
-    {
-        // clean up the other transactions so they don't interfere with the test
-        $mockTransactions = [
-            $this->creditTransaction1,
-            $this->creditTransaction2,
-            $this->savingsTransaction0,
-            $this->savingsTransaction1,
-            $this->savingsTransaction2
-        ];
-        foreach ($mockTransactions as $trans) {
-            if (in_array($trans->id, $transIdsToDelete)) {
-                $trans->delete();
-            }
         }
     }
 }

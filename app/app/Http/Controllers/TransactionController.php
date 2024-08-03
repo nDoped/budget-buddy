@@ -87,6 +87,8 @@ class TransactionController extends Controller
         );
         $data['start'] = $start;
         $data['end'] = $end;
+        $data['transactions_created_count'] = session('transactions_created_count');
+        $data['transactions_updated_count'] = session('transactions_updated_count');
         $data['categories'] = $this->_fetch_categories();
         $data['category_types'] = $this->_fetch_category_types();
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
@@ -153,13 +155,12 @@ class TransactionController extends Controller
     {
         $data = $request->validated();
         $trans = new Transaction();
-        $trans->create($data);
+        $newTransactions = $trans->create($data);
         return redirect()
             ->route(
                 'transactions',
                 [ 'use_session_filter_dates' => true ]
-            );
-        //return to_route('transactions')->with('use_session_filter_dates', true);
+            )->with('transactions_created_count', $newTransactions->count());
     }
 
     /**
@@ -172,13 +173,12 @@ class TransactionController extends Controller
     public function update(TransactionPostRequest $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
-        $transaction->updateTrans($data);
+        $updatedTransCnt = $transaction->updateTrans($data);
         return redirect()
             ->route(
                 'transactions',
                 [ 'use_session_filter_dates' => true ]
-            );
-        //return to_route('transactions')->with('use_session_filter_dates', true);
+            )->with('transactions_updated_count', $updatedTransCnt);
     }
 
     /**

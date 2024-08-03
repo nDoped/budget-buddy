@@ -58,10 +58,11 @@ class Transaction extends Model
      *          frequency?: string,
      *        } $data
      *
-     * @return Transaction The created transaction
+     * @return Collection All created transactions.. ie. the created transaction,
+     *                    its buddy, its children, and their buddies
      * @throws \InvalidArgumentException
      */
-    public function create(array $data): Transaction
+    public function create(array $data): Collection
     {
         $this->amount = $data['amount'] * 100;
         $this->credit = ($data['credit']) ? true : false;
@@ -104,7 +105,17 @@ class Transaction extends Model
         }
 
         $this->_handleCategories($data['categories'], false, true);
-        return $this;
+
+        $ret = $this->children();
+        if ($this->buddy_id) {
+            $ret->push($this->buddyTransaction());
+        }
+        foreach ($this->children() as $child) {
+            if ($child->buddy_id) {
+                $ret->push($child->buddyTransaction());
+            }
+        }
+        return $ret->push($this);
     }
 
     /**
@@ -130,11 +141,12 @@ class Transaction extends Model
      *          recurring?: bool,
      *        } $data
      *
-     * @return Transaction The updated transaction
+     * @return int A count of the number of transactions that were updated
      * @throws \InvalidArgumentException
      */
-    public function updateTrans(array $data): Transaction
+    public function updateTrans(array $data): int
     {
+        $updatedTransactionCount = 0;
         $this->amount = $data['amount'] * 100;
         $this->account_id = $data['account_id'];
         $this->credit = $data['credit'];
@@ -150,7 +162,9 @@ class Transaction extends Model
             $this->note = strip_tags($data['note']);
         }
 
-        $this->_syncBuddyTransaction();
+        if ($this->_syncBuddyTransaction()) {
+            $updatedTransactionCount++;
+        }
 
         if ($updateChildren) {
             foreach ($this->children() as $child) {
@@ -161,13 +175,17 @@ class Transaction extends Model
                     $child->note = $data['note'];
                 }
 
-                $child->_syncBuddyTransaction();
+                if ($child->_syncBuddyTransaction()) {
+                    $updatedTransactionCount++;
+                }
                 $child->save();
+                $updatedTransactionCount++;
             }
         }
         $this->_handleCategories($data['categories'], true, $updateChildren);
         $this->save();
-        return $this;
+        $updatedTransactionCount++;
+        return $updatedTransactionCount;
     }
 
     /**
@@ -508,11 +526,13 @@ class Transaction extends Model
     /**
      * Syncs the buddy transaction with the current transaction. Calls $this->save()
      * first. Does not sync categories
+     *
+     * @return bool
      */
-    private function _syncBuddyTransaction()
+    private function _syncBuddyTransaction() : bool
     {
         if (! $this->buddy_id) {
-            return;
+            return false;
         }
         $this->save();
         $bud = $this->buddyTransaction();
@@ -521,5 +541,6 @@ class Transaction extends Model
         $bud->transaction_date = $this->transaction_date;
         $bud->note = $this->note;
         $bud->save();
+        return true;
     }
 }

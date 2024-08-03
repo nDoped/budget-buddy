@@ -26,10 +26,14 @@
     /* global route */
     form.post(route('transactions.store'), {
       preserveScroll: true,
-      onSuccess: () => {
+      onSuccess: (data) => {
         transCatCounter.value++;
         form.reset();
-        toast.success('Transaction Created!');
+        let toastMsg = 'Transaction Created!';
+        if (data.props.data.transactions_created_count > 1) {
+          toastMsg = `${data.props.data.transactions_created_count} Transactions Created!`;
+        }
+        toast.success(toastMsg);
       },
 
       onError: (err) =>  {
