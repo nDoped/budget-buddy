@@ -78,7 +78,7 @@ class TransactionsTest extends TestCase
     }
 
     #[Group('transactions')]
-    public function test_create_recurring_series()
+    public function test_create_recurring_series_with_invalid_frequency()
     {
         // with invalid frequency
         $this->withoutExceptionHandling();
@@ -90,6 +90,136 @@ class TransactionsTest extends TestCase
         } catch (\Exception $e) {
             $this->assertEquals('Invalid frequency', $e->getMessage());
         }
+    }
+
+    #[Group('transactions')]
+    public function test_create_monthly_recurring_series()
+    {
+        $this->savingsTransaction0->transaction_date = '2022-11-30';
+        $this->savingsTransaction0->save();
+        $this->savingsTransaction0->createRecurringSeries(
+            '2023-12-31',
+            'monthly'
+        );
+        $children = $this->savingsTransaction0->children();
+        $this->assertCount(13, $children);
+        $this->assertEquals('2022-12-30', $children[0]->transaction_date);
+        $this->assertEquals('2023-01-30', $children[1]->transaction_date);
+        $this->assertEquals('2023-02-28', $children[2]->transaction_date);
+        $this->assertEquals('2023-03-30', $children[3]->transaction_date);
+        $this->assertEquals('2023-04-30', $children[4]->transaction_date);
+        $this->assertEquals('2023-05-30', $children[5]->transaction_date);
+        $this->assertEquals('2023-06-30', $children[6]->transaction_date);
+        $this->assertEquals('2023-07-30', $children[7]->transaction_date);
+        $this->assertEquals('2023-08-30', $children[8]->transaction_date);
+        $this->assertEquals('2023-09-30', $children[9]->transaction_date);
+        $this->assertEquals('2023-10-30', $children[10]->transaction_date);
+        $this->assertEquals('2023-11-30', $children[11]->transaction_date);
+        $this->assertEquals('2023-12-30', $children[12]->transaction_date);
+
+        $this->savingsTransaction1->transaction_date = '2022-08-31';
+        $this->savingsTransaction1->save();
+        $this->savingsTransaction1->createRecurringSeries(
+            '2023-12-31',
+            'monthly'
+        );
+        $children = $this->savingsTransaction1->children();
+        $this->assertCount(16, $children);
+        $this->assertEquals('2022-09-30', $children[0]->transaction_date);
+        $this->assertEquals('2022-10-31', $children[1]->transaction_date);
+        $this->assertEquals('2022-11-30', $children[2]->transaction_date);
+        $this->assertEquals('2022-12-31', $children[3]->transaction_date);
+        $this->assertEquals('2023-01-31', $children[4]->transaction_date);
+        $this->assertEquals('2023-02-28', $children[5]->transaction_date);
+        $this->assertEquals('2023-03-31', $children[6]->transaction_date);
+        $this->assertEquals('2023-04-30', $children[7]->transaction_date);
+        $this->assertEquals('2023-05-31', $children[8]->transaction_date);
+        $this->assertEquals('2023-06-30', $children[9]->transaction_date);
+        $this->assertEquals('2023-07-31', $children[10]->transaction_date);
+        $this->assertEquals('2023-08-31', $children[11]->transaction_date);
+        $this->assertEquals('2023-09-30', $children[12]->transaction_date);
+        $this->assertEquals('2023-10-31', $children[13]->transaction_date);
+        $this->assertEquals('2023-11-30', $children[14]->transaction_date);
+        $this->assertEquals('2023-12-31', $children[15]->transaction_date);
+
+        $this->creditTransaction1->transaction_date = '2022-02-28';
+        $this->creditTransaction1->save();
+        $this->creditTransaction1->createRecurringSeries(
+            '2023-02-27',
+            'monthly'
+        );
+        $children = $this->creditTransaction1->children();
+        $this->assertCount(11, $children);
+        $this->assertEquals('2022-03-28', $children[0]->transaction_date);
+        $this->assertEquals('2022-04-28', $children[1]->transaction_date);
+        $this->assertEquals('2022-05-28', $children[2]->transaction_date);
+        $this->assertEquals('2022-06-28', $children[3]->transaction_date);
+        $this->assertEquals('2022-07-28', $children[4]->transaction_date);
+        $this->assertEquals('2022-08-28', $children[5]->transaction_date);
+        $this->assertEquals('2022-09-28', $children[6]->transaction_date);
+        $this->assertEquals('2022-10-28', $children[7]->transaction_date);
+        $this->assertEquals('2022-11-28', $children[8]->transaction_date);
+        $this->assertEquals('2022-12-28', $children[9]->transaction_date);
+        $this->assertEquals('2023-01-28', $children[10]->transaction_date);
+
+        $this->creditTransaction2->transaction_date = '2022-01-29';
+        $this->creditTransaction2->save();
+        $this->creditTransaction2->createRecurringSeries(
+            '2023-02-27',
+            'monthly'
+        );
+        $children = $this->creditTransaction2->children();
+        $this->assertCount(12, $children);
+        $this->assertEquals('2022-02-28', $children[0]->transaction_date);
+        $this->assertEquals('2022-03-29', $children[1]->transaction_date);
+        $this->assertEquals('2022-04-29', $children[2]->transaction_date);
+        $this->assertEquals('2022-05-29', $children[3]->transaction_date);
+        $this->assertEquals('2022-06-29', $children[4]->transaction_date);
+        $this->assertEquals('2022-07-29', $children[5]->transaction_date);
+        $this->assertEquals('2022-08-29', $children[6]->transaction_date);
+        $this->assertEquals('2022-09-29', $children[7]->transaction_date);
+        $this->assertEquals('2022-10-29', $children[8]->transaction_date);
+        $this->assertEquals('2022-11-29', $children[9]->transaction_date);
+        $this->assertEquals('2022-12-29', $children[10]->transaction_date);
+        $this->assertEquals('2023-01-29', $children[11]->transaction_date);
+    }
+
+    #[Group('transactions')]
+    public function test_create_biweekly_recurring_series()
+    {
+        $this->savingsTransaction0->transaction_date = '2023-01-06';
+        $this->savingsTransaction0->save();
+        $this->savingsTransaction0->createRecurringSeries(
+            '2023-12-31',
+            'biweekly'
+        );
+        $children = $this->savingsTransaction0->children();
+        $this->assertCount(25, $children);
+        $this->assertEquals('2023-01-20', $children[0]->transaction_date);
+        $this->assertEquals('2023-02-03', $children[1]->transaction_date);
+        $this->assertEquals('2023-02-17', $children[2]->transaction_date);
+        $this->assertEquals('2023-03-03', $children[3]->transaction_date);
+        $this->assertEquals('2023-03-17', $children[4]->transaction_date);
+        $this->assertEquals('2023-03-31', $children[5]->transaction_date);
+        $this->assertEquals('2023-04-14', $children[6]->transaction_date);
+        $this->assertEquals('2023-04-28', $children[7]->transaction_date);
+        $this->assertEquals('2023-05-12', $children[8]->transaction_date);
+        $this->assertEquals('2023-05-26', $children[9]->transaction_date);
+        $this->assertEquals('2023-06-09', $children[10]->transaction_date);
+        $this->assertEquals('2023-06-23', $children[11]->transaction_date);
+        $this->assertEquals('2023-07-07', $children[12]->transaction_date);
+        $this->assertEquals('2023-07-21', $children[13]->transaction_date);
+        $this->assertEquals('2023-08-04', $children[14]->transaction_date);
+        $this->assertEquals('2023-08-18', $children[15]->transaction_date);
+        $this->assertEquals('2023-09-01', $children[16]->transaction_date);
+        $this->assertEquals('2023-09-15', $children[17]->transaction_date);
+        $this->assertEquals('2023-09-29', $children[18]->transaction_date);
+        $this->assertEquals('2023-10-13', $children[19]->transaction_date);
+        $this->assertEquals('2023-10-27', $children[20]->transaction_date);
+        $this->assertEquals('2023-11-10', $children[21]->transaction_date);
+        $this->assertEquals('2023-11-24', $children[22]->transaction_date);
+        $this->assertEquals('2023-12-08', $children[23]->transaction_date);
+        $this->assertEquals('2023-12-22', $children[24]->transaction_date);
     }
 
     #[Group('transactions')]

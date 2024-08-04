@@ -467,6 +467,7 @@ class Transaction extends Model
      *                               Default is 'monthly'
      *
      * @return Collection A collection of the newly created child transactions
+     * @throws \InvalidArgumentException
      */
     public function createRecurringSeries(
         string $endDate = null,
@@ -478,11 +479,16 @@ class Transaction extends Model
             'monthly' => 'P1M',
             'biweekly' => 'P14D'
         ];
+        if ($this->parent_id) {
+            throw new \InvalidArgumentException('Cannot create recurring series on a child transaction');
+        }
+
         if (! array_key_exists($frequency, $validFrequency)) {
             throw new \InvalidArgumentException('Invalid frequency');
         }
         $duration = $validFrequency[$frequency];
-        $d = new \DateTime($this->transaction_date);
+        $transactionDate = new \DateTime($this->transaction_date);
+        $d = clone $transactionDate;
         if ($endDate === null) {
             $endDate = clone $d;
             $endDate = $endDate->add(new \DateInterval('P1Y'))->format('Y-m-d');
@@ -491,10 +497,43 @@ class Transaction extends Model
         $this->parent_id = $this->id;
         $this->save();
 
+        $originalDay = $d->format('j');
         $nextDate = $d->add(new \DateInterval($duration));
+        if ($frequency === 'monthly' && $nextDate->format('j') !== $originalDay) {
+            $nextDate = $nextDate->modify('last day of previous month');
+        }
         while ($nextDate->format('Y-m-d') <= $endDate) {
             $this->createChildTransaction($nextDate);
-            $nextDate = $nextDate->add(new \DateInterval($duration));
+            $clone = clone $nextDate;
+            if ($frequency === 'monthly') {
+                switch ($originalDay) {
+                case 29:
+                    if ($clone->format('m') === '01') {
+                        $clone->modify('last day of next month');
+                    } else {
+                        $clone = $clone->add(new \DateInterval($duration));
+                    }
+                    break;
+                case 30:
+                    if (in_array($clone->format('m'), ['01', '03', '05', '08', '10' ])) {
+                        $clone->modify('last day of next month');
+                    } else {
+                        $clone = $clone->add(new \DateInterval($duration));
+                    }
+                    break;
+                case 31:
+                    $clone->modify('last day of next month');
+                    break;
+                default:
+                    $clone = $clone->add(new \DateInterval($duration));
+                }
+                while ($clone->format('j') < $originalDay && $clone->format('j') !== $clone->format('t')) {
+                    $clone->modify('+1 day');
+                }
+            } else {
+                $clone = $clone->add(new \DateInterval($duration));
+            }
+            $nextDate = clone $clone;
         }
         return $this->children();
     }
