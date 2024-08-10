@@ -279,7 +279,17 @@ class TransactionsTest extends TestCase
             ]
         ];
         $createdTrans = $trans->create($data);
+        $trans->refresh();
+        $this->assertNotNull($trans->buddy_id);
         $this->assertCount(2, $createdTrans);
+        $this->assertEquals($data['account_id'], $trans->account_id);
+        $this->assertEquals($data['trans_buddy_account'], $trans->buddyTransaction()->account_id);
+        $this->assertEquals($data['amount'] * 100, $trans->amount);
+        $this->assertEquals(0, $trans->credit);
+        $this->assertEquals(1, $trans->buddyTransaction()->credit);
+        $this->assertEquals($data['transaction_date'], $trans->transaction_date);
+        $this->assertEquals($data['transaction_date'], $trans->buddyTransaction()->transaction_date);
+        $this->assertEquals($data['amount'] * 100, $trans->buddyTransaction()->amount);
     }
 
     #[Group('transactions')]
@@ -288,12 +298,12 @@ class TransactionsTest extends TestCase
         $trans = new Transaction();
         $data = [
             'account_id' => $this->savingsAccount->id,
-            'transaction_date' => (new \DateTime())->format('Y-m-d'),
+            'transaction_date' => '2021-01-31',
             'amount' => 100,
             'credit' => false,
-            'description' => 'test',
+            'note' => 'test',
             'recurring' => true,
-            'recurring_end_date' => (new \DateTime('+1 year'))->format('Y-m-d'),
+            'recurring_end_date' => '2022-01-31',
             'frequency' => 'monthly',
             'is_credit' => false,
             'categories' => [
@@ -309,6 +319,30 @@ class TransactionsTest extends TestCase
         ];
         $createdTrans = $trans->create($data);
         $this->assertCount(13, $createdTrans);
+        $children = $trans->children();
+        $this->assertCount(12, $children);
+        $expected_child_dates = [
+            '2021-02-28',
+            '2021-03-31',
+            '2021-04-30',
+            '2021-05-31',
+            '2021-06-30',
+            '2021-07-31',
+            '2021-08-31',
+            '2021-09-30',
+            '2021-10-31',
+            '2021-11-30',
+            '2021-12-31',
+            '2022-01-31',
+        ];
+        foreach ($trans->children() as $i => $child) {
+            $this->assertEquals($expected_child_dates[$i], $child->transaction_date);
+            $this->assertEquals($data['amount'] * 100, $child->amount);
+            $this->assertEquals(0, $child->credit);
+            $this->assertEquals($data['note'], $child->note);
+            $this->assertEquals($data['account_id'], $child->account_id);
+            $this->assertCount(1, $child->categories);
+        }
     }
 
     #[Group('transactions')]
@@ -317,15 +351,15 @@ class TransactionsTest extends TestCase
         $trans = new Transaction();
         $data = [
             'account_id' => $this->savingsAccount->id,
-            'transaction_date' => (new \DateTime())->format('Y-m-d'),
+            'transaction_date' => '2021-04-30',
             'amount' => 100,
             'credit' => false,
-            'description' => 'test',
+            'note' => 'test',
             'trans_buddy' => true,
             'trans_buddy_account' => $this->creditCardAccount->id,
             'trans_buddy_note' => 'buddy note',
             'recurring' => true,
-            'recurring_end_date' => (new \DateTime('+1 year'))->format('Y-m-d'),
+            'recurring_end_date' => '2022-04-29',
             'frequency' => 'monthly',
             'is_credit' => false,
             'categories' => [
@@ -340,7 +374,42 @@ class TransactionsTest extends TestCase
             ]
         ];
         $createdTrans = $trans->create($data);
-        $this->assertCount(26, $createdTrans);
+        $this->assertCount(24, $createdTrans);
+        $this->assertEquals($data['account_id'], $trans->account_id);
+        $this->assertEquals($data['trans_buddy_account'], $trans->buddyTransaction()->account_id);
+        $this->assertEquals($data['amount'] * 100, $trans->amount);
+        $this->assertEquals(0, $trans->credit);
+        $this->assertEquals(1, $trans->buddyTransaction()->credit);
+        $this->assertEquals($data['transaction_date'], $trans->transaction_date);
+        $this->assertEquals($data['transaction_date'], $trans->buddyTransaction()->transaction_date);
+        $this->assertEquals($data['amount'] * 100, $trans->buddyTransaction()->amount);
+        $children = $trans->children();
+        $this->assertCount(11, $children);
+        $expected_child_dates = [
+            '2021-05-30',
+            '2021-06-30',
+            '2021-07-30',
+            '2021-08-30',
+            '2021-09-30',
+            '2021-10-30',
+            '2021-11-30',
+            '2021-12-30',
+            '2022-01-30',
+            '2022-02-28',
+            '2022-03-30',
+        ];
+        foreach ($trans->children() as $i => $child) {
+            $this->assertEquals($expected_child_dates[$i], $child->transaction_date);
+            $this->assertEquals($data['amount'] * 100, $child->amount);
+            $this->assertEquals(0, $child->credit);
+            $this->assertEquals($data['note'], $child->note);
+            $this->assertEquals($data['account_id'], $child->account_id);
+            $this->assertCount(1, $child->categories);
+
+            $this->assertEquals($data['trans_buddy_account'], $child->buddyTransaction()->account_id);
+            $this->assertEquals(1, $child->buddyTransaction()->credit);
+            $this->assertEquals($expected_child_dates[$i], $child->buddyTransaction()->transaction_date);
+        }
     }
 
     #[Group('transactions')]
