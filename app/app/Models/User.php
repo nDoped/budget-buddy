@@ -264,6 +264,7 @@ class User extends Authenticatable
                 'asset_text' => ($trans->credit) ? 'Credit' : 'Debit',
                 'asset' => ($trans->credit) ? true : false,
                 'transaction_date' => $trans->transaction_date,
+                'created_at' => $trans->created_at,
                 'expand' => true,
                 'note' => $trans->note,
                 'bank_identifier' => $trans->bank_identifier,

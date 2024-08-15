@@ -51,6 +51,7 @@
   const fields = ref([
     { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
+    { key: 'created_at', label: 'Created', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amountSearchMatchText', label: 'Amount', sortable:true, color_text:true, searchable:true, sortColumn: 'amount' },
     { key: 'accountSearchMatchText', label: 'Account', sortable:true, searchable: true, color_text:false },
@@ -228,7 +229,7 @@
             }"
             class="font-medium text-sm"
           >
-            <div v-if="key === 'transaction_date'">
+            <div v-if="key === 'transaction_date' || key === 'created_at'">
               {{
                 new Date(item[key])
                   .toLocaleString('us-en', {
