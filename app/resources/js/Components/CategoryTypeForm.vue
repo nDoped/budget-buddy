@@ -15,7 +15,7 @@
   const form = useForm({
     name: null,
     note: null,
-    color: '#000000'
+    hex_color: '#000000'
   });
   function submit() {
     /* global route */
@@ -60,12 +60,12 @@
       <div class="m-4">
         <InputLabel
           :for="getUuid('catt-color')"
-          value="color"
+          value="hex_color"
         />
         <input
           :id="getUuid('catt-color')"
           type="color"
-          v-model="form.color"
+          v-model="form.hex_color"
         >
       </div>
 

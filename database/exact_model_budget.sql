@@ -1,12 +1,14 @@
 select count(*) from transactions;
 describe category_transaction;
 show tables;
+describe transactions;
 delete from transactions;
 select * from category_transaction;
 select * from categories;
 delete from categories;
 describe categories;
 describe accounts;
+select * from transactions;
 describe category_types;
 describe account_types;
 describe users;
