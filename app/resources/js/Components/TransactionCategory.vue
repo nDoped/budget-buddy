@@ -58,9 +58,6 @@
   const subTotalError = ref(null);
   const total = toRef(props, 'totalAmount');
   const lineItems = ref([]);
-  const showCalcPercentBtn = computed(() => {
-    return lineItems.value.length > 0 && (lineItemSum.value == (total.value - taxAmount.value).toFixed(2));
-  });
   const lineItemSum = computed(() => {
     if (lineItems.value.length === 0) {
       return parseFloat(0);
@@ -92,6 +89,15 @@
       }
     }
   );
+
+  const canCalculatePercentages = computed(() => {
+    return lineItems.value.length > 0 && (lineItemSum.value == (total.value - taxAmount.value).toFixed(2));
+  });
+  watch(canCalculatePercentages, (value) => {
+    if (value) {
+      calculatePercentages();
+    }
+  });
   const calculatePercentages = () => {
     let subTotal = lineItemSum.value;
     catsRef.value = [];
@@ -286,7 +292,6 @@
     }
   );
   const receiptToggleEventHandler = (value) => {
-    calcCatsByReciept.value = value;
     if (value) {
       focusElement(getUuid('tax-amount'), true);
     }
@@ -296,6 +301,7 @@
 <template>
   <div>
     <ToggleSlider
+      v-model="calcCatsByReciept"
       @update:model-value="receiptToggleEventHandler"
       label="Enter receipt line items"
     />
@@ -440,7 +446,7 @@
             </PrimaryButton>
             <PrimaryButton
               :id="getUuid('calculate-percentages-button')"
-              v-if="showCalcPercentBtn"
+              v-if="canCalculatePercentages"
               class="m-4"
               type="button"
               @click="calculatePercentages"
