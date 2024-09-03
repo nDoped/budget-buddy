@@ -6,7 +6,7 @@
     ref
   } from 'vue';
   import { focusElement } from '@/lib.js';
-  //import InputLabel from '@/Components/InputLabel.vue';
+  import InputLabel from '@/Components/InputLabel.vue';
   import 'vue3-toastify/dist/index.css';
 
   defineEmits([ 'update:modelValue' ]);
@@ -84,13 +84,11 @@
 </script>
 
 <template>
-  <div :style="catSelectBorder">
-    <!--
-    <InputLabel
-      value="Category"
-    />
-    -->
-
+  <InputLabel value="Category" />
+  <div
+    class="block"
+    :style="catSelectBorder"
+  >
     <Multiselect
       :id="selectId"
       ref="multiSelect"

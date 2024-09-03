@@ -347,9 +347,6 @@
             </template>
 
             <template v-else>
-              <h2 class="text-xl">
-                Create a New Category
-              </h2>
               <CategoryInputs
                 :id="getUuid('category-inputs', i)"
                 :type="category.cat_data.cat_type_id"
@@ -363,7 +360,7 @@
 
             <InputLabel
               :for="getUuid('category-percent', i)"
-              value="Percentage of Transaction Total"
+              value="Percentage of Transaction Total (%)"
               class="mt-2"
             />
             <input
@@ -409,28 +406,27 @@
         <div v-if="! total || ! taxAmount">
           <p
             v-if="! total && ! taxAmount"
-            class="m-4"
+            class="m-1"
           >
             Please enter the transaction total and tax paid
           </p>
           <p
             v-else-if="! total"
-            class="m-4"
+            class="m-1"
           >
             Please enter the transaction total
           </p>
           <p
             v-else
-            class="m-4"
+            class="m-1"
           >
             Please enter the tax paid
           </p>
         </div>
         <template v-else>
-          <div class="m-4">
+          <div class="m-1">
             <PrimaryButton
               :id="getUuid('add-line-item-button')"
-              class="m-4"
               type="button"
               @click="addLineItem"
             >
@@ -468,10 +464,30 @@
             :key="i"
             class="m-2"
           >
+            <template v-if="item.cat_data.cat_id">
+              <CategorySelect
+                class="m-4"
+                :select-id="getUuid('category-select', i)"
+                :available-categories="availableCategories"
+                v-model="lineItems[i].cat_data"
+              />
+            </template>
+
+            <template v-else>
+              <CategoryInputs
+                :id="getUuid('category-inputs', i)"
+                :type="item.cat_data.cat_type_id"
+                :name="item.cat_data.name"
+                :color="item.cat_data.hex_color"
+                :category-types="categoryTypes"
+                :errors="getError(i)"
+                @field-update="(data) => createLineItemCategory(i, data)"
+              />
+            </template>
+
             <InputLabel
               :for="getUuid('line-item-amount', i)"
-              value="Price"
-              class="mt-2"
+              value="Line Item Price ($)"
             />
             <input
               :id="getUuid('line-item-amount', i)"
@@ -483,28 +499,6 @@
               :style="catSelectBorder(item)"
               @keypress="forceNumericalInput($event)"
             >
-            <template v-if="item.cat_data.cat_id">
-              <CategorySelect
-                :select-id="getUuid('category-select', i)"
-                :available-categories="availableCategories"
-                v-model="lineItems[i].cat_data"
-              />
-            </template>
-
-            <template v-else>
-              <h2 class="text-xl">
-                Create a New Category
-              </h2>
-              <CategoryInputs
-                :id="getUuid('category-inputs', i)"
-                :type="item.cat_data.cat_type_id"
-                :name="item.cat_data.name"
-                :color="item.cat_data.hex_color"
-                :category-types="categoryTypes"
-                :errors="getError(i)"
-                @field-update="(data) => createLineItemCategory(i, data)"
-              />
-            </template>
 
             <DangerButton
               class="max-h-1"

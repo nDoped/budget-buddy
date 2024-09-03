@@ -61,11 +61,11 @@
 </script>
 
 <template>
-  <div class="flex flex-wrap p-6 bg-slate-500 border-b border-gray-200">
-    <div class="m-4">
+  <div class="flex flex-col bg-slate-500">
+    <div>
       <InputLabel
         :for="getUuid('cat-name')"
-        value="Name"
+        value="New Category's Name"
       />
       <TextInput
         :id="getUuid('cat-name')"
@@ -86,10 +86,10 @@
       />
     </div>
 
-    <div class="m-4">
+    <div>
       <InputLabel
         :for="getUuid('cat-type')"
-        value="Category Type"
+        value="New Category's Type"
       />
       <select
         :id="getUuid('cat-type')"
@@ -110,15 +110,17 @@
       </select>
     </div>
 
-    <div class="m-4">
+    <div>
       <InputLabel
         :for="getUuid('cat-color')"
-        value="color"
+        value="New Category's Color"
+        class="mt-2"
       />
       <input
         :id="getUuid('cat-color')"
         type="color"
         v-model="catColor"
+        class="mt-2"
       >
       <InputError
         :message="errors.color"
@@ -128,7 +130,7 @@
 
     <div
       v-if="includeActiveInput"
-      class="m-4"
+      class=""
     >
       <InputLabel
         :for="getUuid('cat-active')"
