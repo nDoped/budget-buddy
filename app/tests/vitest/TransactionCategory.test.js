@@ -121,26 +121,23 @@ test("test receipt line items with two items in the same cat", async () => {
       price: null
     }
   ];
-  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
-  expect(wrapper.vm.showCalcPercentBtn).toBe(false);
-  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
-  await wrapper.get('#' + lineItem0PriceInputId).setValue(45);
-  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
-  await wrapper.get('#' + lineItem1PriceInputId).setValue(45);
-  expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are over by $10');
-  expect(wrapper.vm.showCalcPercentBtn).toBe(false);
-  await wrapper.get('#' + lineItem1PriceInputId).setValue(25);
-  expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are under by $10');
-  await wrapper.get('#' + lineItem1PriceInputId).setValue(35);
-  expect(wrapper.vm.catsRef).toEqual([]);
-  const calcPercentagesButton = wrapper.get("#" + calcPercentagesButtonId);
-  await calcPercentagesButton.trigger('click');
   let expectedCatsRef = [
     {
       cat_data: props.availableCategories[0],
       percent: 100
     },
   ];
+  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
+  expect(wrapper.vm.canCalculatePercentages).toBe(false);
+  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem0PriceInputId).setValue(45);
+  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(45);
+  expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are over by $10');
+  expect(wrapper.vm.canCalculatePercentages).toBe(false);
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(25);
+  expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are under by $10');
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(35);
   expect(wrapper.vm.catsRef).toEqual(expectedCatsRef);
 });
 
@@ -186,16 +183,6 @@ test("test receipt line items with two items in different cats", async () => {
       price: null
     }
   ];
-  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
-  expect(wrapper.vm.showCalcPercentBtn).toBe(false);
-  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
-  await wrapper.get('#' + lineItem0PriceInputId).setValue(23.34);
-  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
-  await wrapper.get('#' + lineItem1PriceInputId).setValue(90 - 23.34);
-  expect(wrapper.vm.showCalcPercentBtn).toBe(true);
-  expect(wrapper.vm.catsRef).toEqual([]);
-  const calcPercentagesButton = wrapper.get("#" + calcPercentagesButtonId);
-  await calcPercentagesButton.trigger('click');
   let expectedCatsRef = [
     {
       cat_data: props.availableCategories[0],
@@ -206,7 +193,17 @@ test("test receipt line items with two items in different cats", async () => {
       percent: 74.07 // (90 - 23.34) / 90 = 0.7406666
     },
   ];
+  expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
+  expect(wrapper.vm.canCalculatePercentages).toBe(false);
+  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem0PriceInputId).setValue(23.34);
+  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
+  await wrapper.get('#' + lineItem1PriceInputId).setValue(90 - 23.34);
+  expect(wrapper.vm.canCalculatePercentages).toBe(true);
   expect(wrapper.vm.catsRef).toEqual(expectedCatsRef);
+  // const calcPercentagesButton = wrapper.get("#" + calcPercentagesButtonId);
+  // await calcPercentagesButton.trigger('click');
+  // expect(wrapper.vm.catsRef).toEqual(expectedCatsRef);
 });
 
 test("test Add an Existing Cat button", async () => {
