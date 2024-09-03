@@ -84,29 +84,31 @@
 </script>
 
 <template>
-  <InputLabel value="Category" />
-  <div
-    class="block"
-    :style="catSelectBorder"
-  >
-    <Multiselect
-      :id="selectId"
-      ref="multiSelect"
-      class="my-multiselect"
-      v-model="model"
-      track-by="cat_id"
-      label="name"
-      placeholder="Select a Category"
-      deselect-label=""
-      group-label="category_type"
-      group-values="categories"
-      :group-select="false"
-      select-label=""
-      :options="fetchFilteredCatsOptions"
-      :allow-empty="false"
-      :searchable="true"
-      @search-change="(search) => query = search"
-    />
+  <div>
+    <InputLabel value="Category" />
+    <div
+      class="block"
+      :style="catSelectBorder"
+    >
+      <Multiselect
+        :id="selectId"
+        ref="multiSelect"
+        class="my-multiselect"
+        v-model="model"
+        track-by="cat_id"
+        label="name"
+        placeholder="Select a Category"
+        deselect-label=""
+        group-label="category_type"
+        group-values="categories"
+        :group-select="false"
+        select-label=""
+        :options="fetchFilteredCatsOptions"
+        :allow-empty="false"
+        :searchable="true"
+        @search-change="(search) => query = search"
+      />
+    </div>
   </div>
 </template>
 
