@@ -13,6 +13,7 @@
   import CategorySelect from '@/Components/CategorySelect.vue';
   import ToggleSlider from '@/Components/ToggleSlider.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
+  import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
   import {
     forceNumericalInput,
@@ -308,22 +309,22 @@
 
     <template v-if="! calcCatsByReciept">
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
-        <PrimaryButton
+        <SecondaryButton
           :id="getUuid('add-cat-button')"
           class="m-4"
           type="button"
           @click="addCategory"
         >
           Add an Existing Cat
-        </PrimaryButton>
-        <PrimaryButton
+        </SecondaryButton>
+        <SecondaryButton
           :id="getUuid('create-cat-button')"
           class="m-4"
           type="button"
           @click="createANewCategory"
         >
           Create a New Cat
-        </PrimaryButton>
+        </SecondaryButton>
       </div>
 
       <InputError :message="percentError" />
@@ -387,11 +388,10 @@
 
     <template v-else>
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
-        <div class="m-4">
+        <div class="m-1">
           <InputLabel
             :for="getUuid('tax-amount')"
             value="Tax"
-            class="mt-2"
           />
           <input
             :id="getUuid('tax-amount')"
@@ -403,55 +403,49 @@
             @keypress="forceNumericalInput($event)"
           >
         </div>
-        <div v-if="! total || ! taxAmount">
-          <p
-            v-if="! total && ! taxAmount"
-            class="m-1"
-          >
+        <div
+          v-if="! total || ! taxAmount"
+          class="m-1 p-2"
+        >
+          <p v-if="! total && ! taxAmount">
             Please enter the transaction total and tax paid
           </p>
-          <p
-            v-else-if="! total"
-            class="m-1"
-          >
+          <p v-else-if="! total">
             Please enter the transaction total
           </p>
-          <p
-            v-else
-            class="m-1"
-          >
+          <p v-else>
             Please enter the tax paid
           </p>
         </div>
         <template v-else>
-          <div class="m-1">
-            <PrimaryButton
+          <div class="m-1 p-2">
+            <SecondaryButton
               :id="getUuid('add-line-item-button')"
               type="button"
               @click="addLineItem"
             >
               Add a line item
-            </PrimaryButton>
+            </SecondaryButton>
 
-            <PrimaryButton
+            <SecondaryButton
               class="m-4"
               type="button"
               @click="createANewLineItemCategory"
             >
               Add a line item and create a new category
-            </PrimaryButton>
-            <PrimaryButton
-              :id="getUuid('calculate-percentages-button')"
-              v-if="canCalculatePercentages"
-              class="m-4"
-              type="button"
-              @click="calculatePercentages"
-            >
-              Calculate Percentages
-            </PrimaryButton>
+            </SecondaryButton>
           </div>
         </template>
       </div>
+
+      <PrimaryButton
+        :id="getUuid('calculate-percentages-button')"
+        v-if="canCalculatePercentages"
+        type="button"
+        @click="calculatePercentages"
+      >
+        Calculate Percentages
+      </PrimaryButton>
 
       <InputError :message="subTotalError" />
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
@@ -466,7 +460,6 @@
           >
             <template v-if="item.cat_data.cat_id">
               <CategorySelect
-                class="m-4"
                 :select-id="getUuid('category-select', i)"
                 :available-categories="availableCategories"
                 v-model="lineItems[i].cat_data"
@@ -508,7 +501,7 @@
               Remove
             </DangerButton>
           </div>
-          <PrimaryButton
+          <SecondaryButton
             v-if="lineItems.length > 0"
             :id="getUuid('add-line-item-toggle-button')"
             class="h-6 m-4"
@@ -516,7 +509,7 @@
             @click="addLineItem"
           >
             +
-          </PrimaryButton>
+          </SecondaryButton>
         </div>
       </div>
     </template>

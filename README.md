@@ -7,7 +7,7 @@ Create a budget, track your expenses, and see how you're doing with your financi
 
 Categories and Category Types are fully customizable. You decide how you want to categorize your expenditure tracking.
 
-Set up recurring transactions to track incoming or outgoing adjustments. Use this to track recurring bi-weekly, monthly, quarterly, and annual credits and debits.
+Set up recurring transactions to track incoming or outgoing adjustments. Use this to track recurring bi-weekly, monthly, quarterly, and annual credits and debits across multiple accounts and plan out a detailed budget.
 
 Create Buddy Transactions to track financial movements between accounts.
 
