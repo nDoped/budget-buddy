@@ -51,13 +51,13 @@
   const fields = ref([
     { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
     { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
-    { key: 'created_at', label: 'Created', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amountSearchMatchText', label: 'Amount', sortable:true, color_text:true, searchable:true, sortColumn: 'amount' },
     { key: 'accountSearchMatchText', label: 'Account', sortable:true, searchable: true, color_text:false },
     { key: 'categories', label: 'Categories', sortable:true, searchable: true, color_text:false },
     { key: 'noteSearchMatchText', label: 'Note', sortable:true, searchable:true, color_text:false },
     { key: 'parent_transaction_date', label: 'Parent Transaction', sortable:true, searchable:true, color_text:false },
+    { key: 'created_at', label: 'Created', sortable: true, searchable: true, color_text:false },
   ]);
 
   onMounted(() => {
