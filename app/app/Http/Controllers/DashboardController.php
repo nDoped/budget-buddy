@@ -25,6 +25,9 @@ class DashboardController extends Controller
             $start = $end = null;
         }
 
+        /**
+         * @var \App\Models\User $user
+         */
         $user = Auth::user();
         $trans_data = $user->fetchTransactionData(
             $start,

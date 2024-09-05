@@ -132,8 +132,11 @@ class User extends Authenticatable
             return $data;
         }
 
+        $transactions_in_range
+            = $this->transactions()
+                   ->orderBy('transaction_date', $orderBy)
+                   ->orderBy('buddy_id', $orderBy);
 
-        $transactions_in_range = $this->transactions()->orderBy('transaction_date', $orderBy);
         if ($filterAccountIds) {
             $transactions_in_range = $transactions_in_range->whereIn('account_id', $filterAccountIds);
         }
@@ -150,20 +153,8 @@ class User extends Authenticatable
                     $type = AccountType::find($acct->type_id);
                     $data['transactions_to_range'][] = [
                         'amount_raw' => $trans->amount,
-                        'amount' => $trans->amount / 100,
                         'account_id' => $acct->id,
-                        'account' => $acct->name,
-                        'account_type' => $type->name,
-                        'asset_txt' => ($trans->credit) ? 'Credit' : 'Debit',
                         'asset' => ($trans->credit) ? true : false,
-                        'expand' => true,
-                        'transaction_date' => $trans->transaction_date,
-                        'note' => $trans->note,
-                        'bank_identifier' => $trans->bank_identifier,
-                        'id' => $trans->id,
-                        'buddy_id' => $trans->buddy_id,
-                        'parent_id' => $trans->parent_id,
-                        'parent_transaction_date' => $trans->parentTransaction()?->transaction_date,
                     ];
                 }
             }
@@ -312,5 +303,4 @@ class User extends Authenticatable
         }
         return $ret;
     }
-
 }

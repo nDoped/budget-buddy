@@ -77,6 +77,9 @@ class TransactionController extends Controller
             $request->session()->forget([ 'filter_accounts' ]);
         }
 
+        /**
+         * @var \App\Models\User $current_user
+         */
         $current_user = Auth::user();
         $data = $current_user->fetchTransactionData(
             $start,
