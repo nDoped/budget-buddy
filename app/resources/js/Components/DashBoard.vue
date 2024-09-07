@@ -43,6 +43,16 @@
     end: {
       type: String,
       default: () => ''
+    },
+    recurringTransactions: {
+      type: Object,
+      default: () => {
+        return {
+          transactions: [],
+          totalRecurringCredits: 0,
+          totalRecurringDebits: 0
+        }
+      }
     }
   });
 
@@ -82,6 +92,22 @@
     return ret;
   });
 
+  const recurringStatsTotals = computed(() => {
+    let ret = [];
+    if (props.recurringTransactions.transactions.length > 0) {
+      ret.push({
+        title: 'Recurring Credits',
+        value: formatter.format(props.recurringTransactions.totalRecurringCredits),
+        class: 'text-green-400'
+      });
+      ret.push({
+        title: 'Recurring Debits',
+        value: formatter.format(props.recurringTransactions.totalRecurringDebits),
+        class: 'text-red-400'
+      });
+    }
+    return ret;
+  });
   const dashboardStatsTotals = computed(() => {
     let ret = [];
     // kinda hacky and depends on the asset and debt accounts having a totals
@@ -208,7 +234,7 @@
 </script>
 
 <template>
-  <div class="p-6 sm:px-20 dark:bg-slate-700 border-b border-gray-200">
+  <div class="p-6 sm:px-20 border-b border-gray-200">
     <div
       class="max-w-xl"
       style="text-align: left"
@@ -227,14 +253,18 @@
     </div>
   </div>
 
-  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
+  <div class="flex flex-col sm:flex-row justify-between ">
     <StatsComponent
       :stats="dashboardStatsTotals"
       :last="rangeDisplay"
     />
+    <StatsComponent
+      :stats="recurringStatsTotals"
+      last="Recurring Transaction Totals"
+    />
   </div>
 
-  <div class="w-full dark:bg-slate-700 bg-opacity-75 grid grid-cols-1 xl:grid-cols-2">
+  <div class="w-full grid grid-cols-1 xl:grid-cols-2">
     <div class="p-6">
       <div class="flex items-center flex-col overflow-x-auto">
         <div class="text-3xl text-bold">

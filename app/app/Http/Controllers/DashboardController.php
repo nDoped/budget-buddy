@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Models\Transaction;
 
 class DashboardController extends Controller
 {
@@ -65,6 +63,7 @@ class DashboardController extends Controller
             'daily_asset_growth' => [],
             'daily_debt_growth' => [],
         ];
+        $recurringTransactions = [];
         foreach ($trans_data['transactions_in_range'] as $trans) {
             $acct =& $account_data[$trans['account_id']];
             $acct['pre_range_net_growth'] ??= 0;
@@ -72,6 +71,17 @@ class DashboardController extends Controller
             $acct['expand'] ??= true;
             $acct['daily_net_growths'] ??= [];
             $acct['end_balance'] ??= 0;
+            if ($trans['parent_id']) {
+                $recurringTransactions[] = [
+                    'id' => $trans['id'],
+                    'parent_id' => $trans['parent_id'],
+                    'buddy_id' => $trans['buddy_id'],
+                    'transaction_date' => $trans['transaction_date'],
+                    'amount_raw' => $trans['amount_raw'],
+                    'asset' => $trans['asset'],
+                    'account_id' => $trans['account_id'],
+                ];
+            }
             // if this transaction is a credit
             if ($trans['asset']) {
                 // to an asset account
@@ -182,6 +192,25 @@ class DashboardController extends Controller
                 }
             }
         }
+
+        $totalRecurringDebits = 0;
+        $totalRecurringCredits = 0;
+        foreach ($recurringTransactions as &$trans) {
+            if ($trans['buddy_id']) {
+                continue;
+            }
+            if ($trans['asset']) {
+                $totalRecurringCredits += $trans['amount_raw'];
+            } else {
+                $totalRecurringDebits += $trans['amount_raw'];
+            }
+        }
+
+        $recurringData = [
+            'transactions' => $recurringTransactions,
+            'totalRecurringDebits' => $totalRecurringDebits / 100,
+            'totalRecurringCredits' => $totalRecurringCredits /100,
+        ];
 
         $daily_economic_growth = [];
         foreach ($account_growth_line_data as $group => $data) {
@@ -305,7 +334,8 @@ class DashboardController extends Controller
                 'daily_economic_growth' => $account_growth_line_data['daily_economic_growth'],
                 'total_economic_growth' => $account_growth_line_data['total_economic_growth']
             ],
-            'total_economic_growth' => $total_eco_growth
+            'total_economic_growth' => $total_eco_growth,
+            'recurring_transactions' => $recurringData
         ];
         return Inertia::render('Dashboard', [
             'data' => $data

@@ -1,9 +1,9 @@
 <template>
-  <div class="w-full">
+  <div class="gap-5 p-6">
     <h3 class="text-lg font-medium leading-6 text-surface-900">
       {{ last }}
     </h3>
-    <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+    <dl class="mt-5 flex flex-row justify-stretch flex-wrap gap-5">
       <div
         v-for="(stat,index) in stats"
         :key="index"
