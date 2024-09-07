@@ -24,7 +24,7 @@ echo "Building"
 npm run build
 
 echo "Running migrations"
-php artisan migrate
+php artisan migrate --force
 
 function cache_and_start_server {
     echo "Refreshing caches"

@@ -287,8 +287,7 @@ class DashboardTest extends TestCase
             $this->savingsTransaction2->id
         ]);
         $currentTrans = Transaction::factory()
-            ->for($this
-            ->creditCardAccount)->create([
+            ->for($this->creditCardAccount)->create([
                 'transaction_date' =>  date('Y-m-d'),
                 'amount' => 32734, // $327.34
                 'credit' => true,
@@ -330,8 +329,8 @@ class DashboardTest extends TestCase
                 $this->isFalse($credit_card['asset']);
                 $this->assertEquals($this->creditCardAccount->name, $credit_card['name']);
                 $this->assertEquals(
-                    -$currentTrans->amount / 100
-                    , $credit_card['in_range_net_growth']
+                    -$currentTrans->amount / 100,
+                    $credit_card['in_range_net_growth']
                 );
                 // this is a raw value, i don't think the front end uses it, but it's included so lets check it */
                 $this->assertEquals(

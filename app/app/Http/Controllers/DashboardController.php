@@ -30,54 +30,61 @@ class DashboardController extends Controller
          */
         $user = Auth::user();
         $trans_data = $user->fetchTransactionData(
-            $start,
-            $end,
-            'asc',
-            true, // $includeToRange
-            null, // $filterAccountIds
-            true  // $includeCategoryTypeBreakdowns
+            start: $start,
+            end: $end,
+            orderBy: 'asc',
+            includeToRange: true,
+            includeCategoryTypeBreakdowns: true
         );
         $account_data = $user->fetchAccountData();
 
         foreach ($trans_data['transactions_to_range'] as $trans) {
-            $acct = $account_data[$trans['account_id']];
+            $acct =& $account_data[$trans['account_id']];
+            $acct['pre_range_net_growth'] ??= 0;
+            $acct['in_range_net_growth'] ??= 0;
+            $acct['expand'] ??= true;
+            $acct['daily_net_growths'] ??= [];
+            $acct['end_balance'] ??= 0;
             if ($trans['asset']) {
                 if ($acct['asset']) {
-                    $account_data[$trans['account_id']]['pre_range_net_growth'] += $trans['amount_raw'];
+                    $acct['pre_range_net_growth'] += $trans['amount_raw'];
                 } else {
-                    $account_data[$trans['account_id']]['pre_range_net_growth'] -= $trans['amount_raw'];
+                    $acct['pre_range_net_growth'] -= $trans['amount_raw'];
                 }
 
             } else {
                 if ($acct['asset']) {
-                    $account_data[$trans['account_id']]['pre_range_net_growth'] -= $trans['amount_raw'];
+                    $acct['pre_range_net_growth'] -= $trans['amount_raw'];
                 } else {
-                    $account_data[$trans['account_id']]['pre_range_net_growth'] += $trans['amount_raw'];
+                    $acct['pre_range_net_growth'] += $trans['amount_raw'];
                 }
             }
         }
-
 
         $account_growth_line_data = [
             'daily_asset_growth' => [],
             'daily_debt_growth' => [],
         ];
         foreach ($trans_data['transactions_in_range'] as $trans) {
-            $acct = $account_data[$trans['account_id']];
+            $acct =& $account_data[$trans['account_id']];
+            $acct['pre_range_net_growth'] ??= 0;
+            $acct['in_range_net_growth'] ??= 0;
+            $acct['expand'] ??= true;
+            $acct['daily_net_growths'] ??= [];
+            $acct['end_balance'] ??= 0;
             // if this transaction is a credit
             if ($trans['asset']) {
-
                 // to an asset account
                 if ($acct['asset']) {
                     // counts as asset growth
-                    $account_data[$trans['account_id']]['in_range_net_growth'] += $trans['amount_raw'];
+                    $acct['in_range_net_growth'] += $trans['amount_raw'];
 
                     // data for account daily balance graph
-                    if (isset($account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']])) {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] += $trans['amount_raw'];
+                    if (isset($acct['daily_net_growths'][$trans['transaction_date']])) {
+                        $acct['daily_net_growths'][$trans['transaction_date']] += $trans['amount_raw'];
 
                     } else {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] = $trans['amount_raw'];
+                        $acct['daily_net_growths'][$trans['transaction_date']] = $trans['amount_raw'];
                     }
 
                     // daily asset accounts growth
@@ -96,14 +103,14 @@ class DashboardController extends Controller
 
                 // to a debt account
                 } else {
-                    $account_data[$trans['account_id']]['in_range_net_growth'] -= $trans['amount_raw'];
+                    $acct['in_range_net_growth'] -= $trans['amount_raw'];
 
                     // data for account daily balance graph
-                    if (isset($account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']])) {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] -= $trans['amount_raw'];
+                    if (isset($acct['daily_net_growths'][$trans['transaction_date']])) {
+                        $acct['daily_net_growths'][$trans['transaction_date']] -= $trans['amount_raw'];
 
                     } else {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] = -$trans['amount_raw'];
+                        $acct['daily_net_growths'][$trans['transaction_date']] = -$trans['amount_raw'];
                     }
 
                     // counts as negative debt growth
@@ -125,14 +132,14 @@ class DashboardController extends Controller
             } else {
                 // to an asset account
                 if ($acct['asset']) {
-                    $account_data[$trans['account_id']]['in_range_net_growth'] -= $trans['amount_raw'];
+                    $acct['in_range_net_growth'] -= $trans['amount_raw'];
 
                     // data for account daily balance graph
-                    if (isset($account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']])) {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] -= $trans['amount_raw'];
+                    if (isset($acct['daily_net_growths'][$trans['transaction_date']])) {
+                        $acct['daily_net_growths'][$trans['transaction_date']] -= $trans['amount_raw'];
 
                     } else {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] = -$trans['amount_raw'];
+                        $acct['daily_net_growths'][$trans['transaction_date']] = -$trans['amount_raw'];
                     }
 
                     // counts as negative asset growth
@@ -150,14 +157,14 @@ class DashboardController extends Controller
 
                 // else it's a debit to a debt account
                 } else {
-                    $account_data[$trans['account_id']]['in_range_net_growth'] += $trans['amount_raw'];
+                    $acct['in_range_net_growth'] += $trans['amount_raw'];
 
                     // data for account daily balance graph
-                    if (isset($account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']])) {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] += $trans['amount_raw'];
+                    if (isset($acct['daily_net_growths'][$trans['transaction_date']])) {
+                        $acct['daily_net_growths'][$trans['transaction_date']] += $trans['amount_raw'];
 
                     } else {
-                        $account_data[$trans['account_id']]['daily_net_growths'][$trans['transaction_date']] = $trans['amount_raw'];
+                        $acct['daily_net_growths'][$trans['transaction_date']] = $trans['amount_raw'];
                     }
                     // counts as debt growth
                     if (isset($account_growth_line_data['daily_debt_growth'][$trans['transaction_date']])) {
@@ -230,7 +237,13 @@ class DashboardController extends Controller
             ],
         ];
         $total_eco_growth = 0;
-        foreach ($account_data as $acct) {
+        foreach ($account_data as &$acct) {
+            $acct['pre_range_net_growth'] ??= 0;
+            $acct['in_range_net_growth'] ??= 0;
+            $acct['expand'] ??= true;
+            $acct['daily_net_growths'] ??= [];
+            $acct['end_balance'] ??= 0;
+
             $start_balance_raw = $acct['init_balance_raw'] + $acct['pre_range_net_growth'];
             $acct['start_balance'] = $start_balance_raw / 100;
 
@@ -280,21 +293,22 @@ class DashboardController extends Controller
             }
         }
 
-        $asset_accts[] = $total_net_growth['assets'];
-        $debt_accts[] = $total_net_growth['debts'];
+        array_push($asset_accts, $total_net_growth['assets']);
+        array_push($debt_accts, $total_net_growth['debts']);
+        $data = [
+            'start' => $start,
+            'end' => $end,
+            'category_type_breakdowns' => $trans_data['category_type_breakdowns'],
+            'asset_accounts' => $asset_accts,
+            'debt_accounts' => $debt_accts,
+            'account_growth_line_data' => [
+                'daily_economic_growth' => $account_growth_line_data['daily_economic_growth'],
+                'total_economic_growth' => $account_growth_line_data['total_economic_growth']
+            ],
+            'total_economic_growth' => $total_eco_growth
+        ];
         return Inertia::render('Dashboard', [
-            'data' => [
-                'start' => $start,
-                'end' => $end,
-                'category_type_breakdowns' => $trans_data['category_type_breakdowns'],
-                'asset_accounts' => $asset_accts,
-                'debt_accounts' => $debt_accts,
-                'account_growth_line_data' => [
-                    'daily_economic_growth' => $account_growth_line_data['daily_economic_growth'],
-                    'total_economic_growth' => $account_growth_line_data['total_economic_growth']
-                ],
-                'total_economic_growth' => $total_eco_growth
-            ]
+            'data' => $data
         ]);
     }
 

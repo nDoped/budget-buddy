@@ -282,7 +282,7 @@ class User extends Authenticatable
     }
 
     /*
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     public function fetchAccountData() : array
     {
@@ -294,11 +294,11 @@ class User extends Authenticatable
                 'init_balance_raw' => $acct->initial_balance,
                 'asset' => $acct->accountType->asset,
                 'url' => $acct->url,
-                'in_range_net_growth' => 0,
-                'pre_range_net_growth' => 0,
-                'expand' => true,
-                'daily_net_growths' => [],
-                'end_balance' => 0
+                /* 'in_range_net_growth' => 0, */
+                /* 'pre_range_net_growth' => 0, */
+                /* 'expand' => true, */
+                /* 'daily_net_growths' => [], */
+                /* 'end_balance' => 0 */
             ];
         }
         return $ret;
