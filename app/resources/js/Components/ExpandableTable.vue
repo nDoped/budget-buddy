@@ -205,7 +205,7 @@
             <th
               v-if="sortable"
               @click="(sortColumn) ? setSort(sortColumn): setSort(key)"
-              class="sortable text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
+              class="z-50 sortable text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
               :class="maxThWidthClass"
             >
               {{ label }}
@@ -218,7 +218,7 @@
             <th
               v-else
               :class="maxThWidthClass"
-              class="text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
+              class="z-50 text-lg font-semibold bg-zinc-200 dark:bg-slate-800"
             >
               <span class="text-zinc-800 dark:text-zinc-200">
                 {{ label }}

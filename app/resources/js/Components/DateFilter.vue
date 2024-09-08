@@ -2,6 +2,7 @@
   import InputDate from '@/Components/InputDate.vue';
   import InputLabel from '@/Components/InputLabel.vue';
   import Checkbox from '@/Components/Checkbox.vue';
+  import SecondaryButton from '@/Components/SecondaryButton.vue';
   import {
     ref,
     onMounted,
@@ -187,16 +188,16 @@
     </div>
 
     <div class="m-2 mt-7">
-      <button
+      <SecondaryButton
+        type="button"
         :class="{ 'opacity-25': processing }"
         :disabled="processing"
-        class="text-black dark:text-white bg-gray-300 dark:bg-gray-600 max-w-xsm focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center "
         @click="filter"
       >
         <slot name="range_button_text">
           Select Range
         </slot>
-      </button>
+      </SecondaryButton>
 
       <div class="mt-2">
         <a

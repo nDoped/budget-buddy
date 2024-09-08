@@ -122,10 +122,7 @@
         v-model="catColor"
         class="mt-2"
       >
-      <InputError
-        :message="errors.color"
-        class="mt-2"
-      />
+      <InputError :message="errors.color" />
     </div>
 
     <div

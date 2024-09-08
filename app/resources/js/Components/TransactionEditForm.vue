@@ -5,18 +5,14 @@
     watch
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
-  import InputLabel from '@/Components/InputLabel.vue';
-  import InputDate from '@/Components/InputDate.vue';
-  import InputError from '@/Components/InputError.vue';
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   //import SectionBorder from '@/Components/SectionBorder.vue';
   import DangerButton from '@/Components/DangerButton.vue';
   import TransactionCategory from '@/Components/TransactionCategory.vue';
-  import TextArea from '@/Components/TextArea.vue';
+  import TransactionFormBaseFields from '@/Components/TransactionFormBaseFields.vue';
   import { toast } from 'vue3-toastify';
-  import { forceNumericalInput } from '@/lib.js';
   import 'vue3-toastify/dist/index.css';
 
   const emit = defineEmits(['success', 'cancel']);
@@ -189,156 +185,11 @@
           @submit.prevent="submit"
           :key="transaction.id"
         >
-          <!--
-          <div class="m-2 ">
-            <p class="text-lg text-semibold">
-              Editting transaction {{ transaction.id }}
-            </p>
-          </div>
-          -->
-          <div class="flex flex-wrap p-1 ">
-            <div class="m-2">
-              <!-- date -->
-              <div class="m-2">
-                <InputLabel
-                  for="date"
-                  value="Transaction Date"
-                />
-                <InputDate
-                  id="date"
-                  v-model="form.transaction_date"
-                />
-                <InputError
-                  :message="form.errors.transaction_date"
-                  class="mt-2"
-                />
-              </div>
-
-              <!-- amount -->
-              <div class="m-2">
-                <InputLabel
-                  for="amount"
-                  value="Amount"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  v-model="form.amount"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  @keypress="forceNumericalInput($event)"
-                >
-                <InputError
-                  :message="form.errors.amount"
-                  class="mt-2"
-                />
-              </div>
-            </div>
-
-
-            <div class="m-2">
-              <!-- credit/debit -->
-              <div class="m-2">
-                <InputLabel
-                  for="credit"
-                  value="Credit/Debit"
-                />
-                <select
-                  id="credit"
-                  v-model="form.credit"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                >
-                  <option :value="true">
-                    Credit
-                  </option>
-                  <option
-                    selected="selected"
-                    :value="false"
-                  >
-                    Debit
-                  </option>
-                </select>
-                <InputError
-                  :message="form.errors.credit"
-                  class="mt-2"
-                />
-              </div>
-
-              <!-- accounts -->
-              <div class="m-2">
-                <InputLabel
-                  for="account"
-                  value="Account"
-                />
-                <select
-                  id="account"
-                  v-model="form.account_id"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                >
-                  <option
-                    value=""
-                    selected
-                    disabled
-                    hidden
-                  >
-                    Select Account...
-                  </option>
-
-                  <option
-                    v-for="account in accounts"
-                    :key="account.id"
-                    :value="account.id"
-                  >
-                    {{ account.name }}
-                  </option>
-                </select>
-
-                <InputError
-                  :message="form.errors.account"
-                  class="mt-2"
-                />
-              </div>
-            </div>
-
-            <div class="m-2 grow">
-              <div class="m-1">
-                <InputLabel
-                  for="note"
-                  value="Note"
-                />
-                <TextArea
-                  id="note"
-                  v-model="form.note"
-                  class="mt-1 block w-full"
-                  autofocus
-                  autocomplete="note"
-                />
-                <InputError
-                  :message="form.errors.note"
-                  class="mt-2"
-                />
-              </div>
-
-              <div class="m-1">
-                <InputLabel
-                  for="bank_ident"
-                  value="Bank Identifier"
-                />
-                <TextArea
-                  id="bank_ident"
-                  v-model="form.bank_identifier"
-                  type="text"
-                  class="mt-1 block w-full"
-                  autofocus
-                  autocomplete="bank_ident"
-                />
-                <InputError
-                  :message="form.errors.bank_identifier"
-                  class="mt-2"
-                />
-              </div>
-            </div>
-          </div>
+          <TransactionFormBaseFields
+            v-model="form"
+            :accounts="accounts"
+            :errors="form.errors"
+          />
 
           <!-- categories -->
           <div class="m-2 bg-slate-500 border-t border-b border-gray-200">

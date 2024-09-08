@@ -22,7 +22,7 @@
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row">
+  <div class="flex flex-row justify-start">
     <div class="none">
       <input
         ref="input"
@@ -32,9 +32,9 @@
         @input="$emit('update:modelValue', $event.target.value)"
       >
     </div>
-    <div class="justify-start">
+    <div class="place-self-center">
       <button
-        class="text-rose-700 ml-2 focus:ring-4 focus:outline-none font-small rounded-sm sm:w-auto px-1 py-1"
+        class="text-rose-700 ml-2 focus:ring-4 focus:outline-none font-small rounded-sm sm:w-auto "
         @click="$emit('update:modelValue', '')"
         type="button"
       >

@@ -44,6 +44,7 @@ class Transaction extends Model
      *          transaction_date: string,
      *          credit: bool,
      *          note?: string,
+     *          bank_identifier?: string,
      *          categories?: array{
      *              cat_data: array{
      *                  cat_id?: int,
@@ -71,7 +72,9 @@ class Transaction extends Model
         if (array_key_exists('note', $data)) {
             $this->note = strip_tags($data['note']);
         }
-
+        if (array_key_exists('bank_identifier', $data)) {
+            $this->bank_identifier = strip_tags($data['bank_identifier']);
+        }
         $this->save();
         if (array_key_exists('trans_buddy', $data) && $data['trans_buddy']) {
             // need to create the buddy transaction first so that any recurring
