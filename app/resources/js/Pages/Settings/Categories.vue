@@ -5,7 +5,6 @@
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   import CategoryEditForm from '@/Components/CategoryEditForm.vue';
   import CategoryForm from '@/Components/CategoryForm.vue';
-  //const formatter = inject('formatter');
 
   defineProps({
     categories: {

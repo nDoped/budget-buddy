@@ -1,7 +1,8 @@
 <script setup>
-  import {  watch, ref, onMounted } from 'vue';
+  import {  inject, watch, ref, onMounted } from 'vue';
   import LineChart from '@/Components/Charts/LineChart.vue';
   import { accountGrowthLinesOptions } from './chartConfig.js'
+  const dateFormatter = inject('dateFormatter');
 
   let props = defineProps({
     chartData: {
@@ -28,17 +29,7 @@
     for (let date in props.chartData) {
       let dailyGrowth = props.chartData[date];
       if (date !== 'Start') {
-        lineChartData.value.labels.push(
-          new Date(date)
-            .toLocaleString('us-en', {
-              timeZone: "utc",
-              weekday: "short",
-              year: "numeric",
-              month: "numeric",
-              day: "numeric",
-            })
-        );
-
+        lineChartData.value.labels.push(dateFormatter.format(new Date(date)));
       } else {
         lineChartData.value.labels.push(date);
       }
@@ -51,17 +42,7 @@
     for (let date in props.chartData) {
       let dailyGrowth = props.chartData[date];
       if (date !== 'Start') {
-        lineChartData.value.labels.push(
-          new Date(date)
-            .toLocaleString('us-en', {
-              timeZone: "utc",
-              weekday: "short",
-              year: "numeric",
-              month: "numeric",
-              day: "numeric",
-            })
-        );
-
+        lineChartData.value.labels.push(dateFormatter.format(new Date(date)));
       } else {
         lineChartData.value.labels.push(date);
       }

@@ -14,6 +14,7 @@
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   import StatsComponent from '@/Components/StatsComponent.vue';
   const formatter = inject('formatter');
+  const dateFormatter = inject('dateFormatter');
 
   const props = defineProps({
     assets: {
@@ -58,27 +59,8 @@
 
   const rangeDisplay = computed(() => {
     let ret = '';
-    let start = (props.start) ?
-      new Date(props.start)
-        .toLocaleString('us-en', {
-          timeZone: "utc",
-          weekday: "short",
-          year: "numeric",
-          month: "numeric",
-          day: "numeric",
-        })
-      : null;
-
-    let end = (props.end) ?
-      new Date(props.end)
-        .toLocaleString('us-en', {
-          timeZone: "utc",
-          weekday: "short",
-          year: "numeric",
-          month: "numeric",
-          day: "numeric",
-        })
-      : null;
+    let start = (props.start) ? dateFormatter.format(new Date(props.start)) : null;
+    let end = (props.end) ? dateFormatter.format(new Date(props.end)) : null;
 
     if (start && end) {
       ret = `Showing data from ${start} to ${end}`;

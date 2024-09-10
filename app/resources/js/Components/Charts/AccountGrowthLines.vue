@@ -1,7 +1,8 @@
 <script setup>
-  import {  watch, ref, onMounted } from 'vue';
+  import {  inject, watch, ref, onMounted } from 'vue';
   import LineChart from '@/Components/Charts/LineChart.vue';
   import { accountGrowthLinesOptions } from './chartConfig.js'
+  const dateFormatter = inject('dateFormatter');
 
   let props = defineProps({
     chartData: {
@@ -35,16 +36,7 @@
 
     for (let date in props.chartData.daily_economic_growth) {
       let dailyGrowth = props.chartData.daily_economic_growth[date];
-      lineChartData.value.labels.push(
-        new Date(date)
-          .toLocaleString('us-en', {
-            timeZone: "utc",
-            weekday: "short",
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-          })
-      );
+      lineChartData.value.labels.push(dateFormatter.format(new Date(date)));
       lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
 
@@ -58,16 +50,7 @@
     lineChartData.value = structuredClone(defaultChartStruct);
     for (let date in props.chartData.daily_economic_growth) {
       let dailyGrowth = props.chartData.daily_economic_growth[date];
-      lineChartData.value.labels.push(
-        new Date(date)
-          .toLocaleString('us-en', {
-            timeZone: "utc",
-            weekday: "short",
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-          })
-      );
+      lineChartData.value.labels.push(dateFormatter.format(new Date(date)));
       lineChartData.value.datasets[0].data.push(dailyGrowth);
     }
     for (let date in props.chartData.total_economic_growth) {

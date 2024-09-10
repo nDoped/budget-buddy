@@ -19,7 +19,15 @@
     currency: 'USD'
   });
   provide('formatter', formatter);
+  const dateFormatter = Intl.DateTimeFormat('en-US', {
+    timeZone: "utc",
+    weekday: "short",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
 
+  provide('dateFormatter', dateFormatter);
   const showingNavigationDropdown = ref(false);
 
   const switchToTeam = (team) => {

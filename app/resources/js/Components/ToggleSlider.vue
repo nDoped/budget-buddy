@@ -1,6 +1,9 @@
-<script setup>
+<script setup lang="ts">
   defineEmits([ 'update:modelValue' ]);
-  const model = defineModel();
+  const model = defineModel({
+    type: Boolean,
+    default: false
+  });
   defineProps({
     label: {
       type: String,

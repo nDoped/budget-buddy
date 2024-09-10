@@ -9,6 +9,7 @@
   import ExpandableTable from '@/Components/ExpandableTable.vue';
 
   const formatter = inject('formatter');
+  const dateFormatter = inject('dateFormatter');
 
   let props = defineProps({
     transactions: {
@@ -50,7 +51,7 @@
 
   const fields = ref([
     { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
-    { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
+    { key: 'dateSearchMatchText', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amountSearchMatchText', label: 'Amount', sortable:true, color_text:true, searchable:true, sortColumn: 'amount' },
     { key: 'accountSearchMatchText', label: 'Account', sortable:true, searchable: true, color_text:false },
@@ -67,24 +68,6 @@
 
   const hideTr = (hiddenTrRefs, i) => {
     hiddenTrRefs[i].classList.add("hidden");
-  };
-
-  const fetchCatString = (cats) => {
-    let ret = '';
-    let catCnt = cats.length;
-    if (catCnt === 1) {
-      ret += `<span style='border-bottom: solid ${cats[0].cat_data.hex_color}'>`;
-      ret += `${cats[0].cat_data.name}`;
-      ret += '</span>';
-
-    } else {
-      cats.forEach((c) => {
-        ret += `<span style='border-bottom: solid ${c.cat_data.hex_color}'>`;
-        ret += ` ${c.cat_data.name} : ${c.percent}%`;
-        ret += '</span><br/>';
-      });
-    }
-    return ret;
   };
 
   const colorText = (key) => {
@@ -106,6 +89,8 @@
       t.accountSearchMatchText = t.account;
       t.noteSearchMatchText = t.note;
       t.amountSearchMatchText = formatter.format(t.amount);
+      t.dateSearchMatchText = formatDate(t.transaction_date);
+      t.categorySearchMatchText = fetchCatString(t);
       // use this member for search matches
       t.amountFormated = formatter.format(t.amount);
     });
@@ -118,8 +103,51 @@
     });
   });
 
+  const queryCategoryMatch = (transaction, query) => {
+    if (! transaction.categories || ! query) {
+      return false;
+    }
+    return transaction.categories.some((c) => {
+      return c.cat_data.name.toLowerCase().includes(query.toLowerCase());
+    });
+  };
+  const fetchCatString = (transaction, query) => {
+    let cats = transaction.categories;
+    let ret = '';
+    if (! cats) {
+      return ret;
+    }
+    let catCnt = cats.length;
+    if (catCnt === 1) {
+      ret += `<span style='border-bottom: solid ${cats[0].cat_data.hex_color}'>`;
+      if (query) {
+        ret += buildMarkString(query, cats[0].cat_data.name);
+      } else {
+        ret += `${cats[0].cat_data.name}`;
+      }
+      ret += '</span>';
+
+    } else {
+      cats.forEach((c) => {
+        ret += `<span style='border-bottom: solid ${c.cat_data.hex_color}'>`;
+        if (query) {
+          ret += buildMarkString(query, c.cat_data.name);
+        } else {
+          ret += `${c.cat_data.name}`;
+        }
+        ret += ` : ${c.percent}%`;
+
+        ret += '</span><br/>';
+      });
+    }
+    return ret;
+  };
+
   const buildMarkString = (query, value) => {
     let index = value.toUpperCase().indexOf(query.toUpperCase());
+    if (index === -1) {
+      return value;
+    }
     let ret = value.substring(0, index)
       + "<mark>"
       + value.substring(index, index + query.length)
@@ -139,6 +167,8 @@
       if (t.account.toLowerCase().includes(query.toLowerCase())
         || (t.note && t.note.toLowerCase().includes(query.toLowerCase()))
         || t.amountFormated.includes(query)
+        || formatDate(t.transaction_date).includes(query)
+        || queryCategoryMatch(t, query)
       ) {
 
         if (t.account.toLowerCase().includes(query.toLowerCase())) {
@@ -158,21 +188,29 @@
           t.amountSearchMatchText = t.amountFormated;
         }
 
+        if (formatDate(t.transaction_date).includes(query)) {
+          t.dateSearchMatchText = buildMarkString(query, formatDate(t.transaction_date));
+        } else {
+          t.dateSearchMatchText = formatDate(t.transaction_date);
+        }
+
+        if (queryCategoryMatch(t, query)) {
+          t.categorySearchMatchText = fetchCatString(t, query);
+        } else {
+          t.categorySearchMatchText = fetchCatString(t);
+        }
+
         searchResults.push(t);
       }
 
       filteredTransactions.value = searchResults;
     });
   };
-
+  const formatDate = (isoDate) => {
+    return dateFormatter.format(new Date(isoDate));
+  };
   const formatParentTransactionDate = (item, key) => {
-    let ret = item.parent_id + ' - ' + new Date(item[key])
-      .toLocaleString('us-en', {
-        timeZone: "utc",
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      });
+    let ret = item.parent_id + ' - ' + formatDate(item[key]);
     return ret;
   };
   const getLastTransactionLabel = (item) => {
@@ -230,16 +268,7 @@
             class="font-medium text-sm"
           >
             <div v-if="key === 'transaction_date' || key === 'created_at'">
-              {{
-                new Date(item[key])
-                  .toLocaleString('us-en', {
-                    timeZone: "utc",
-                    weekday: "short",
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                  })
-              }}
+              {{ formatDate(item[key]) }}
             </div>
 
             <div v-else-if="key === 'parent_transaction_date' && value">
@@ -255,7 +284,7 @@
             <div
               v-else-if="key === 'categories'"
               class="w-full"
-              v-html="fetchCatString(value)"
+              v-html="item['categorySearchMatchText']"
             />
 
             <div
