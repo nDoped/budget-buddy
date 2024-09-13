@@ -21,7 +21,7 @@
     Tooltip,
     Legend
   )
-  let props = defineProps({
+  defineProps({
     chartData: {
       type: Object,
       default: () => {}

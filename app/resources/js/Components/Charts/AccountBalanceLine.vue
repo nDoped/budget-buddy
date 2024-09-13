@@ -11,10 +11,11 @@
     }
   });
 
+  accountGrowthLinesOptions.plugins.title.text = "Account Balance Changes";
   const defaultChartStruct = {
     datasets: [
       {
-        label:"Daily Balance",
+        label:"Balance over Time",
         backgroundColor: 'rgb(75, 192, 192)',
         data: [ ],
         borderColor: 'rgb(75, 192, 192)',
@@ -28,9 +29,9 @@
   onMounted(() => {
     for (let date in props.chartData) {
       let dailyGrowth = props.chartData[date];
-      if (date !== 'Start') {
+      try {
         lineChartData.value.labels.push(dateFormatter.format(new Date(date)));
-      } else {
+      } catch (e) {
         lineChartData.value.labels.push(date);
       }
       lineChartData.value.datasets[0].data.push(dailyGrowth);
@@ -41,9 +42,9 @@
     lineChartData.value = structuredClone(defaultChartStruct);
     for (let date in props.chartData) {
       let dailyGrowth = props.chartData[date];
-      if (date !== 'Start') {
+      try {
         lineChartData.value.labels.push(dateFormatter.format(new Date(date)));
-      } else {
+      } catch (e) {
         lineChartData.value.labels.push(date);
       }
       lineChartData.value.datasets[0].data.push(dailyGrowth);

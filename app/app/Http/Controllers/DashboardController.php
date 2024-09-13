@@ -298,8 +298,12 @@ class DashboardController extends Controller
                 }
             }
 
+            $inital_balance_key = 'Account Initial Balance';
+            if ($start) {
+                $inital_balance_key = $start;
+            }
             $acct['daily_balance_line_graph_data'] = array_merge(
-                [ 'Start' => $acct['start_balance'] ],
+                [ $inital_balance_key => $acct['start_balance'] ],
                 array_map(fn($value): float => $value / 100, $daily_balance_line_graph_data)
             );
             if ($acct['asset']) {
