@@ -298,7 +298,7 @@ class DashboardController extends Controller
                 }
             }
 
-            $inital_balance_key = 'Account Initial Balance';
+            $inital_balance_key = 'Initial Balance';
             if ($start) {
                 $inital_balance_key = $start;
             }
