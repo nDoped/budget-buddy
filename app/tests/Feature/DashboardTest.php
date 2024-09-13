@@ -9,9 +9,11 @@ use App\Models\User;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Http\Controllers\DashboardController;
 use \PHPUnit\Framework\Attributes\Group;
 use Tests\Util;
 use Database\Seeders\TestHarnessSeeder;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 class DashboardTest extends TestCase
 {
@@ -77,15 +79,17 @@ class DashboardTest extends TestCase
     #[Group('dashboard')]
     public function test_dashboard(): void
     {
+        $start = '2024-06-01';
+        $end = '2024-06-30';
         $parms = [
-            'start' => '2024-06-01',
-            'end' => '2024-06-30',
+            'start' => $start,
+            'end' => $end,
         ];
         $query = http_build_query($parms);
         $this->get(
             '/dashboard?' . $query,
         )->assertInertia(
-            function (Assert $page) {
+            function (Assert $page) use ($start) {
                 $data = $page->toArray()['props']['data'];
                 $this->assertCount(8, $data);
                 $this->assertEquals(
@@ -133,7 +137,11 @@ class DashboardTest extends TestCase
                 $this->assertEquals(($this->creditTransaction2->amount + $this->creditTransaction1->amount) / 100, $credit_card['end_balance']);
 
                 $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
-                $this->assertEquals($this->creditTransaction2->amount / 100, $cc_daily_balance_line_graph_data['Start']);
+                $this->assertEquals(
+                    ($this->creditTransaction2->amount
+                    + $this->creditTransaction1->amount) / 100,
+                    $cc_daily_balance_line_graph_data[$start]
+                );
                 $this->assertEquals(($this->creditTransaction2->amount + $this->creditTransaction1->amount) / 100, $cc_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE2]);
                 $cc_daily_net_growths = $credit_card['daily_net_growths'];
                 $this->assertEquals(1, count($cc_daily_net_growths));
@@ -162,7 +170,7 @@ class DashboardTest extends TestCase
                 $this->assertEquals($this->savingsTransaction0->amount / 100, $savings['start_balance']);
                 $this->assertEquals(($this->savingsTransaction0->amount + $this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings['end_balance']);
                 $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
-                $this->assertEquals($this->savingsTransaction0->amount / 100, $savings_daily_balance_line_graph_data['Start']);
+                $this->assertEquals($this->savingsTransaction0->amount / 100, $savings_daily_balance_line_graph_data[$start]);
                 $this->assertEquals(($this->savingsTransaction0->amount + $this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE3]);
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertEquals(1, count($savings_daily_net_growths));
@@ -293,10 +301,11 @@ class DashboardTest extends TestCase
                 'credit' => true,
                 'note' => 'credit trans to debt acct'
             ]);
+        $start = date('Y-m-01');
         $this->get(
             route('dashboard'),
         )->assertInertia(
-            function (Assert $page) use ($currentTrans) {
+            function (Assert $page) use ($currentTrans, $start) {
                 $data = $page->toArray()['props']['data'];
                 $this->assertCount(8, $data);
                 $this->assertEquals(
@@ -350,7 +359,7 @@ class DashboardTest extends TestCase
                 $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
                 $this->assertEquals(
                     0,
-                    $cc_daily_balance_line_graph_data['Start']
+                    $cc_daily_balance_line_graph_data[$start]
                 );
                 $this->assertEquals(
                     -$currentTrans->amount / 100,
@@ -400,7 +409,10 @@ class DashboardTest extends TestCase
                 $this->assertEquals(0, $savings['start_balance']);
                 $this->assertEquals(0, $savings['end_balance']);
                 $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
-                $this->assertEquals(0, $savings_daily_balance_line_graph_data['Start']);
+                $this->assertEquals(
+                    0,
+                    $savings_daily_balance_line_graph_data[$start]
+                );
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertEquals(0, count($savings_daily_net_growths));
 
@@ -451,15 +463,22 @@ class DashboardTest extends TestCase
             '2024-06-31',
             'monthly',
         );
+        $start = '2024-01-01';
+        $end = '2024-12-31';
         $parms = [
-            'start' => '2024-01-01',
-            'end' => '2024-12-31',
+            'start' => $start,
+            'end' => $end
         ];
         $query = http_build_query($parms);
         $this->get(
             '/dashboard?' . $query,
         )->assertInertia(
-            function (Assert $page) use ($currentTrans, $debitTrans, $creditTrans) {
+            function (Assert $page) use (
+                $currentTrans,
+                $creditTrans,
+                $debitTrans,
+                $start
+            ) {
                 $data = $page->toArray()['props']['data'];
                 $this->assertCount(8, $data);
                 $this->assertEquals(
@@ -568,8 +587,8 @@ class DashboardTest extends TestCase
 
                 $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
                 $this->assertEquals(
-                    0,
-                    $cc_daily_balance_line_graph_data['Start']
+                    ($debitTrans->amount - $currentTrans->amount) / 100,
+                    $cc_daily_balance_line_graph_data[$start]
                 );
                 $this->assertEquals(
                     ($debitTrans->amount - $currentTrans->amount) / 100,
@@ -659,7 +678,10 @@ class DashboardTest extends TestCase
                 $this->assertEquals(0, $savings['start_balance']);
                 $this->assertEquals((6 * $creditTrans->amount) / 100, $savings['end_balance']);
                 $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
-                $this->assertEquals(0, $savings_daily_balance_line_graph_data['Start']);
+                $this->assertEquals(
+                    $creditTrans->amount / 100,
+                    $savings_daily_balance_line_graph_data[$start]
+                );
                 $savings_daily_net_growths = $savings['daily_net_growths'];
                 $this->assertCount(6, $savings_daily_net_growths);
                 $this->assertEquals(
@@ -715,9 +737,11 @@ class DashboardTest extends TestCase
                 'credit' => false,
                 'note' => 'debit trans to asset acct'
             ]);
+        $start = '2024-06-01';
+        $end = '2024-06-30';
         $parms = [
-            'start' => '2024-06-01',
-            'end' => '2024-06-30',
+            'start' => $start,
+            'end' => $end,
         ];
         $query = http_build_query($parms);
         $this->get(
@@ -725,7 +749,8 @@ class DashboardTest extends TestCase
         )->assertInertia(
             function (Assert $page) use (
                 $toRangeCreditToDebitAcctTrans,
-                $toRangeDebitToAssetAcctTrans
+                $toRangeDebitToAssetAcctTrans,
+                $start
             ) {
                 $data = $page->toArray()['props']['data'];
                 $this->assertCount(8, $data);
@@ -807,8 +832,9 @@ class DashboardTest extends TestCase
                     = $credit_card['daily_balance_line_graph_data'];
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
-                    - $toRangeCreditToDebitAcctTrans->amount) / 100,
-                    $cc_daily_balance_line_graph_data['Start']
+                    - $toRangeCreditToDebitAcctTrans->amount
+                    + $this->creditTransaction1->amount) / 100,
+                    $cc_daily_balance_line_graph_data[$start]
                 );
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
@@ -881,7 +907,7 @@ class DashboardTest extends TestCase
                 $this->assertEquals(
                     ($this->savingsTransaction0->amount
                     - $toRangeDebitToAssetAcctTrans->amount) / 100,
-                    $savings_daily_balance_line_graph_data['Start']
+                    $savings_daily_balance_line_graph_data[$start]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction0->amount
@@ -1051,9 +1077,11 @@ class DashboardTest extends TestCase
                 'credit' => true,
                 'note' => 'credit trans to asset acct'
             ]);
+        $start = '2024-06-01';
+        $end = '2024-06-30';
         $parms = [
-            'start' => '2024-06-01',
-            'end' => '2024-06-30',
+            'start' => $start,
+            'end' => $end
         ];
         $query = http_build_query($parms);
         $this->get(
@@ -1061,7 +1089,8 @@ class DashboardTest extends TestCase
         )->assertInertia(
             function (Assert $page) use (
                 $inRangeCreditToDebitAcctTrans,
-                $inRangeCreditToAssetAcctTrans
+                $inRangeCreditToAssetAcctTrans,
+                $start
             ) {
                 $data = $page->toArray()['props']['data'];
                 $this->assertCount(8, $data);
@@ -1143,9 +1172,9 @@ class DashboardTest extends TestCase
                 $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
-                    //- $toRangeCreditToDebitAcctTrans->amount) / 100,
-                    ) / 100,
-                    $cc_daily_balance_line_graph_data['Start']
+                    + $this->creditTransaction1->amount
+                    - $inRangeCreditToDebitAcctTrans->amount) / 100,
+                    $cc_daily_balance_line_graph_data[$start]
                     );
                 $this->assertEquals(
                     ($this->creditTransaction2->amount
@@ -1214,7 +1243,7 @@ class DashboardTest extends TestCase
                 $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
                 $this->assertEquals(
                     $this->savingsTransaction0->amount / 100,
-                    $savings_daily_balance_line_graph_data['Start']
+                    $savings_daily_balance_line_graph_data[$start]
                 );
                 $this->assertEquals(
                     ($this->savingsTransaction0->amount
@@ -1428,7 +1457,7 @@ class DashboardTest extends TestCase
                 $this->assertEquals($end_bal / 100, $credit_card['end_balance']);
 
                 $cc_daily_balance_line_graph_data = $credit_card['daily_balance_line_graph_data'];
-                $this->assertEquals(0, $cc_daily_balance_line_graph_data['Start']);
+                $this->assertEquals(0, $cc_daily_balance_line_graph_data[DashboardController::BALANCE_LINE_GRAPH_START_LABEL]);
                 $this->assertEquals(
                     ($this->creditTransaction1->amount - $this->creditTransaction2->amount) / 100,
                     $cc_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE2]
@@ -1475,7 +1504,7 @@ class DashboardTest extends TestCase
                 $this->assertEquals(($this->savingsTransaction0->amount + $this->savingsTransaction1->amount - $this->savingsTransaction2->amount) / 100, $savings['end_balance']);
                 $savings_daily_balance_line_graph_data = $savings['daily_balance_line_graph_data'];
                 $this->assertEquals(3, count($savings_daily_balance_line_graph_data));
-                $this->assertEquals(0, $savings_daily_balance_line_graph_data['Start']);
+                $this->assertEquals(0, $savings_daily_balance_line_graph_data[DashboardController::BALANCE_LINE_GRAPH_START_LABEL]);
                 $this->assertEquals(
                     $this->savingsTransaction0->amount / 100,
                     $savings_daily_balance_line_graph_data[TestHarnessSeeder::TRANS_DATE1]

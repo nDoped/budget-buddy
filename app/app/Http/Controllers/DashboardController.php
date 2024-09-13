@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    const BALANCE_LINE_GRAPH_START_LABEL = 'Initial Balance';
     public function dashboard(Request $request) : \Inertia\Response
     {
         $show_all = $request->show_all;
@@ -298,7 +299,7 @@ class DashboardController extends Controller
                 }
             }
 
-            $inital_balance_key = 'Initial Balance';
+            $inital_balance_key = self::BALANCE_LINE_GRAPH_START_LABEL;
             if ($start) {
                 $inital_balance_key = $start;
             }
