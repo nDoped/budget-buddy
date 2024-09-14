@@ -6,6 +6,7 @@ delete from transactions;
 select * from category_transaction;
 select * from categories;
 delete from categories;
+select * from accounts;
 describe categories;
 describe accounts;
 select * from transactions;

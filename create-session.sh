@@ -7,7 +7,7 @@ terminal_win='terminal'
 mysql_win='mysql'
 debug_win='debug'
 tests_win='tests'
-imports_win='imports'
+term_win='term'
 tmux has-session -t $session_name &> /dev/null
 
 if [ $? != 0 ]; then
@@ -37,13 +37,10 @@ if [ $? != 0 ]; then
     tmux new-window -n $debug_win
     tmux send-keys "cd app && nvim storage/logs/laravel.log" Enter
 
-    tmux new-window -n $imports_win
+    tmux new-window -n $term_win
     tmux send-keys "cd app" Enter
     tmux send-keys "#sale artisan import:month 2023-01.csv 1" Enter
     tmux split-window -h
-    tmux send-keys "cd app/storage/imports/" Enter
-    tmux send-keys "nvim -p *" Enter
-
 
     tmux select-window -t $session_name:$dev_win
     tmux select-pane -L
