@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang=ts>
   defineEmits([ 'update:modelValue' ]);
   const model = defineModel({
     type: Boolean,

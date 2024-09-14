@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang=ts>
   import Multiselect from 'vue-multiselect';
   import {
     computed,
@@ -11,7 +11,17 @@
 
   defineEmits([ 'update:modelValue' ]);
 
-  const model = defineModel();
+  interface Category {
+    cat_id: number | null;
+    name: string;
+    cat_type_id: number | null;
+    cat_type_name: string;
+    hex_color: string;
+  }
+  const model = defineModel<Category>({
+    type: Object,
+    required: true,
+  });
 
   const props = defineProps({
     selectId: {

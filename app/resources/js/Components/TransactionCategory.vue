@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang=ts>
   import {
     toRaw,
     ref,
@@ -20,6 +20,26 @@
     focusElement,
   } from '@/lib.js';
 
+  interface Category {
+    cat_data: {
+      cat_id: number | null,
+      name: string | null,
+      cat_type_id: number | null,
+      cat_type_name: string | null,
+      hex_color: string,
+    },
+    percent: number,
+  }
+  interface LineItem {
+    cat_data: {
+      cat_id: number | null,
+      name: string | null,
+      cat_type_id: number | null,
+      cat_type_name: string | null,
+      hex_color: string,
+    },
+    price: number,
+  }
   const emit = defineEmits(['category-update', 'invalid-category-state']);
   const props = defineProps({
     totalAmount: {
@@ -94,7 +114,7 @@
   const canCalculatePercentages = computed(() => {
     return lineItems.value.length > 0 && (lineItemSum.value == (total.value - taxAmount.value).toFixed(2));
   });
-  watch(canCalculatePercentages, (value) => {
+  watch(canCalculatePercentages, (value: Boolean) => {
     if (value) {
       calculatePercentages();
     }
@@ -106,7 +126,7 @@
     let catTotals = {
       new: []
     };
-    lineItems.value.forEach((li) => {
+    lineItems.value.forEach((li: LineItem) => {
       if (! li.cat_data.cat_id) {
         catTotals.new.push({
           sub_total: li.price,
@@ -234,7 +254,7 @@
     }
   );
 
-  const catSelectBorder = (cat) => {
+  const catSelectBorder = (cat: Category) => {
     return `border: solid ${cat.cat_data.hex_color}; border-radius: 5px;`;
   };
   const uuid = crypto.randomUUID();

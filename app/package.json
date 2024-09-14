@@ -1,5 +1,6 @@
 {
     "private": true,
+    "name": "budget_buddy",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -13,12 +14,14 @@
         "@inertiajs/vue3": "^1.0.0",
         "@tailwindcss/forms": "^0.5.2",
         "@tailwindcss/typography": "^0.5.2",
+        "@typescript-eslint/eslint-plugin": "^8.5.0",
+        "@typescript-eslint/parser": "^8.5.0",
         "@vitejs/plugin-vue": "^4.0.0",
         "@vitest/coverage-v8": "^2.0.2",
         "@vue/test-utils": "^2.4.6",
         "autoprefixer": "^10.4.7",
         "axios": "^1.1.2",
-        "eslint": "^8.34.0",
+        "eslint": "^8.57.0",
         "eslint-config-prettier": "^8.6.0",
         "eslint-plugin-prettier": "^4.2.1",
         "eslint-plugin-vue": "^9.9.0",

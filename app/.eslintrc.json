@@ -12,13 +12,16 @@
     ],
     "overrides": [
     ],
+    "parser": "vue-eslint-parser",
     "parserOptions": {
+        "parser": "@typescript-eslint/parser",
+        "extraFileExtensions": [".vue"],
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
     "plugins": [
         "vue",
-        "prettier"
+        "@typescript-eslint"
     ],
     "rules": {
         "vue/script-indent": [ "warn", 2 ,{
