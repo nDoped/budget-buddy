@@ -26,6 +26,7 @@
     /* global route */
     form.post(route('transactions.store'), {
       preserveScroll: true,
+      forceFormData: true,
       onSuccess: (data) => {
         transCatCounter.value++;
         form.reset();
@@ -84,6 +85,7 @@
     trans_buddy_account: '',
     trans_buddy_note: null,
     frequency: "monthly",
+    images_base64: []
   });
 
   const categoriesInvalid = ref(false);

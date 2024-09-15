@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -263,6 +265,7 @@ class User extends Authenticatable
                 'buddy_id' => $trans->buddy_id,
                 'parent_id' => $trans->parent_id,
                 'is_last_child' => $trans->isLastChild(),
+                'images' =>  $trans->transactionImages,
                 'parent_transaction_date' => $trans->parentTransaction()?->transaction_date,
                 'categories' => $categories,
             ];

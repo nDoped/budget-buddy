@@ -1,8 +1,13 @@
 select count(*) from transactions;
-describe category_transaction;
+select * from transactions;
+select * from transaction_images;
+describe transaction_images;
+describe transaction;
+update
 show tables;
-describe transactions;
+describe users;
 delete from transactions;
+drop table transaction_images;
 select * from category_transaction;
 select * from categories;
 delete from categories;

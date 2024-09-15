@@ -89,7 +89,9 @@
     account_id: props.transaction.account_id,
     note: props.transaction.note,
     bank_identifier: props.transaction.bank_identifier,
-    categories: props.transaction.categories
+    categories: props.transaction.categories,
+    images_base64: [],
+    images: props.transaction.images
   });
 
   watch(
@@ -102,6 +104,8 @@
       form.note = props.transaction.note;
       deleteTransactionForm.id = props.transaction.id;
       form.bank_identifier = props.transaction.bank_identifier;
+      form.images = props.transaction.images;
+      form.images_base64 = [];
       form.categories = props.transaction.categories;
     }
   );
@@ -156,7 +160,6 @@
     });
   }
 
-  let ogCats = structuredClone(toRaw(props.categories));
   const categoriesInvalid = ref(false);
   const updateCategories = (newCats) => {
     categoriesInvalid.value = false;
@@ -169,10 +172,16 @@
     form.categories = [];
   };
 
+  let ogCats = structuredClone(toRaw(props.categories));
   const cancel = () => {
-    form.categories = structuredClone(ogCats);
+
+    // @todo: figure out how to properly set form.isDirty when transaction
+    // categories are updated
     // force TransactionCategory to reset incase any data changes were made
+    form.categories = structuredClone(ogCats);
     transCatCounter.value++;
+    form.reset();
+
     emit('cancel');
   };
 </script>
@@ -180,11 +189,17 @@
 <template>
   <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <div class="bg-slate-500 overflow-x-auto shadow-sm sm:rounded-lg">
+      <div class="bg-slate-500 overflow-x-auto border-gray-200 shadow-sm sm:rounded-lg">
         <form
           @submit.prevent="submit"
           :key="transaction.id"
         >
+          <p
+            v-if="form.isDirty"
+            class="text-red-600 dark:text-red-400 bg-slate-500 mt-4 ml-4"
+          >
+            You have unsaved changes
+          </p>
           <TransactionFormBaseFields
             v-model="form"
             :accounts="accounts"
@@ -192,7 +207,7 @@
           />
 
           <!-- categories -->
-          <div class="m-2 bg-slate-500 border-t border-b border-gray-200">
+          <div class="m-2 bg-slate-500 ">
             <TransactionCategory
               :total-amount="form.amount"
               :categories="props.transaction.categories"
@@ -210,7 +225,7 @@
           >
             Edits to this transaction will also be applied to its buddy transaction
           </div>
-          <div class="flex flex-wrap p-2 bg-slate-500 border-gray-200">
+          <div class="flex flex-wrap p-2 bg-slate-500 border-t border-gray-200">
             <div>
               <PrimaryButton
                 class="ml-3"

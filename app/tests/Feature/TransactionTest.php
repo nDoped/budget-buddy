@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use Database\Seeders\TestHarnessSeeder;
 use \PHPUnit\Framework\Attributes\Group;
@@ -133,7 +134,6 @@ class TransactionTest extends TestCase
         $this->savingsAccount->refresh();
         $savingsTransactions = $this->savingsAccount->transactions;
         $this->assertCount(4, $savingsTransactions);
-
     }
 
     #[Group('transactions')]
@@ -864,6 +864,184 @@ class TransactionTest extends TestCase
     }
 
     #[Group('transactions')]
+    public function test_transaction_patch_image_update()
+    {
+        Util::deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $base64Meta = 'data:image/png;base64,';
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $base64 = $base64Meta . $base64Image;
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2024-06-10',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'images_base64' => [ $base64 ],
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => 100
+
+                ],
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $targetTrans = $createdTrans->first();
+
+        $this->assertCount(1, $targetTrans->transactionImages);
+        $firstImg = $targetTrans->transactionImages->first();
+        $img = Storage::disk('public')->get($firstImg->path);
+        $this->assertEquals($base64Image, base64_encode($img));
+
+        $updatedBase64Image = 'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC';
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2024-06-10',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 47.89,
+            'credit' => true,
+            'note' => 'an updated note',
+            'edit_child_transactions' => true,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => 50
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 50
+                ]
+            ],
+            'images_base64' => [ $base64Meta . $updatedBase64Image ],
+        ];
+        $this->assertEquals(1, $this->user->transactions()->count());
+        $response = $this->patch(
+            '/transactions/update/' . $targetTrans->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+        $targetTrans = Transaction::find($targetTrans->id);
+        $this->assertCount(2, $targetTrans->transactionImages);
+        $expectedImages = [
+            $base64Image,
+            $updatedBase64Image
+        ];
+        foreach ($targetTrans->transactionImages as $img) {
+            $this->assertContains(base64_encode(Storage::disk('public')->get($img->path)), $expectedImages);
+            $img->delete();
+        }
+    }
+
+    #[Group('transactions')]
+    public function test_transaction_patch_image_delete()
+    {
+        Util::deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $base64Meta = 'data:image/png;base64,';
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $base64 = $base64Meta . $base64Image;
+        $base64Image_1 = 'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC';
+        $base64_1 = $base64Meta . $base64Image_1;
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2024-06-10',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'images_base64' => [ $base64, $base64_1 ],
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => 100
+
+                ],
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $targetTrans = $createdTrans->first();
+
+        $this->assertCount(2, $targetTrans->transactionImages);
+        $keepImg = $targetTrans->transactionImages->first();
+        $file = Storage::disk('public')->get($keepImg->path);
+        $this->assertEquals($base64Image, base64_encode($file));
+        $deleteImg = $targetTrans->transactionImages->last();
+        $file1 = Storage::disk('public')->get($deleteImg->path);
+        $this->assertEquals($base64Image_1, base64_encode($file1));
+
+        $updateData = [
+            'account_id' => $this->creditCardAccount->id,
+            'transaction_date' => '2024-06-10',
+            'bank_identifier' => 'an updated bank identifier',
+            'amount' => 47.89,
+            'credit' => true,
+            'note' => 'an updated note',
+            'edit_child_transactions' => true,
+            'images' => [ $keepImg->toArray() ],
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'percent' => 50
+
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => "#aabbcc",
+                        'name' => 'YAC!'
+                    ],
+                    'percent' => 50
+                ]
+            ],
+        ];
+        $response = $this->patch(
+            '/transactions/update/' . $targetTrans->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+        $targetTrans = Transaction::find($targetTrans->id);
+        $this->assertCount(1, $targetTrans->transactionImages);
+        $img = $targetTrans->transactionImages->first();
+        $this->assertEquals($keepImg->path, $img->path);
+        $this->assertNotNull(Storage::disk('public')->get($keepImg->path));
+        $this->assertNull(Storage::disk('public')->get($deleteImg->path));
+        $keepImg->delete();
+    }
+
+    #[Group('transactions')]
     public function test_transaction_patch_child_update_with_buddies()
     {
         Util::deleteMockTransactions([
@@ -1073,6 +1251,66 @@ class TransactionTest extends TestCase
     }
 
     #[Group('transactions')]
+    public function test_transaction_get_one_transaction_with_image()
+    {
+        Util::deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $base64Meta = 'data:image/png;base64,';
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $base64 = $base64Meta . $base64Image;
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2024-06-10',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'images_base64' => [ $base64 ],
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $expectedTrans = $createdTrans->first();
+        $this->assertCount(1, $expectedTrans->transactionImages);
+        $transImg = $expectedTrans->transactionImages->first();
+        $imgFqpn = $transImg->path;
+        $img = Storage::disk('public')->get($imgFqpn);
+        $this->assertEquals($base64Image, base64_encode($img));
+        $params = [
+            'start' => '2024-06-01',
+            'end' => '2024-06-30',
+        ];
+        $query = http_build_query($params);
+        $this->get(
+            '/transactions?' . $query
+        )->assertInertia(
+            function (Assert $page) use ($imgFqpn) {
+                $data = $page->toArray()['props']['data'];
+                $transInRange = $data['transactions_in_range'];
+                $this->assertCount(1, $transInRange);
+                $this->assertCount(1, $transInRange[0]['images']);
+                $this->assertEquals($imgFqpn, $transInRange[0]['images'][0]['path']);
+                return $page->component('Transactions');
+            }
+        );
+        $transImg->delete();
+    }
+
+    #[Group('transactions')]
     public function test_transaction_get_with_account_filter()
     {
         $this->savingsTransaction0->transaction_date = '2024-06-15';
@@ -1114,6 +1352,50 @@ class TransactionTest extends TestCase
         $response->assertStatus(302);
         $this->user->refresh();
         $this->assertCount(4, $this->user->transactions);
+    }
+
+    #[Group('transactions')]
+    public function test_destroy_with_image()
+    {
+        Util::deleteMockTransactions([
+            $this->creditTransaction1->id,
+            $this->creditTransaction2->id,
+            $this->savingsTransaction0->id,
+            $this->savingsTransaction1->id,
+            $this->savingsTransaction2->id
+        ]);
+        $base64Meta = 'data:image/png;base64,';
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $base64 = $base64Meta . $base64Image;
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2024-06-10',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'images_base64' => [ $base64 ],
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $toDelete = $createdTrans->first();
+        $transImg = $toDelete->transactionImages->first();
+        $toDeleteImgPath = $transImg->path;
+        $img = Storage::disk('public')->get($toDeleteImgPath);
+        $this->assertEquals($base64Image, base64_encode($img));
+        $response = $this->delete(route('transactions.destroy', [ 'id' => $toDelete->id ]));
+        $response->assertStatus(302);
+        $this->assertNull(Storage::disk('public')->get($toDeleteImgPath));
     }
 
     #[Group('transactions')]

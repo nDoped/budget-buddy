@@ -3,8 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
+use Illuminate\Http\UploadedFile;
+use Symfony\Component\HttpFoundation\File\File;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -29,10 +33,29 @@ class Transaction extends Model
 
     /**
      * Get the account that owns the transaction.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    /**
+     * Get transactions for this account
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function transactionImages() : HasMany
+    {
+        return $this->hasMany(TransactionImage::class);
+    }
+
+    /**
+     * Get transactions for this account
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class)->withPivot('percentage');
     }
 
     /**
@@ -57,6 +80,7 @@ class Transaction extends Model
      *          recurring?: bool,
      *          recurring_end_date?: date,
      *          frequency?: string,
+     *          images_base64?: array,
      *        } $data
      *
      * @return Collection All created transactions.. ie. the created transaction,
@@ -75,7 +99,12 @@ class Transaction extends Model
         if (array_key_exists('bank_identifier', $data)) {
             $this->bank_identifier = strip_tags($data['bank_identifier']);
         }
+
         $this->save();
+        if (array_key_exists('images_base64', $data)) {
+            $this->_createImages($data['images_base64']);
+        }
+
         if (array_key_exists('trans_buddy', $data) && $data['trans_buddy']) {
             // need to create the buddy transaction first so that any recurring
             // buddy transactions will be created
@@ -106,8 +135,8 @@ class Transaction extends Model
                 $data['frequency']
             );
         }
-
-        $this->_handleCategories($data['categories'], false, true);
+        $cats = array_key_exists('categories', $data) ? $data['categories'] : [];
+        $this->_handleCategories($cats, false, true);
 
         $ret = $this->children();
         if ($this->buddy_id) {
@@ -141,6 +170,7 @@ class Transaction extends Model
      *          edit_child_transactions?: bool,
      *          note?: string,
      *          bank_identifier?: string,
+     *          images_base64?: array,
      *          recurring?: bool,
      *        } $data
      *
@@ -186,7 +216,23 @@ class Transaction extends Model
             }
         }
         $this->_handleCategories($data['categories'], true, $updateChildren);
+
         $this->save();
+        // delete any images before creating new ones, lest they be deleted too
+        if (array_key_exists('images', $data)) {
+            $toKeepIds = array_map(function ($transactionImage) {
+                return $transactionImage['id'];
+            }, $data['images']);
+
+            foreach ($this->transactionImages as $image) {
+                if (! in_array($image->id, $toKeepIds)) {
+                    $image->delete();
+                }
+            }
+        }
+        if (array_key_exists('images_base64', $data)) {
+            $this->_createImages($data['images_base64']);
+        }
         $updatedTransactionCount++;
         return $updatedTransactionCount;
     }
@@ -225,7 +271,10 @@ class Transaction extends Model
             }
             Transaction::destroy($buddy->id);
         }
-        Transaction::destroy($this->id);
+        foreach ($this->transactionImages as $image) {
+            $image->delete();
+        }
+        $this->delete();
         return true;
     }
 
@@ -378,11 +427,6 @@ class Transaction extends Model
             }
         }
         return true;
-    }
-
-    public function categories(): BelongsToMany
-    {
-        return $this->belongsToMany(Category::class)->withPivot('percentage');
     }
 
     public function parentTransaction(): ?Transaction
@@ -563,6 +607,41 @@ class Transaction extends Model
             );
         }
         return $child;
+    }
+
+    /**
+     * Creates a TransactionImage and associated file from the given array
+     * of base64 strings
+     *
+     * @param array $base64s
+     */
+    private function _createImages($base64s = [])
+    {
+        foreach ($base64s as $base64) {
+            @list(, $file_data) = explode(';', $base64);
+            @list(, $file_data) = explode(',', $file_data);
+            // save it to temporary dir first.
+            $tmp_file_path = sys_get_temp_dir() . '/' . Str::uuid()->toString();
+            file_put_contents($tmp_file_path, base64_decode($file_data));
+
+            // this just to help us get file info.
+            $tmpFile = new File($tmp_file_path);
+
+            $file = new UploadedFile(
+                $tmpFile->getPathname(),
+                $tmpFile->getFilename(),
+                $tmpFile->getMimeType(),
+                /* 0, */
+                /* true // Mark it as test, since the file isn't from real HTTP POST. */
+            );
+
+            TransactionImage::create([
+                'transaction_id' => $this->id,
+                'path' => $file->storePublicly('transaction_images', 'public')
+                /* 'path' => $file->store('transaction_images') */
+                /* 'path' => $file->store('public/receipts') */
+            ]);
+        }
     }
 
     /**

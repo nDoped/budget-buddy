@@ -9,6 +9,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use \PHPUnit\Framework\Attributes\Group;
 use Database\Seeders\TestHarnessSeeder;
 use Tests\Util;
@@ -77,7 +78,6 @@ class TransactionsTest extends TestCase
             = Transaction::find(TestHarnessSeeder::CREDIT_TRANS2_ID);
     }
 
-    #[Group('transactions')]
     public function test_create_recurring_series_with_invalid_frequency()
     {
         // with invalid frequency
@@ -223,6 +223,57 @@ class TransactionsTest extends TestCase
     }
 
     #[Group('transactions')]
+    public function test_create_with_images()
+    {
+        $base64Meta = 'data:image/png;base64,';
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $base64 = $base64Meta . $base64Image;
+        $base64Image_1 = 'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC';
+        $base64_1 = $base64Meta . $base64Image_1;
+        $trans = new Transaction();
+        $data = [
+            'account_id' => $this->savingsAccount->id,
+            'transaction_date' => '2021-01-01',
+            'amount' => 100,
+            'credit' => false,
+            'description' => 'test',
+            'images_base64' => [
+                $base64,
+                $base64_1
+            ],
+            'is_credit' => false,
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                        'cat_type_id' => $this->catType1->id,
+                    ],
+                    'percent' => 100
+                ]
+            ]
+        ];
+        $createdTrans = $trans->create($data);
+        $this->assertCount(1, $createdTrans);
+        $newTrans = $createdTrans->first();
+        $this->assertEquals($data['account_id'], $newTrans->account_id);
+        $this->assertEquals($data['amount'] * 100, $newTrans->amount);
+        $this->assertEquals($data['is_credit'], $newTrans->credit);
+        $this->assertEquals($data['transaction_date'], $newTrans->transaction_date);
+
+        $this->assertCount(2, $newTrans->transactionImages);
+        $expectedImages = [
+            $base64Image,
+            $base64Image_1
+        ];
+        foreach($newTrans->transactionImages as $img) {
+            $file = Storage::disk('public')->get($img->path);
+            $this->assertContains(base64_encode($file), $expectedImages);
+            $img->delete();
+        }
+    }
+
+    #[Group('transactions')]
     public function test_create()
     {
         $trans = new Transaction();
@@ -251,6 +302,7 @@ class TransactionsTest extends TestCase
         $this->assertEquals($data['amount'] * 100, $newTrans->amount);
         $this->assertEquals($data['is_credit'], $newTrans->credit);
         $this->assertEquals($data['transaction_date'], $newTrans->transaction_date);
+        $this->assertEmpty($newTrans->transactionImages);
     }
 
     #[Group('transactions')]

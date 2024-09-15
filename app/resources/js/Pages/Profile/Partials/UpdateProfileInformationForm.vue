@@ -29,6 +29,7 @@
       form.photo = photoInput.value.files[0];
     }
 
+    /* global route */
     form.post(route("user-profile-information.update"), {
       errorBag: "updateProfileInformation",
       preserveScroll: true,
