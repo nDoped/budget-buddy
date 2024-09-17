@@ -12,24 +12,38 @@
   const video = ref(null);
   const ctx = ref(null);
   const constraints = ref({
-    video: true,
+    video: {
+      width: {
+        min: 1280,
+        ideal: 1920,
+        max: 2560,
+      },
+      height: {
+        min: 720,
+        ideal: 1080,
+        max: 1440
+      },
+      facingMode: 'environment',
+    },
     audio: false,
   });
   onMounted(async () => {
-    await navigator.mediaDevices
-      .getUserMedia(constraints.value)
-      .then(SetStream)
-      .catch((err) => {
-        console.error("Error accessing the camera", err);
-      });
-    if (video.value && canvas.value) {
-      video.value.onloadedmetadata = () => {
-        if (canvas.value) {
-          canvas.value.width = video.value.videoWidth;
-          canvas.value.height = video.value.videoHeight;
-        }
-      };
-      ctx.value = canvas.value.getContext("2d");
+    if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+      await navigator.mediaDevices
+        .getUserMedia(constraints.value)
+        .then(SetStream)
+        .catch((err) => {
+          console.error("Error accessing the camera", err);
+        });
+      if (video.value && canvas.value) {
+        video.value.onloadedmetadata = () => {
+          if (canvas.value) {
+            canvas.value.width = video.value.videoWidth;
+            canvas.value.height = video.value.videoHeight;
+          }
+        };
+        ctx.value = canvas.value.getContext("2d");
+      }
     }
   });
   function SetStream(stream) {
