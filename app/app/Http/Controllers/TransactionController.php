@@ -186,7 +186,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\TransactionPostRequest $request
      * @param  \App\Models\Transaction  $transaction

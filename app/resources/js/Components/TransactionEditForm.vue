@@ -90,8 +90,8 @@
     note: props.transaction.note,
     bank_identifier: props.transaction.bank_identifier,
     categories: props.transaction.categories,
-    images_base64: [],
-    images: props.transaction.images
+    new_images: [],
+    existing_images: props.transaction.existing_images
   });
 
   watch(
@@ -104,20 +104,19 @@
       form.note = props.transaction.note;
       deleteTransactionForm.id = props.transaction.id;
       form.bank_identifier = props.transaction.bank_identifier;
-      form.images = props.transaction.images;
-      form.images_base64 = [];
+      form.existing_images = props.transaction.existing_images;
+      form.new_images = [];
       form.categories = props.transaction.categories;
     }
   );
-
 
   const showRecurringEditDialogue = ref(false);
   const editThisTransOnly = ref(false);
   const setEditThisTransOnly = () => {
     editThisTransOnly.value = true;
     submit();
-
   };
+
   const editAllFutureRecurring = ref(false);
   const setEditAllFutureRecurring = () => {
     editAllFutureRecurring.value = true;

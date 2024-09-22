@@ -2,7 +2,6 @@
   import {
     toRaw,
     ref,
-    toRef,
     watch,
     watchEffect,
     computed
@@ -10,6 +9,7 @@
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
   import CategoryInputs from '@/Components/CategoryInputs.vue';
+  import CurrencyInput from '@/Components/CurrencyInput.vue';
   import CategorySelect from '@/Components/CategorySelect.vue';
   import ToggleSlider from '@/Components/ToggleSlider.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -43,8 +43,8 @@
   const emit = defineEmits(['category-update', 'invalid-category-state']);
   const props = defineProps({
     totalAmount: {
-      type: Number,
-      default: 0
+      type: String,
+      required: true
     },
     categories: {
       type: Array,
@@ -77,7 +77,11 @@
    */
   const taxAmount = ref(null);
   const subTotalError = ref(null);
-  const total = toRef(props, 'totalAmount');
+  const total = ref(parseFloat(props.totalAmount));
+  watch(() => props.totalAmount, (newVal) => {
+    total.value = newVal;
+  });
+
   const lineItems = ref([]);
   const lineItemSum = computed(() => {
     if (lineItems.value.length === 0) {
@@ -409,19 +413,10 @@
     <template v-else>
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div class="m-1">
-          <InputLabel
-            :for="getUuid('tax-amount')"
-            value="Tax"
-          />
-          <input
-            :id="getUuid('tax-amount')"
-            type="number"
-            min=".1"
-            step=".01"
+          <CurrencyInput
+            label="Tax"
             v-model="taxAmount"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            @keypress="forceNumericalInput($event)"
-          >
+          />
         </div>
         <div
           v-if="! total || ! taxAmount"
@@ -470,7 +465,7 @@
       <InputError :message="subTotalError" />
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div
-          class="flex flex-wrap bg-slate-500 mr-4"
+          class="flex  bg-slate-500 mr-4"
           :class="{'border border-red-600 dark:border-red-400': subTotalError}"
         >
           <div
@@ -498,20 +493,11 @@
               />
             </template>
 
-            <InputLabel
-              :for="getUuid('line-item-amount', i)"
-              value="Line Item Price ($)"
-            />
-            <input
-              :id="getUuid('line-item-amount', i)"
-              type="number"
-              min=".1"
-              step=".01"
+            <CurrencyInput
+              label="Line Item Price"
               v-model="lineItems[i].price"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              :style="catSelectBorder(item)"
-              @keypress="forceNumericalInput($event)"
-            >
+              :extra-classes="catSelectBorder(item)"
+            />
 
             <DangerButton
               class="max-h-1"

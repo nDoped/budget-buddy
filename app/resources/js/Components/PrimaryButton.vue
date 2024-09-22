@@ -13,8 +13,7 @@
     class="
       inline-flex
       items-center
-      mt-2
-      mr-2
+      m-1
       px-4
       py-2
       bg-gray-800

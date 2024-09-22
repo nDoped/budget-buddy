@@ -2,7 +2,10 @@
   import { ref, onMounted } from "vue";
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
-  const emit = defineEmits(['cancel']);
+  import InputLabel from '@/Components/InputLabel.vue';
+  import TextInput from '@/Components/TextInput.vue';
+  import { focusElement } from '@/lib.js';
+  const emit = defineEmits(['cancel', 'update:modelValue']);
   const cancel = () => {
     emit('cancel');
   };
@@ -13,16 +16,12 @@
   const ctx = ref(null);
   const constraints = ref({
     video: {
-      //width: {
-      //  min: 1280,
-      //  ideal: 1920,
-      //  max: 2560,
-      //},
-      //height: {
-      //  min: 720,
-      //  ideal: 1080,
-      //  max: 1440
-      //},
+      width: {
+        min: 500,
+      },
+      height: {
+        min: 400,
+      },
       facingMode: 'environment',
     },
     audio: false,
@@ -60,23 +59,41 @@
 
   // model
   const model = defineModel({
-    type: String,
-    default: "",
+    type: Object,
+    default: () => {
+      return {
+        base64: {
+          type: String,
+          default: "",
+        },
+        name: {
+          type: String,
+          default: "",
+        }
+      };
+    }
   });
-  const base64Data = ref(null);
+  const base64= ref(null);
+  const name = ref(null);
+  onMounted(() => focusElement(getUuid('take-pic-btn')));
   const takePic = () => {
     let data = canvas.value.toDataURL('image/png', 1);
-    base64Data.value = data;
+    base64.value = data;
+    focusElement(getUuid('file-name'));
   };
+
   const retakePic = () => {
-    base64Data.value = null;
+    base64.value = null;
+    focusElement(getUuid('take-pic-btn'));
   };
   const savePic = () => {
-    //let link = document.createElement("a");
-    //link.download = `transaction-${new Date().toISOString()}.png`;
-    //link.href = base64Data
-    //link.click();
-    model.value = base64Data
+    model.value.base64 = base64
+    model.value.name = name
+    emit('update:modelValue', model.value);
+  };
+  const uuid = crypto.randomUUID();
+  const getUuid = (el, i = 0) => {
+    return `${el}-${i}-${uuid}`;
   };
 </script>
 
@@ -96,7 +113,7 @@
       height="300"
       -->
     <canvas
-      v-show="! base64Data"
+      v-show="! base64"
       ref="canvas"
       width="video.videoWidth"
       height="video.videoHeight"
@@ -104,14 +121,14 @@
       class="bg-black rounded-3xl"
     />
     <img
-      v-if="base64Data"
-      :src="base64Data"
+      v-if="base64"
+      :src="base64"
     >
 
     <div class="flex items-center justify-center py-4">
       <PrimaryButton
-        v-if="! base64Data"
-        ref="startButton"
+        v-if="! base64"
+        :id="getUuid('take-pic-btn')"
         type="button"
         @click="takePic"
       >
@@ -120,6 +137,7 @@
 
       <template v-else>
         <PrimaryButton
+          :id="getUuid('save-pic-btn')"
           type="button"
           @click="savePic"
         >
@@ -140,5 +158,18 @@
         Cancel
       </SecondaryButton>
     </div>
+    <InputLabel
+      :for="getUuid('file-name')"
+      value="File Name"
+    />
+    <TextInput
+      :id="getUuid('file-name')"
+      ref="inputRef"
+      v-model="name"
+      label="File Name"
+      type="text"
+      @keydown.enter="savePic"
+      class="mt-2"
+    />
   </div>
 </template>

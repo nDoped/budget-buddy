@@ -73,7 +73,7 @@
 
   const form = useForm({
     transaction_date: new Date((new Date()).toLocaleDateString()).toISOString().slice(0,10),
-    amount: null,
+    amount: "",
     credit: false,
     account_id: '',
     note: null,
@@ -85,7 +85,7 @@
     trans_buddy_account: '',
     trans_buddy_note: null,
     frequency: "monthly",
-    images_base64: []
+    new_images: []
   });
 
   const categoriesInvalid = ref(false);
@@ -108,6 +108,7 @@
         <form @submit.prevent="submit">
           <TransactionFormBaseFields
             v-model="form"
+            class="m-4"
             :accounts="accounts"
             :errors="form.errors"
           />

@@ -250,7 +250,7 @@ class User extends Authenticatable
 
             $data['transactions_in_range'][] = [
                 'amount_raw' => $trans->amount,
-                'amount' => $trans->amount / 100,
+                'amount' => strval($trans->amount / 100),
                 'account_id' => $acct->id,
                 'account' => $acct->name,
                 'account_type' => $type->name,
@@ -265,7 +265,7 @@ class User extends Authenticatable
                 'buddy_id' => $trans->buddy_id,
                 'parent_id' => $trans->parent_id,
                 'is_last_child' => $trans->isLastChild(),
-                'images' =>  $trans->transactionImages,
+                'existing_images' =>  $trans->transactionImages,
                 'parent_transaction_date' => $trans->parentTransaction()?->transaction_date,
                 'categories' => $categories,
             ];

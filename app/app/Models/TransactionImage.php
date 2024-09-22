@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\Storage;
 class TransactionImage extends Model
 {
     use HasFactory;
-    protected $fillable = ['transaction_id', 'path'];
+    protected $fillable = [
+        'transaction_id',
+        'name',
+        'path'
+    ];
 
     public function transaction(): BelongsTo
     {

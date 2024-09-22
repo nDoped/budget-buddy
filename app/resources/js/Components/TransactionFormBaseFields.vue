@@ -1,6 +1,7 @@
 <script setup>
   import {
     ref,
+    onMounted
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import InputLabel from '@/Components/InputLabel.vue';
@@ -11,11 +12,12 @@
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
+  import TransactionImage from '@/Components/TransactionImage.vue';
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
   import CameraModal from '@/Components/CameraModal.vue';
   import ActionMessage from '@/Components/ActionMessage.vue';
   import TextArea from '@/Components/TextArea.vue';
-  import { forceNumericalInput } from '@/lib.js';
+  import CurrencyInput from '@/Components/CurrencyInput.vue';
 
   defineProps({
     errors: {
@@ -27,18 +29,23 @@
       default: () => {}
     }
   });
+  const currencyInputEl = ref(null);
+  onMounted(() => {
+    currencyInputEl.value.focus();
+  });
   const model = defineModel({
     type: Object,
     default: () => {
       return {
         transaction_date: '',
+        file_name: '',
         amount: '',
         credit: false,
         account_id: '',
         note: '',
         bank_identifier: '',
-        images_base64: [],
-        images: []
+        new_images: [],
+        existing_images: []
       };
     }
   });
@@ -50,12 +57,15 @@
   const addAnImage = () => {
     showCameraModal.value = true;
   };
-  const saveReceiptImage = (val) => {
+  const saveImage = (val) => {
     showCameraModal.value = false;
-    model.value.images_base64.push(val.value);
+    model.value.new_images.push({
+      base64: val.base64.value,
+      name: val.name.value
+    });
   };
   const deleteExistingImage = (image) => {
-    model.value.images = model.value.images.filter(i => i.id !== image.id);
+    model.value.existing_images = model.value.existing_images.filter(i => i.id !== image.id);
   };
 
   //const photoInput = ref(null);
@@ -152,11 +162,11 @@
             <!-- date -->
             <div class="m-2">
               <InputLabel
-                for="date"
+                :for="getUuid('transaction-date')"
                 value="Transaction Date"
               />
               <InputDate
-                id="getUuid('transaction-date')"
+                :id="getUuid('transaction-date')"
                 v-model="model.transaction_date"
               />
               <InputError
@@ -167,25 +177,13 @@
 
             <!-- amount -->
             <div class="m-2">
-              <InputLabel
-                for="amount"
-                value="Amount"
-              />
-              <input
-                type="number"
-                min="0"
-                step="any"
+              <CurrencyInput
+                ref="currencyInputEl"
+                :error-message="errors.amount"
                 v-model="model.amount"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                @keypress="forceNumericalInput($event)"
-              >
-              <InputError
-                :message="errors.amount"
-                class="mt-2"
               />
             </div>
           </div>
-
 
           <div class="m-2">
             <!-- credit/debit -->
@@ -303,148 +301,117 @@
           >
             Add an image
           </SecondaryButton>
-
-          <template v-if="model.images && model.images.length > 0">
-            <p class="m-2">
-              Existing Images
-            </p>
-            <div class="flex flex-row">
-              <div
-                v-for="(image, index) in model.images"
-                :key="index"
-                class=" w-20 h-20 bg-cover bg-no-repeat bg-center "
-              >
-                <div class="flex flex-col m-2">
-                  <img
-                    :src="image.path"
-                    class="transition-transform duration-200 hover:scale-105"
-                  >
-                  <DangerButton
-                    class="max-h-1"
-                    type="button"
-                    @click="deleteExistingImage(image)"
-                  >
-                    Delete
-                  </DangerButton>
-                </div>
+          <div class="m-4 flex flex-row place-content-between">
+            <div v-if="model.existing_images && model.existing_images.length > 0">
+              <div class="flex flex-row">
+                <TransactionImage
+                  v-for="(image, index) in model.existing_images"
+                  :key="index"
+                  v-model="model.existing_images[index]"
+                  @delete="deleteExistingImage(image)"
+                />
               </div>
             </div>
-          </template>
 
-          <template v-if="model.images_base64 && model.images_base64.length > 0">
-            <p class="m-2">
-              New Images
-            </p>
-            <div class="flex flex-row">
-              <div
-                v-for="(image, index) in model.images_base64"
-                :key="index"
-                class="w-20 h-20 bg-cover bg-no-repeat bg-center "
-              >
-                <div class="flex flex-col m-2">
-                  <img
-                    :src="image"
-                    class="transition-transform duration-200 hover:scale-105"
-                  >
-                  <DangerButton
-                    class="max-h-1"
-                    type="button"
-                    @click="model.images_base64.splice(index, 1)"
-                  >
-                    Delete
-                  </DangerButton>
-                </div>
+            <div v-if="model.new_images && model.new_images.length > 0">
+              <div class="flex flex-row">
+                <TransactionImage
+                  v-for="(image, index) in model.new_images"
+                  :key="index"
+                  v-model="model.new_images[index]"
+                  @delete="model.new_images.splice(index, 1)"
+                />
               </div>
             </div>
-          </template>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <CameraModal
-    :show="showCameraModal"
-    max-width="5xl"
-    @close="showCameraModal = false"
-  >
-    <template #title>
-      Capture Receipt Image
-    </template>
+    <CameraModal
+      :show="showCameraModal"
+      max-width="5xl"
+      @close="showCameraModal = false"
+    >
+      <template #title>
+        Capture Receipt Image
+      </template>
 
-    <template #content>
-      <Camera
-        @cancel="cancelReceiptImageCapture"
-        @update:model-value="saveReceiptImage($event)"
-      />
-    </template>
-  </CameraModal>
-
-  <!--
-  <ConfirmationModal
-    :show="showReceiptModal"
-    @close="showReceiptModal = false"
-  >
-    <template #title>
-      Upload a receipt
-    </template>
-
-    <template #content>
-      <div
-        v-show="photoPreview"
-        class="mt-2"
-      >
-        <span
-          class="block w-20 h-20 bg-cover bg-no-repeat bg-center"
-          :style="'background-image: url(\'' + photoPreview + '\');'"
+      <template #content>
+        <Camera
+          @cancel="cancelReceiptImageCapture"
+          @update:model-value="saveImage($event)"
         />
-      </div>
-    </template>
+      </template>
+    </CameraModal>
 
-    <template #footer>
-      <input
-        ref="photoInput"
-        type="file"
-        class="hidden"
-        @change="updatePhotoPreview"
-      >
+    <!--
+    <ConfirmationModal
+      :show="showReceiptModal"
+      @close="showReceiptModal = false"
+    >
+      <template #title>
+        Upload a receipt
+      </template>
 
-      <PrimaryButton
-        class="mt-2 mr-2"
-        :id="getUuid('receipt-upload')"
-        type="button"
-        :class="{ 'opacity-25': receiptUploadForm.processing }"
-        :disabled="receiptUploadForm.processing"
-        @click.prevent="selectNewPhoto"
-      >
-        Select an image
-      </PrimaryButton>
+      <template #content>
+        <div
+          v-show="photoPreview"
+          class="mt-2"
+        >
+          <span
+            class="block w-20 h-20 bg-cover bg-no-repeat bg-center"
+            :style="'background-image: url(\'' + photoPreview + '\');'"
+          />
+        </div>
+      </template>
 
-      <SecondaryButton
-        class="mt-2 mr-2"
-        :class="{ 'opacity-25': receiptUploadForm.processing }"
-        @click="cancelReceiptUpload"
-        :disabled="receiptUploadForm.processing"
-      >
-        Cancel
-      </SecondaryButton>
+      <template #footer>
+        <input
+          ref="photoInput"
+          type="file"
+          class="hidden"
+          @change="updatePhotoPreview"
+        >
 
-      <ActionMessage
-        :on="receiptUploadForm.recentlySuccessful"
-        class="mr-3"
-      >
-        Saved.
-      </ActionMessage>
+        <PrimaryButton
+          class="mt-2 mr-2"
+          :id="getUuid('receipt-upload')"
+          type="button"
+          :class="{ 'opacity-25': receiptUploadForm.processing }"
+          :disabled="receiptUploadForm.processing"
+          @click.prevent="selectNewPhoto"
+        >
+          Select an image
+        </PrimaryButton>
 
-      <PrimaryButton
-        class="mt-2 mr-2"
-        type="button"
-        @click="uploadReceipt()"
-        :class="{ 'opacity-25': receiptUploadForm.processing }"
-        :disabled="receiptUploadForm.processing"
-      >
-        Upload
-      </PrimaryButton>
-    </template>
-  </ConfirmationModal>
-  -->
+        <SecondaryButton
+          class="mt-2 mr-2"
+          :class="{ 'opacity-25': receiptUploadForm.processing }"
+          @click="cancelReceiptUpload"
+          :disabled="receiptUploadForm.processing"
+        >
+          Cancel
+        </SecondaryButton>
+
+        <ActionMessage
+          :on="receiptUploadForm.recentlySuccessful"
+          class="mr-3"
+        >
+          Saved.
+        </ActionMessage>
+
+        <PrimaryButton
+          class="mt-2 mr-2"
+          type="button"
+          @click="uploadReceipt()"
+          :class="{ 'opacity-25': receiptUploadForm.processing }"
+          :disabled="receiptUploadForm.processing"
+        >
+          Upload
+        </PrimaryButton>
+      </template>
+    </ConfirmationModal>
+    -->
+  </div>
 </template>

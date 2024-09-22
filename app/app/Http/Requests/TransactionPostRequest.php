@@ -52,7 +52,7 @@ class TransactionPostRequest extends FormRequest
                 'bank_identifier' => [ 'nullable', 'string' ],
                 'note' => [ 'nullable', 'string'],
                 'edit_child_transactions' => [ 'nullable', 'boolean'],
-                'images_base64' => [ 'nullable', 'array'],
+                'new_images' => [ 'nullable', 'array'],
                 'categories' => [ 'nullable' ],
                 'categories.*.cat_data.name' => [ 'required' ],
             ];
@@ -84,7 +84,7 @@ class TransactionPostRequest extends FormRequest
                 $ret = array_merge($ret, $to_merge_recurring, $to_merge_buddy);
             } else {
                 $ret = array_merge($ret, [
-                    'images' => [ 'nullable', 'array'],
+                    'existing_images' => [ 'nullable', 'array'],
                 ]);
             }
 

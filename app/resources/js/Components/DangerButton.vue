@@ -14,8 +14,7 @@
       inline-flex
       items-center
       justify-center
-      mt-2
-      mb-2
+      m-1
       px-4
       py-2
       bg-red-600

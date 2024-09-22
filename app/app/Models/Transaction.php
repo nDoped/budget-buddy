@@ -80,7 +80,7 @@ class Transaction extends Model
      *          recurring?: bool,
      *          recurring_end_date?: date,
      *          frequency?: string,
-     *          images_base64?: array,
+     *          new_images?: array,
      *        } $data
      *
      * @return Collection All created transactions.. ie. the created transaction,
@@ -101,8 +101,8 @@ class Transaction extends Model
         }
 
         $this->save();
-        if (array_key_exists('images_base64', $data)) {
-            $this->_createImages($data['images_base64']);
+        if (array_key_exists('new_images', $data)) {
+            $this->_createImages($data['new_images']);
         }
 
         if (array_key_exists('trans_buddy', $data) && $data['trans_buddy']) {
@@ -219,19 +219,25 @@ class Transaction extends Model
 
         $this->save();
         // delete any images before creating new ones, lest they be deleted too
-        if (array_key_exists('images', $data)) {
-            $toKeepIds = array_map(function ($transactionImage) {
-                return $transactionImage['id'];
-            }, $data['images']);
+        if (array_key_exists('existing_images', $data)) {
+            $toKeep = $toKeepIds = [];
+            foreach ($data['existing_images'] as $img) {
+                $id = $img['id'];
+                $toKeep[$id] = $img['name'];
+                $toKeepIds[] = $id;
+            }
 
             foreach ($this->transactionImages as $image) {
                 if (! in_array($image->id, $toKeepIds)) {
                     $image->delete();
+                } else {
+                    $image->name = $toKeep[$image->id];
+                    $image->save();
                 }
             }
         }
-        if (array_key_exists('images_base64', $data)) {
-            $this->_createImages($data['images_base64']);
+        if (array_key_exists('new_images', $data)) {
+            $this->_createImages($data['new_images']);
         }
         $updatedTransactionCount++;
         return $updatedTransactionCount;
@@ -615,9 +621,11 @@ class Transaction extends Model
      *
      * @param array $base64s
      */
-    private function _createImages($base64s = [])
+    private function _createImages($imgs = [])
     {
-        foreach ($base64s as $base64) {
+        foreach ($imgs as $img) {
+            $base64 = $img['base64'];
+            $name = $img['name'];
             @list(, $file_data) = explode(';', $base64);
             @list(, $file_data) = explode(',', $file_data);
             // save it to temporary dir first.
@@ -637,9 +645,8 @@ class Transaction extends Model
 
             TransactionImage::create([
                 'transaction_id' => $this->id,
-                'path' => $file->storePublicly('transaction_images', 'public')
-                /* 'path' => $file->store('transaction_images') */
-                /* 'path' => $file->store('public/receipts') */
+                'name' => $name,
+                'path' => $file->store('/transaction_images/' . auth()->user()->id)
             ]);
         }
     }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionImageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryTypeController;
 use App\Http\Controllers\DashboardController;
@@ -25,8 +26,8 @@ Route::get('/', function () {
         'canLogin' => Route::has('login'),
 //        'canRegister' => Route::has('register'),
         'canRegister' => false,
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        //'laravelVersion' => Application::VERSION,
+        //'phpVersion' => PHP_VERSION,
     ]);
 });
 
@@ -46,6 +47,8 @@ Route::middleware([
     Route::delete('/categories/destroy/{id}', [ CategoryController::class, 'destroy' ])->name('categories.destroy');
     Route::delete('/category_types/destroy/{id}', [ CategoryTypeController::class, 'destroy' ])->name('category_types.destroy');
     Route::patch('/category_types/update/{categoryType}', [ CategoryTypeController::class, 'update' ])->name('category_types.update');
+
+    Route::get('/transaction_images/{image}', [ TransactionImageController::class, 'getImageData' ])->name('images.data');
 
     Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.accounts');
     Route::get('/settings/account_types', [ SettingsController::class, 'account_types' ])->name('settings.account_types');
