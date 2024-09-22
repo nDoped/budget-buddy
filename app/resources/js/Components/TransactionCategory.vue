@@ -467,7 +467,7 @@
       <InputError :message="subTotalError" />
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div
-          class="flex  bg-slate-500 mr-4"
+          class="flex flex-wrap bg-slate-500 mr-4"
           :class="{'border border-red-600 dark:border-red-400': subTotalError}"
         >
           <div
