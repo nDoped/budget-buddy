@@ -226,7 +226,7 @@
    * Percent logic
    */
   const catsRef = ref(props.categories);
-  watch( () => props.categories, () => catsRef.value = props.categories);
+  watch(() => props.categories, () => catsRef.value = props.categories);
 
   const percentError = ref(null);
   const percentTotal = computed(() => {

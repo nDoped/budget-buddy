@@ -10,7 +10,22 @@ if [ ! -d "${HOME}/database-dumps" ]; then
 fi
 file_date=$(date +%F_%H_%M_%S)
 sudo mysqldump  mykickass_db > "${HOME}/database-dumps/${file_date}_mykickass_db.sql"
+if [ $? -eq 0 ]; then
+    echo "Database dump created successfully in ${HOME}/database-dumps/${file_date}_mykickass_db.sql"
+else
+    echo "Database dump failed"
+fi
 
+image_directory="storage/app/transaction_images/"
+echo "Creating tarball of $image_directory"
+tar -czf "${HOME}/database-dumps/${file_date}_transaction_images.tar.gz" "$image_directory"
+if [ $? -eq 0 ]; then
+    echo "Images tarred into ${HOME}/database-dumps/${file_date}_transaction_images.tar.gz"
+else
+    echo "Image tar operation failed"
+fi
+
+exit
 echo "Pulling updates"
 git pull --rebase
 
