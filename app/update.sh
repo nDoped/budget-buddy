@@ -18,7 +18,7 @@ fi
 
 image_directory="storage/app/transaction_images/"
 echo "Creating tarball of $image_directory"
-tar -czf "${HOME}/database-dumps/${file_date}_transaction_images.tar.gz" "$image_directory"
+tar -czf "${HOME}/database-dumps/${file_date}_transaction_images.tar.gz" -C "$image_directory" .
 if [ $? -eq 0 ]; then
     echo "Images tarred into ${HOME}/database-dumps/${file_date}_transaction_images.tar.gz"
 else
