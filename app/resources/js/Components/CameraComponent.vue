@@ -108,10 +108,6 @@
       hidden
     />
 
-    <!--
-      width="400"
-      height="300"
-      -->
     <canvas
       v-show="! base64"
       ref="canvas"

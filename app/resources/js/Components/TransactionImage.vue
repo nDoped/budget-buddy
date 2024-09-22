@@ -44,7 +44,7 @@
 
 <template>
   <div
-    class="w-32 h-16 bg-cover bg-no-repeat bg-center mb-4"
+    class="w-32 h-40 bg-cover bg-no-repeat bg-center mb-4"
     :class="{'h-32': model.base64}"
   >
     <div class="flex flex-col mr-2">
@@ -82,16 +82,25 @@
       <img
         v-if="model.base64"
         :src="model.base64"
-        class="transition-transform duration-200 hover:scale-105"
+        class="mb-2 rounded-lg transition-transform duration-200 hover:scale-105"
       >
-      <SecondaryButton
+      <!-- it's an existing image -->
+      <div
         v-else
-        class="max-h-1"
-        type="button"
-        @click="viewImage"
+        class="flex flex-col justify-center"
       >
-        Download
-      </SecondaryButton>
+        <img
+          :src="model.thumbnail"
+          class="mb-2 rounded-lg transition-transform duration-200 hover:scale-105"
+        >
+        <SecondaryButton
+          class="max-h-1"
+          type="button"
+          @click="viewImage"
+        >
+          Download
+        </SecondaryButton>
+      </div>
       <DangerButton
         class="max-h-1"
         type="button"

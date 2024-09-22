@@ -248,6 +248,15 @@ class User extends Authenticatable
                 ];
             }
 
+            $existing_images =  $trans->transactionImages;
+            foreach ($existing_images as &$transImg) {
+                $path = storage_path() . '/app/' . $transImg->path;
+                $img = new \Imagick($path);
+                $img->thumbnailImage(100, 0);
+                $imgType = pathinfo($path, PATHINFO_EXTENSION);
+                $base64 = 'data:image/' . $imgType . ';base64,' . base64_encode($img->getImageBlob());
+                $transImg['thumbnail'] = $base64;
+            }
             $data['transactions_in_range'][] = [
                 'amount_raw' => $trans->amount,
                 'amount' => strval($trans->amount / 100),
