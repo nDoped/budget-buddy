@@ -199,7 +199,7 @@
       },
       price: null,
     });
-    focusElement(getUuid('line-item-amount', lineItems.value.length - 1));
+    focusElement(getUuid('line-item-price', lineItems.value.length - 1));
   };
   const removeLineItem = (i) => {
     lineItems.value.splice(i, 1);
