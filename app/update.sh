@@ -25,7 +25,6 @@ else
     echo "Image tar operation failed"
 fi
 
-exit
 echo "Pulling updates"
 git pull --rebase
 
