@@ -23,7 +23,7 @@ class TransactionImage extends Model
 
     public function delete()
     {
-        Storage::disk('public')->delete($this->path);
+        Storage::disk('local')->delete($this->path);
         return parent::delete();
     }
 }

@@ -221,6 +221,11 @@ class TransactionsTest extends TestCase
         $this->assertEquals('2023-12-08', $children[23]->transaction_date);
         $this->assertEquals('2023-12-22', $children[24]->transaction_date);
     }
+    // @todo
+    /* #[Group('transactions')] */
+    /* public function test_update_with_images() */
+    /* { */
+    /* } */
 
     #[Group('transactions')]
     public function test_create_with_images()
@@ -237,9 +242,15 @@ class TransactionsTest extends TestCase
             'amount' => 100,
             'credit' => false,
             'description' => 'test',
-            'images_base64' => [
-                $base64,
-                $base64_1
+            'new_images' => [
+                [
+                    'base64' => $base64,
+                    'name' => 'A cool pic'
+                ],
+                [
+                    'base64' => $base64_1,
+                    'name' => 'Another cool pic'
+                ],
             ],
             'is_credit' => false,
             'categories' => [
@@ -267,7 +278,7 @@ class TransactionsTest extends TestCase
             $base64Image_1
         ];
         foreach($newTrans->transactionImages as $img) {
-            $file = Storage::disk('public')->get($img->path);
+            $file = Storage::disk('local')->get($img->path);
             $this->assertContains(base64_encode($file), $expectedImages);
             $img->delete();
         }

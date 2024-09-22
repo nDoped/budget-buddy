@@ -131,19 +131,20 @@
       new: []
     };
     lineItems.value.forEach((li: LineItem) => {
+      let price = parseFloat(li.price);
       if (! li.cat_data.cat_id) {
         catTotals.new.push({
-          sub_total: li.price,
+          sub_total: price,
           cat_data: li.cat_data,
         });
       } else {
         if (! catTotals[li.cat_data.cat_id]) {
           catTotals[li.cat_data.cat_id] = {
-            sub_total: li.price,
+            sub_total: price,
             cat_data: li.cat_data,
           };
         } else {
-          catTotals[li.cat_data.cat_id].sub_total += li.price;
+          catTotals[li.cat_data.cat_id].sub_total += price;
         }
       }
     });
@@ -414,6 +415,7 @@
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div class="m-1">
           <CurrencyInput
+            :input-id="getUuid('tax-amount')"
             label="Tax"
             v-model="taxAmount"
           />
@@ -495,6 +497,7 @@
 
             <CurrencyInput
               label="Line Item Price"
+              :input-id="getUuid('line-item-price', i)"
               v-model="lineItems[i].price"
               :extra-classes="catSelectBorder(item)"
             />

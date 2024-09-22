@@ -8,7 +8,7 @@ import CategoryInputs from '@/Components/CategoryInputs.vue';
 let wrapper;
 
 const props = {
-  totalAmount: null,
+  totalAmount: "",
   categories: [],
   categoryTypes: [
     {
@@ -97,8 +97,8 @@ test("test receipt line items with two items in the same cat", async () => {
   const taxEl = wrapper.get("#" + taxElId);
   await taxEl.setValue(10);
   expect(wrapper.text()).toContain('Please enter the transaction total');
-  await wrapper.setProps({ totalAmount: 90 });
-  await taxEl.setValue(null);
+  await wrapper.setProps({ totalAmount: '90' });
+  await taxEl.setValue("");
   expect(wrapper.text()).toContain('Please enter the tax paid');
   await taxEl.setValue(10);
   const addLineItemBttn = wrapper.get("#" + addLineItemBttnId);
@@ -129,9 +129,9 @@ test("test receipt line items with two items in the same cat", async () => {
   ];
   expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
   expect(wrapper.vm.canCalculatePercentages).toBe(false);
-  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
+  const lineItem0PriceInputId = `line-item-price-0-${wrapper.vm.uuid}`;
   await wrapper.get('#' + lineItem0PriceInputId).setValue(45);
-  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
+  const lineItem1PriceInputId = `line-item-price-1-${wrapper.vm.uuid}`;
   await wrapper.get('#' + lineItem1PriceInputId).setValue(45);
   expect(wrapper.text()).toContain('Line items must sum to the total amount minus tax. You are over by $10');
   expect(wrapper.vm.canCalculatePercentages).toBe(false);
@@ -142,7 +142,7 @@ test("test receipt line items with two items in the same cat", async () => {
 });
 
 test("test receipt line items with two items in different cats", async () => {
-  await wrapper.setProps({ totalAmount: 100 });
+  await wrapper.setProps({ totalAmount: '100' });
   expect(wrapper.vm.calcCatsByReciept).toBe(false);
   // should not show the tax input
   expect(wrapper.find("#" + taxElId).exists()).toBe(false);
@@ -195,9 +195,9 @@ test("test receipt line items with two items in different cats", async () => {
   ];
   expect(wrapper.vm.lineItems).toEqual(expectedLineItems);
   expect(wrapper.vm.canCalculatePercentages).toBe(false);
-  const lineItem0PriceInputId = `line-item-amount-0-${wrapper.vm.uuid}`;
+  const lineItem0PriceInputId = `line-item-price-0-${wrapper.vm.uuid}`;
   await wrapper.get('#' + lineItem0PriceInputId).setValue(23.34);
-  const lineItem1PriceInputId = `line-item-amount-1-${wrapper.vm.uuid}`;
+  const lineItem1PriceInputId = `line-item-price-1-${wrapper.vm.uuid}`;
   await wrapper.get('#' + lineItem1PriceInputId).setValue(90 - 23.34);
   expect(wrapper.vm.canCalculatePercentages).toBe(true);
   expect(wrapper.vm.catsRef).toEqual(expectedCatsRef);

@@ -15,6 +15,10 @@
       type: String,
       default: ''
     },
+    inputId: {
+      type: String,
+      required: true
+    },
     extraClasses: {
       type: String,
       default: ''
@@ -26,16 +30,12 @@
     }
   });
   defineExpose({ focus: () => input.value.focus() });
-  const uuid = crypto.randomUUID();
-  const getUuid = (el, i = 0) => {
-    return `${el}-${i}-${uuid}`;
-  };
 </script>
 
 <template>
   <div class="w-48">
     <InputLabel
-      :for="getUuid('input')"
+      :for="inputId"
       :value="label"
     />
     <div class="relative max-w-xxxs text-gray-900 dark:text-white">
@@ -43,7 +43,7 @@
         <span class="text-surface-500 sm-:text-sm">$</span>
       </div>
       <input
-        :id="getUuid('input')"
+        :id="inputId"
         ref="input"
         v-model="model"
         @keypress="forceMonetaryInput($event)"

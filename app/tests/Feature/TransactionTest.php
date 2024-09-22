@@ -877,13 +877,19 @@ class TransactionTest extends TestCase
         $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
         $base64 = $base64Meta . $base64Image;
         $trans = new Transaction();
+        $imgName = 'test_image';
         $data = [
             'account_id' => $this->savingsAccount->id,
             'transaction_date' => '2024-06-10',
             'amount' => 100,
             'credit' => false,
             'description' => 'test',
-            'images_base64' => [ $base64 ],
+            'new_images' => [
+                [
+                    'base64' => $base64,
+                    'name' => $imgName
+                ]
+            ],
             'is_credit' => false,
             'categories' => [
                 [
@@ -902,10 +908,11 @@ class TransactionTest extends TestCase
 
         $this->assertCount(1, $targetTrans->transactionImages);
         $firstImg = $targetTrans->transactionImages->first();
-        $img = Storage::disk('public')->get($firstImg->path);
+        $img = Storage::disk('local')->get($firstImg->path);
         $this->assertEquals($base64Image, base64_encode($img));
 
         $updatedBase64Image = 'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC';
+        $newImgName = "another image";
         $updateData = [
             'account_id' => $this->creditCardAccount->id,
             'transaction_date' => '2024-06-10',
@@ -932,8 +939,23 @@ class TransactionTest extends TestCase
                     'percent' => 50
                 ]
             ],
-            'images_base64' => [ $base64Meta . $updatedBase64Image ],
+            'new_images' => [
+                [
+                    'base64' => $base64Meta . $updatedBase64Image,
+                    'name' => $newImgName
+                ]
+            ],
         ];
+        $existingImg = $targetTrans->transactionImages->first();
+        $updatedName = 'this is the first img, now updated';
+        $existing = [
+            'path' => $existingImg->path,
+            'name' => $updatedName,
+            'id' => $existingImg->id
+        ];
+        $updateData['existing_images'] = [ $existing ];
+
+
         $this->assertEquals(1, $this->user->transactions()->count());
         $response = $this->patch(
             '/transactions/update/' . $targetTrans->id,
@@ -947,7 +969,12 @@ class TransactionTest extends TestCase
             $updatedBase64Image
         ];
         foreach ($targetTrans->transactionImages as $img) {
-            $this->assertContains(base64_encode(Storage::disk('public')->get($img->path)), $expectedImages);
+            $this->assertContains(base64_encode(Storage::disk('local')->get($img->path)), $expectedImages);
+            if ($img->id === $existing['id']) {
+                $this->assertEquals($updatedName, $img->name);
+            } else {
+                $this->assertEquals($newImgName, $img->name);
+            }
             $img->delete();
         }
     }
@@ -968,13 +995,24 @@ class TransactionTest extends TestCase
         $base64Image_1 = 'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC';
         $base64_1 = $base64Meta . $base64Image_1;
         $trans = new Transaction();
+        $imgName = 'test_image';
+        $imgName1 = 'test_image1';
         $data = [
             'account_id' => $this->savingsAccount->id,
             'transaction_date' => '2024-06-10',
             'amount' => 100,
             'credit' => false,
             'description' => 'test',
-            'images_base64' => [ $base64, $base64_1 ],
+            'new_images' => [
+                [
+                    'base64' => $base64,
+                    'name'=> $imgName
+                ],
+                [
+                    'base64' => $base64_1,
+                    'name'=> $imgName1
+                ],
+            ],
             'is_credit' => false,
             'categories' => [
                 [
@@ -993,10 +1031,10 @@ class TransactionTest extends TestCase
 
         $this->assertCount(2, $targetTrans->transactionImages);
         $keepImg = $targetTrans->transactionImages->first();
-        $file = Storage::disk('public')->get($keepImg->path);
+        $file = Storage::disk('local')->get($keepImg->path);
         $this->assertEquals($base64Image, base64_encode($file));
         $deleteImg = $targetTrans->transactionImages->last();
-        $file1 = Storage::disk('public')->get($deleteImg->path);
+        $file1 = Storage::disk('local')->get($deleteImg->path);
         $this->assertEquals($base64Image_1, base64_encode($file1));
 
         $updateData = [
@@ -1007,7 +1045,7 @@ class TransactionTest extends TestCase
             'credit' => true,
             'note' => 'an updated note',
             'edit_child_transactions' => true,
-            'images' => [ $keepImg->toArray() ],
+            'existing_images' => [ $keepImg->toArray() ],
             'categories' => [
                 [
                     'cat_data' => [
@@ -1036,8 +1074,8 @@ class TransactionTest extends TestCase
         $this->assertCount(1, $targetTrans->transactionImages);
         $img = $targetTrans->transactionImages->first();
         $this->assertEquals($keepImg->path, $img->path);
-        $this->assertNotNull(Storage::disk('public')->get($keepImg->path));
-        $this->assertNull(Storage::disk('public')->get($deleteImg->path));
+        $this->assertNotNull(Storage::disk('local')->get($keepImg->path));
+        $this->assertNull(Storage::disk('local')->get($deleteImg->path));
         $keepImg->delete();
     }
 
@@ -1210,12 +1248,12 @@ class TransactionTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page
                  ->component('Transactions')
                  ->has('data.transactions_in_range', 2,  fn (Assert $page) => $page
-                    ->where('amount', $transaction->amount / 100)
+                    ->where('amount', strval($transaction->amount / 100))
                     ->where('amount_raw', $transaction->amount)
                     ->etc()
                  )
                  ->has('data.transactions_in_range.1', fn (Assert $page) => $page
-                    ->where('amount', $transaction2->amount / 100)
+                    ->where('amount', strval($transaction2->amount / 100))
                     ->where('amount_raw', $transaction2->amount)
                     ->etc()
                  )
@@ -1243,7 +1281,7 @@ class TransactionTest extends TestCase
         )->assertInertia(fn (Assert $page) => $page
                  ->component('Transactions')
                  ->has('data.transactions_in_range', 1,  fn (Assert $page) => $page
-                    ->where('amount', $transaction->amount / 100)
+                    ->where('amount', strval($transaction->amount / 100))
                     ->where('amount_raw', $transaction->amount)
                     ->etc()
                  )
@@ -1264,13 +1302,19 @@ class TransactionTest extends TestCase
         $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
         $base64 = $base64Meta . $base64Image;
         $trans = new Transaction();
+        $imgName = 'test image';
         $data = [
             'account_id' => $this->savingsAccount->id,
             'transaction_date' => '2024-06-10',
             'amount' => 100,
             'credit' => false,
             'description' => 'test',
-            'images_base64' => [ $base64 ],
+            'new_images' => [
+                [
+                    'base64' => $base64,
+                    'name' => $imgName
+                ]
+            ],
             'is_credit' => false,
             'categories' => [
                 [
@@ -1287,9 +1331,10 @@ class TransactionTest extends TestCase
         $expectedTrans = $createdTrans->first();
         $this->assertCount(1, $expectedTrans->transactionImages);
         $transImg = $expectedTrans->transactionImages->first();
-        $imgFqpn = $transImg->path;
-        $img = Storage::disk('public')->get($imgFqpn);
+        $imgPath = $transImg->path;
+        $img = Storage::disk('local')->get($imgPath);
         $this->assertEquals($base64Image, base64_encode($img));
+        $this->assertEquals($imgName, $transImg->name);
         $params = [
             'start' => '2024-06-01',
             'end' => '2024-06-30',
@@ -1298,12 +1343,12 @@ class TransactionTest extends TestCase
         $this->get(
             '/transactions?' . $query
         )->assertInertia(
-            function (Assert $page) use ($imgFqpn) {
+            function (Assert $page) use ($imgPath) {
                 $data = $page->toArray()['props']['data'];
                 $transInRange = $data['transactions_in_range'];
                 $this->assertCount(1, $transInRange);
-                $this->assertCount(1, $transInRange[0]['images']);
-                $this->assertEquals($imgFqpn, $transInRange[0]['images'][0]['path']);
+                $this->assertCount(1, $transInRange[0]['existing_images']);
+                $this->assertEquals($imgPath, $transInRange[0]['existing_images'][0]['path']);
                 return $page->component('Transactions');
             }
         );
@@ -1368,13 +1413,19 @@ class TransactionTest extends TestCase
         $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
         $base64 = $base64Meta . $base64Image;
         $trans = new Transaction();
+        $imgName = 'test_image';
         $data = [
             'account_id' => $this->savingsAccount->id,
             'transaction_date' => '2024-06-10',
             'amount' => 100,
             'credit' => false,
             'description' => 'test',
-            'images_base64' => [ $base64 ],
+            'new_images' => [
+                [
+                    'base64' => $base64,
+                    'name' => $imgName
+                ]
+            ],
             'is_credit' => false,
             'categories' => [
                 [
@@ -1391,11 +1442,11 @@ class TransactionTest extends TestCase
         $toDelete = $createdTrans->first();
         $transImg = $toDelete->transactionImages->first();
         $toDeleteImgPath = $transImg->path;
-        $img = Storage::disk('public')->get($toDeleteImgPath);
+        $img = Storage::disk('local')->get($toDeleteImgPath);
         $this->assertEquals($base64Image, base64_encode($img));
         $response = $this->delete(route('transactions.destroy', [ 'id' => $toDelete->id ]));
         $response->assertStatus(302);
-        $this->assertNull(Storage::disk('public')->get($toDeleteImgPath));
+        $this->assertNull(Storage::disk('local')->get($toDeleteImgPath));
     }
 
     #[Group('transactions')]
