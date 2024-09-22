@@ -6,6 +6,7 @@
         "dev": "vite",
         "build": "vite build",
         "test": "vitest run --dom",
+        "vitest": "vitest -t 'Add an Existing Cat button with percentages'",
         "test-watch": "vitest --dom",
         "coverage": "vitest run --coverage",
         "watch": "vite build --watch"

@@ -7,50 +7,48 @@ import ToggleSlider from '@/Components/ToggleSlider.vue';
 import CategoryInputs from '@/Components/CategoryInputs.vue';
 let wrapper;
 
-const props = {
-  totalAmount: "",
-  categories: [],
-  categoryTypes: [
-    {
-      id: 1,
-      name: "Food",
-      hex_color: "#111111"
-    },
-    {
-      id: 2,
-      name: "Vehicle",
-      hex_color: "#222222"
-    },
-  ],
-  availableCategories: [
-    {
-      cat_id: 1,
-      name: "Eggs",
-      cat_type_id: 1,
-      cat_type_name: "Food",
-      hex_color: "#FF0000"
-    },
-    {
-      cat_id: 2,
-      name: "Bacon",
-      cat_type_id: 1,
-      cat_type_name: "Food",
-      hex_color: "#FF3546"
-    }
-  ],
-  errors: {}
-};
 let addCatBtnId = null;
 let createCatBtnId = null;
 let addLineItemBttnId = null;
 let calcPercentagesButtonId = null;
 let taxElId = null;
+let props = {};
 beforeEach(() => {
-  wrapper = mount(TransactionCategory,
-    {
-      props: props
-    }
-  );
+  props = structuredClone({
+    totalAmount: "",
+    categories: [],
+    categoryTypes: [
+      {
+        id: 1,
+        name: "Food",
+        hex_color: "#111111"
+      },
+      {
+        id: 2,
+        name: "Vehicle",
+        hex_color: "#222222"
+      },
+    ],
+    availableCategories: [
+      {
+        cat_id: 1,
+        name: "Eggs",
+        cat_type_id: 1,
+        cat_type_name: "Food",
+        hex_color: "#FF0000"
+      },
+      {
+        cat_id: 2,
+        name: "Bacon",
+        cat_type_id: 1,
+        cat_type_name: "Food",
+        hex_color: "#FF3546"
+      }
+    ],
+    errors: {}
+  });
+  wrapper = mount(TransactionCategory, { props: props });
+
   const uuid = wrapper.vm.uuid;
   addCatBtnId = `add-cat-button-0-${uuid}`;
   taxElId = `tax-amount-0-${uuid}`;
