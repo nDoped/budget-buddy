@@ -43,10 +43,7 @@
 </script>
 
 <template>
-  <div
-    class="w-32 h-40 bg-cover bg-no-repeat bg-center mb-4"
-    :class="{'h-32': model.base64}"
-  >
+  <div class="w-32 bg-cover bg-no-repeat bg-center">
     <div class="flex flex-col mr-2">
       <InputLabel
         :for="getUuid('name')"

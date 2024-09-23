@@ -2,6 +2,7 @@ select count(*) from transactions;
 select * from transactions;
 select * from transaction_images;
 describe transaction_images;
+delete from transaction_images where id =10;
 describe transaction;
 update
 show tables;

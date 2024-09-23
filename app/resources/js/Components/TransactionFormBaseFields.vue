@@ -179,6 +179,7 @@
             <div class="m-2">
               <CurrencyInput
                 ref="currencyInputEl"
+                :input-id="getUuid('amount')"
                 :error-message="errors.amount"
                 v-model="model.amount"
               />
@@ -303,7 +304,8 @@
           </SecondaryButton>
           <div class="m-4 flex flex-row place-content-between">
             <div v-if="model.existing_images && model.existing_images.length > 0">
-              <div class="flex flex-row">
+              <h1 class="text-xl font-bold text-gray-700 dark:text-gray-300 text-center">Existing</h1>
+              <div class="flex flex-row flex-wrap">
                 <TransactionImage
                   v-for="(image, index) in model.existing_images"
                   :key="index"
@@ -314,7 +316,8 @@
             </div>
 
             <div v-if="model.new_images && model.new_images.length > 0">
-              <div class="flex flex-row">
+              <h1 class="text-xl font-bold text-gray-700 dark:text-gray-300 text-center">New</h1>
+              <div class="flex flex-row flex-wrap">
                 <TransactionImage
                   v-for="(image, index) in model.new_images"
                   :key="index"
