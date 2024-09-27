@@ -8,10 +8,10 @@
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
-  //import SectionBorder from '@/Components/SectionBorder.vue';
   import DangerButton from '@/Components/DangerButton.vue';
   import TransactionCategory from '@/Components/TransactionCategory.vue';
   import TransactionFormBaseFields from '@/Components/TransactionFormBaseFields.vue';
+  import TransactionFiles from '@/Components/TransactionFiles.vue';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
@@ -91,7 +91,8 @@
     bank_identifier: props.transaction.bank_identifier,
     categories: props.transaction.categories,
     new_images: [],
-    existing_images: props.transaction.existing_images
+    existing_images: props.transaction.existing_images,
+    uploaded_file: null
   });
 
   watch(
@@ -107,6 +108,7 @@
       form.existing_images = props.transaction.existing_images;
       form.new_images = [];
       form.categories = props.transaction.categories;
+      form.uploaded_file = null;
     }
   );
 
@@ -143,7 +145,7 @@
     }
     showRecurringEditDialogue.value = false;
 
-    form.patch(route('transactions.update', { transaction: props.transaction.id }), {
+    form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
       onSuccess: (data) => success(false, data.props.data.transactions_updated_count),
       onError: (err) =>  {
@@ -200,13 +202,18 @@
             You have unsaved changes
           </p>
           <TransactionFormBaseFields
-            v-model="form"
+            v-model:amount="form.amount"
+            v-model:transaction-date="form.transaction_date"
+            v-model:credit="form.credit"
+            v-model:account-id="form.account_id"
+            v-model:note="form.note"
+            v-model:bank-identifier="form.bank_identifier"
             :accounts="accounts"
             :errors="form.errors"
           />
 
           <!-- categories -->
-          <div class="m-2 bg-slate-500 ">
+          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
             <TransactionCategory
               :total-amount="form.amount"
               :categories="props.transaction.categories"
@@ -215,6 +222,14 @@
               :key="transCatCounter"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
+            />
+          </div>
+
+          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
+            <TransactionFiles
+              v-model:new-images="form.new_images"
+              v-model:existing-images="form.existing_images"
+              v-model:uploaded-file="form.uploaded_file"
             />
           </div>
 

@@ -1,11 +1,23 @@
 <script setup>
-  import { onMounted, ref } from 'vue';
+  import {
+    onMounted,
+    watch,
+    ref
+  } from 'vue';
   import { forceMonetaryInput } from '@/lib.js';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
   const input = ref(null);
 
   const model = defineModel({type: String, default: ''});
+  const value = ref(parseFloat(model.value));
+  watch(value, () => {
+    model.value = String(value.value);
+  });
+  watch(model, () => {
+    value.value = (model.value) ? parseFloat(model.value) : "";
+  });
+
   defineProps({
     label: {
       type: String,
@@ -45,7 +57,9 @@
       <input
         :id="inputId"
         ref="input"
-        v-model="model"
+        v-model="value"
+        step="0.01"
+        type="number"
         @keypress="forceMonetaryInput($event)"
         class="w-48 !pl-7 pb-2.5 pt-2.5 bg-gray-50 border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
         :class="extraClasses"
@@ -60,3 +74,17 @@
     />
   </div>
 </template>
+
+<style>
+/* Hide the spin buttons in WebKit browsers */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide spin buttons in Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+</style>

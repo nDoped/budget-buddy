@@ -98,7 +98,7 @@ class TransactionController extends Controller
         $accounts = Account::where('user_id', '=', $current_user->id)->get();
         foreach ($accounts as $acct) {
             $data['accounts'][] = [
-                'id' => $acct->id,
+                'id' => strval($acct->id),
                 'name' => $acct->name,
             ];
         }
@@ -184,31 +184,6 @@ class TransactionController extends Controller
                 [ 'use_session_filter_dates' => true ]
             )->with('transactions_updated_count', $updatedTransCnt);
     }
-
-    /**
-     *
-     * @param  \App\Http\Requests\TransactionPostRequest $request
-     * @param  \App\Models\Transaction  $transaction
-     */
-    /* public function uploadReceipt(TransactionPostRequest $request, Transaction $transaction) */
-    /* { */
-    /*     $file = $request->file('photo'); */
-    /*     $path = $file->store('receipt_uploads'); */
-    /*     $image = new \Imagick($file->getPathName()); */
-    /*     $image->resizeImage(300, 1100, \Imagick::FILTER_LANCZOS, 1); */
-    /*     $image->setImageFormat('png'); */
-    /*     $image->writeImage($file->getPathName()); */
-    /*     $ocr = new TesseractOCR($file->getPathName()); */
-    /*     $ocr->lang('eng'); // Set the language to English */
-    /*     $ocr->allowlist(range('A', 'Z'), range('a', 'z'), range(0, 9)); // Set the whitelist to alphanumeric characters */
-    /*     Log::info([ */
-    /*         'app/Http/Controllers/TransactionController.php:272 file' => $file->getPathName(), */
-    /*         'app/Http/Controllers/TransactionController.php:278 k' => $ocr->run() */
-    /*     ]); */
-    /*     return json_encode([ */
-    /*         'data' => 'hi' */
-    /*     ]); */
-    /* } */
 
     /**
      * Remove the specified resource from storage.

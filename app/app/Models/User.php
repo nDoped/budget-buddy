@@ -155,7 +155,7 @@ class User extends Authenticatable
                     $type = AccountType::find($acct->type_id);
                     $data['transactions_to_range'][] = [
                         'amount_raw' => $trans->amount,
-                        'account_id' => $acct->id,
+                        'account_id' => strval($acct->id),
                         'asset' => ($trans->credit) ? true : false,
                     ];
                 }
@@ -250,17 +250,20 @@ class User extends Authenticatable
 
             $existing_images =  $trans->transactionImages;
             foreach ($existing_images as &$transImg) {
-                $path = storage_path() . '/app/' . $transImg->path;
-                $img = new \Imagick($path);
-                $img->thumbnailImage(100, 0);
-                $imgType = pathinfo($path, PATHINFO_EXTENSION);
-                $base64 = 'data:image/' . $imgType . ';base64,' . base64_encode($img->getImageBlob());
-                $transImg['thumbnail'] = $base64;
+                $allowedMimeTypes = [ 'image/png', 'image/jpeg' ];
+                if (in_array(Storage::mimeType($transImg->path), $allowedMimeTypes)) {
+                    $path = storage_path() . '/app/' . $transImg->path;
+                    $img = new \Imagick($path);
+                    $img->thumbnailImage(100, 0);
+                    $imgType = pathinfo($path, PATHINFO_EXTENSION);
+                    $base64 = 'data:image/' . $imgType . ';base64,' . base64_encode($img->getImageBlob());
+                    $transImg['thumbnail'] = $base64;
+                }
             }
             $data['transactions_in_range'][] = [
                 'amount_raw' => $trans->amount,
                 'amount' => strval($trans->amount / 100),
-                'account_id' => $acct->id,
+                'account_id' => strval($acct->id),
                 'account' => $acct->name,
                 'account_type' => $type->name,
                 'asset_text' => ($trans->credit) ? 'Credit' : 'Debit',

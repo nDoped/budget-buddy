@@ -44,7 +44,7 @@
   const props = defineProps({
     totalAmount: {
       type: String,
-      required: true
+      default: ""
     },
     categories: {
       type: Array,
@@ -320,37 +320,38 @@
 </script>
 
 <template>
-  <div>
+  <div class="ml-4">
     <ToggleSlider
       v-model="calcCatsByReciept"
       @update:model-value="receiptToggleEventHandler"
       label="Enter receipt line items"
+      class="ml-2"
     />
 
     <template v-if="! calcCatsByReciept">
-      <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
-        <SecondaryButton
-          :id="getUuid('add-cat-button')"
-          class="m-4"
-          type="button"
-          @click="addCategory"
-        >
-          Add an Existing Cat
-        </SecondaryButton>
-        <SecondaryButton
-          :id="getUuid('create-cat-button')"
-          class="m-4"
-          type="button"
-          @click="createANewCategory"
-        >
-          Create a New Cat
-        </SecondaryButton>
+      <div class="max-w-7xl  sm:px-6 lg:px-8">
+        <div class="bg-slate-500 sm:rounded-lg">
+          <SecondaryButton
+            :id="getUuid('add-cat-button')"
+            type="button"
+            @click="addCategory"
+          >
+            Add an Existing Cat
+          </SecondaryButton>
+          <SecondaryButton
+            :id="getUuid('create-cat-button')"
+            type="button"
+            @click="createANewCategory"
+          >
+            Create a New Cat
+          </SecondaryButton>
+        </div>
       </div>
 
       <InputError :message="percentError" />
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div
-          class="flex flex-wrap bg-slate-500 mr-4"
+          class="flex flex-wrap bg-slate-500 ml-5 mr-4"
           :class="{'border border-red-600 dark:border-red-400': percentError}"
         >
           <div
@@ -407,7 +408,7 @@
     </template>
 
     <template v-else>
-      <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
+      <div class="ml-6 flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div class="m-1">
           <CurrencyInput
             :input-id="getUuid('tax-amount')"
@@ -462,7 +463,7 @@
       <InputError :message="subTotalError" />
       <div class="flex flex-col md:flex-row content-between dark:bg-slate-500">
         <div
-          class="flex flex-wrap bg-slate-500 mr-4"
+          class="flex flex-wrap bg-slate-500 ml-4 mr-4"
           :class="{'border border-red-600 dark:border-red-400': subTotalError}"
         >
           <div

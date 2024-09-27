@@ -40,8 +40,7 @@ Route::middleware([
 
     Route::get('/transactions', [ TransactionController::class, 'index' ])->name('transactions');
     Route::post('/transactions/store', [ TransactionController::class, 'store' ])->name('transactions.store');
-    Route::patch('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transactions.update');
-    /* Route::post('/transactions/upload-receipt', [ TransactionController::class, 'uploadReceipt' ])->name('transactions.upload_receipt'); */
+    Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transactions.update');
     Route::delete('/transactions/destroy/{id}', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
     Route::patch('/categories/update/{category}', [ CategoryController::class, 'update' ])->name('categories.update');
     Route::delete('/categories/destroy/{id}', [ CategoryController::class, 'destroy' ])->name('categories.destroy');

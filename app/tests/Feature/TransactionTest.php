@@ -430,7 +430,7 @@ class TransactionTest extends TestCase
             'categories' => []
 
         ];
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $this->savingsTransaction0->id,
             $updateData
         );
@@ -489,7 +489,7 @@ class TransactionTest extends TestCase
             }
         }
 
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $this->savingsTransaction0->id,
             $updateData
         );
@@ -561,7 +561,7 @@ class TransactionTest extends TestCase
 
         $this->withoutExceptionHandling();
         try {
-            $this->patch(
+            $this->post(
                 '/transactions/update/' . $this->savingsTransaction0->id,
                 $updateData
             );
@@ -618,7 +618,7 @@ class TransactionTest extends TestCase
                 ]
             ],
         ];
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $this->savingsTransaction0->id,
             $updateData
         );
@@ -721,7 +721,7 @@ class TransactionTest extends TestCase
             $this->_checkCategories($childBuddy, $originalCategoryData);
         }
 
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $this->savingsTransaction0->id,
             $updateData
         );
@@ -841,7 +841,7 @@ class TransactionTest extends TestCase
         }
 
         $child = $this->savingsTransaction0->children()->first();
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $child->id,
             $updateData
         );
@@ -957,7 +957,7 @@ class TransactionTest extends TestCase
 
 
         $this->assertEquals(1, $this->user->transactions()->count());
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $targetTrans->id,
             $updateData
         );
@@ -1065,7 +1065,7 @@ class TransactionTest extends TestCase
                 ]
             ],
         ];
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $targetTrans->id,
             $updateData
         );
@@ -1172,7 +1172,7 @@ class TransactionTest extends TestCase
         }
 
         $child = $this->savingsTransaction0->children()->first();
-        $response = $this->patch(
+        $response = $this->post(
             '/transactions/update/' . $child->id,
             $updateData
         );

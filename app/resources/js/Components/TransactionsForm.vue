@@ -8,6 +8,7 @@
   import InputError from '@/Components/InputError.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import TransactionCategory from '@/Components/TransactionCategory.vue';
+  import TransactionFiles from '@/Components/TransactionFiles.vue';
   import TransactionFormBaseFields from '@/Components/TransactionFormBaseFields.vue';
   import TextArea from '@/Components/TextArea.vue';
   import Checkbox from '@/Components/Checkbox.vue';
@@ -85,7 +86,8 @@
     trans_buddy_account: '',
     trans_buddy_note: null,
     frequency: "monthly",
-    new_images: []
+    new_images: [],
+    uploaded_file: null
   });
 
   const categoriesInvalid = ref(false);
@@ -106,13 +108,21 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-slate-500 overflow-hidden shadow-sm sm:rounded-lg">
         <form @submit.prevent="submit">
-          <TransactionFormBaseFields
-            v-model="form"
-            class="m-4"
-            :accounts="accounts"
-            :errors="form.errors"
-          />
-          <div class="m-4 bg-slate-500">
+          <div class="pt-4 pb-4">
+            <TransactionFormBaseFields
+              v-model:transaction-date="form.transaction_date"
+              v-model:amount="form.amount"
+              v-model:credit="form.credit"
+              v-model:account-id="form.account_id"
+              v-model:note="form.note"
+              v-model:bank-identifier="form.bank_identifier"
+              class="m-4 "
+              :accounts="accounts"
+              :errors="form.errors"
+            />
+          </div>
+
+          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
             <TransactionCategory
               :available-categories="categories"
               :total-amount="form.amount"
@@ -124,160 +134,175 @@
             />
           </div>
 
-          <div class="pt-4 pb-4 flex flex-wrap bg-slate-500 border-t border-b border-gray-200">
-            <div class="ml-6">
-              <div class="flex flex-col sm:flex-row">
-                <InputLabel
-                  for="recurring"
-                  value="Make this a recurring transaction?"
-                  class="mb-1 sm:mr-2 sm:mb-0"
-                />
-                <Checkbox
-                  id="recurring"
-                  v-model:checked="form.recurring"
-                  name="recurring"
-                />
-                <InputError
-                  class="mt-2"
-                  :message="form.errors.recurring"
-                />
+          <div class="pt-4 pb-4  bg-slate-500 border-t border-gray-200">
+            <TransactionFiles
+              v-model:uploaded-file="form.uploaded_file"
+              v-model:new-images="form.new_images"
+            />
+          </div>
+
+          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row">
+              <div class="ml-8">
+                <div class="flex flex-row">
+                  <InputLabel
+                    for="recurring"
+                    value="Make this a recurring transaction?"
+                    class="mb-1 sm:mr-2 sm:mb-0"
+                  />
+                  <Checkbox
+                    id="recurring"
+                    v-model:checked="form.recurring"
+                    name="recurring"
+                    class="ml-2"
+                  />
+                  <InputError
+                    class="mt-2"
+                    :message="form.errors.recurring"
+                  />
+                </div>
+
+                <div class="ml-3">
+                  <template v-if="form.recurring">
+                    <div class="flex flex-col sm:mt-3 sm:flex-row">
+                      <div class="flex flex-col">
+                        <InputLabel
+                          for="frequency"
+                          value="Frequency"
+                        />
+                        <select
+                          required
+                          id="frequency"
+                          v-model="form.frequency"
+                          class="mt-1 w-fit bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        >
+                          <option
+                            value=""
+                            selected
+                            disabled
+                            hidden
+                          >
+                            Select Frequency...
+                          </option>
+
+                          <option value="yearly">
+                            Yearly
+                          </option>
+
+                          <option value="quarterly">
+                            Quarterly
+                          </option>
+
+                          <option value="monthly">
+                            Monthly
+                          </option>
+
+                          <option value="biweekly">
+                            Bi-Weekly
+                          </option>
+                        </select>
+
+                        <InputError
+                          :message="form.errors.frequency"
+                          class="mt-2"
+                        />
+                      </div>
+
+                      <div class="pl-0 pr-0 sm:pl-4 sm:pr-4">
+                        <InputLabel
+                          for="recurring_end_date"
+                          value="End Date"
+                        />
+                        <InputDate
+                          id="date"
+                          class="mt-1"
+                          v-model="form.recurring_end_date"
+                        />
+                        <InputError
+                          :message="form.errors.recurring_end_date"
+                          class="mt-2"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </div>
               </div>
 
-              <div class="flex flex-col sm:flex-row sm:mt-2">
-                <template v-if="form.recurring">
-                  <div class="">
-                    <InputLabel
-                      for="frequency"
-                      value="Frequency"
-                    />
-                    <select
-                      required
-                      id="frequency"
-                      v-model="form.frequency"
-                      class="mt-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option
-                        value=""
-                        selected
-                        disabled
-                        hidden
-                      >
-                        Select Frequency...
-                      </option>
+              <div class="ml-8">
+                <div class="flex flex-row">
+                  <InputLabel
+                    for="trans_buddy"
+                    value="Create a transaction buddy?"
+                    class="mb-1 sm:mr-2 sm:mb-0"
+                  />
+                  <Checkbox
+                    id="trans_buddy"
+                    v-model:checked="form.trans_buddy"
+                    name="trans_buddy"
+                    class="ml-2"
+                  />
+                  <InputError
+                    class="mt-2"
+                    :message="form.errors.trans_buddy"
+                  />
+                </div>
 
-                      <option value="yearly">
-                        Yearly
-                      </option>
+                <div class="flex flex-col sm:flex-row sm:mt-3 ml-3">
+                  <template v-if="form.trans_buddy">
+                    <div class="flex flex-col sm:flex-row">
+                      <div>
+                        <InputLabel
+                          for="trans_buddy_account"
+                          value="Buddy Account"
+                        />
+                        <select
+                          id="trans_buddy_account"
 
-                      <option value="quarterly">
-                        Quarterly
-                      </option>
+                          v-model="form.trans_buddy_account"
+                          class="mt-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-fit p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        >
+                          <option
+                            value=""
+                            selected
+                            disabled
+                            hidden
+                          >
+                            Select a Buddy...
+                          </option>
+                          <option
+                            v-for="account in accounts"
+                            :key="account + ':' + account.id"
+                            :value="account.id"
+                          >
+                            {{ account.name }}
+                          </option>
+                        </select>
+                        <InputError
+                          :message="form.errors.trans_buddy_account"
+                          class="mt-2"
+                        />
+                      </div>
+                    </div>
 
-                      <option value="monthly">
-                        Monthly
-                      </option>
-
-                      <option value="biweekly">
-                        Bi-Weekly
-                      </option>
-                    </select>
-
-                    <InputError
-                      :message="form.errors.frequency"
-                      class="mt-2"
-                    />
-                  </div>
-
-                  <div class="pl-0 pr-0 sm:pl-4 sm:pr-4">
-                    <InputLabel
-                      for="recurring_end_date"
-                      value="End Date"
-                    />
-                    <InputDate
-                      id="date"
-                      class="mt-1"
-                      v-model="form.recurring_end_date"
-                    />
-                    <InputError
-                      :message="form.errors.recurring_end_date"
-                      class="mt-2"
-                    />
-                  </div>
-                </template>
-              </div>
-            </div>
-
-            <div class="ml-6">
-              <div class="flex flex-col sm:flex-row">
-                <InputLabel
-                  for="trans_buddy"
-                  value="Create a transaction buddy?"
-                  class="mb-1 sm:mr-2 sm:mb-0"
-                />
-                <Checkbox
-                  id="trans_buddy"
-                  v-model:checked="form.trans_buddy"
-                  name="trans_buddy"
-                />
-                <InputError
-                  class="mt-2"
-                  :message="form.errors.trans_buddy"
-                />
-              </div>
-
-              <div class="flex flex-col sm:flex-row sm:mt-2">
-                <template v-if="form.trans_buddy">
-                  <div>
-                    <InputLabel
-                      for="trans_buddy_account"
-                      value="Buddy Account"
-                    />
-                    <select
-                      id="trans_buddy_account"
-
-                      v-model="form.trans_buddy_account"
-                      class="mt-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option
-                        value=""
-                        selected
-                        disabled
-                        hidden
-                      >
-                        Select a Buddy...
-                      </option>
-                      <option
-                        v-for="account in accounts"
-                        :key="account + ':' + account.id"
-                        :value="account.id"
-                      >
-                        {{ account.name }}
-                      </option>
-                    </select>
-                    <InputError
-                      :message="form.errors.trans_buddy_account"
-                      class="mt-2"
-                    />
-                  </div>
-
-                  <div class="pl-0 pr-0 sm:pl-4 sm:pr-4">
-                    <InputLabel
-                      for="trans_buddy_note"
-                      value="Buddy Note"
-                    />
-                    <TextArea
-                      id="trans_buddy_note"
-                      v-model="form.trans_buddy_note"
-                      type="text"
-                      class="mt-1 block w-full"
-                      autocomplete="note"
-                    />
-                    <InputError
-                      :message="form.errors.trans_buddy_note"
-                      class="mt-2"
-                    />
-                  </div>
-                </template>
+                    <div class="pl-0 pr-0 sm:pl-4 sm:pr-4">
+                      <InputLabel
+                        for="trans_buddy_note"
+                        value="Buddy Note"
+                      />
+                      <TextArea
+                        id="trans_buddy_note"
+                        v-model="form.trans_buddy_note"
+                        type="text"
+                        class="mt-1 block w-fit"
+                        autocomplete="note"
+                      />
+                      <InputError
+                        :message="form.errors.trans_buddy_note"
+                        class="mt-2"
+                      />
+                    </div>
+                  </template>
+                </div>
               </div>
             </div>
           </div>

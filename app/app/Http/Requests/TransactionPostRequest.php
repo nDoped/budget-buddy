@@ -53,6 +53,9 @@ class TransactionPostRequest extends FormRequest
                 'note' => [ 'nullable', 'string'],
                 'edit_child_transactions' => [ 'nullable', 'boolean'],
                 'new_images' => [ 'nullable', 'array'],
+                'new_images.*.base64' => [ 'required' ],
+                'new_images.*.name' => [ 'nullable' ],
+                'uploaded_file' => ['nullable', 'max:1024', 'mimes:jpeg,png,doc,docs,pdf'],
                 'categories' => [ 'nullable' ],
                 'categories.*.cat_data.name' => [ 'required' ],
             ];

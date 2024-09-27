@@ -101,8 +101,11 @@ class Transaction extends Model
         }
 
         $this->save();
-        if (array_key_exists('new_images', $data)) {
+        if (isset($data['new_images'])) {
             $this->_createImages($data['new_images']);
+        }
+        if (isset($data['uploaded_file'])) {
+            $this->_saveUploadedFile($data['uploaded_file']);
         }
 
         if (array_key_exists('trans_buddy', $data) && $data['trans_buddy']) {
@@ -148,6 +151,15 @@ class Transaction extends Model
             }
         }
         return $ret->push($this);
+    }
+
+    private function _saveUploadedFile(UploadedFile $file)
+    {
+        TransactionImage::create([
+            'transaction_id' => $this->id,
+            'name' => $file->getClientOriginalName(),
+            'path' => $file->store('/transaction_images/' . auth()->user()->id)
+        ]);
     }
 
     /**
@@ -215,7 +227,9 @@ class Transaction extends Model
                 $updatedTransactionCount++;
             }
         }
-        $this->_handleCategories($data['categories'], true, $updateChildren);
+        if (array_key_exists('categories', $data)) {
+            $this->_handleCategories($data['categories'], true, $updateChildren);
+        }
 
         $this->save();
         // delete any images before creating new ones, lest they be deleted too
@@ -236,8 +250,11 @@ class Transaction extends Model
                 }
             }
         }
-        if (array_key_exists('new_images', $data)) {
+        if (isset($data['new_images'])) {
             $this->_createImages($data['new_images']);
+        }
+        if (isset($data['uploaded_file'])) {
+            $this->_saveUploadedFile($data['uploaded_file']);
         }
         $updatedTransactionCount++;
         return $updatedTransactionCount;
