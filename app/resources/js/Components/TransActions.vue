@@ -51,7 +51,7 @@
 
   const fields = ref([
     { key: 'id', label: 'ID', sortable: true, searchable: true, color_text:false },
-    { key: 'dateSearchMatchText', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
+    { key: 'transaction_date', label: 'Transaction Date', sortable: true, searchable: true, color_text:false },
     { key: 'asset_text', label: 'Credit/Debit', sortable: true, color_text:true },
     { key: 'amountSearchMatchText', label: 'Amount', sortable:true, color_text:true, searchable:true, sortColumn: 'amount' },
     { key: 'accountSearchMatchText', label: 'Account', sortable:true, searchable: true, color_text:false },
@@ -89,7 +89,6 @@
       t.accountSearchMatchText = t.account;
       t.noteSearchMatchText = t.note;
       t.amountSearchMatchText = formatter.format(t.amount);
-      t.dateSearchMatchText = formatDate(t.transaction_date);
       t.categorySearchMatchText = fetchCatString(t);
       // use this member for search matches
       t.amountFormated = formatter.format(t.amount);
@@ -186,12 +185,6 @@
           t.amountSearchMatchText = buildMarkString(query, t.amountFormated);
         } else {
           t.amountSearchMatchText = t.amountFormated;
-        }
-
-        if (formatDate(t.transaction_date).includes(query)) {
-          t.dateSearchMatchText = buildMarkString(query, formatDate(t.transaction_date));
-        } else {
-          t.dateSearchMatchText = formatDate(t.transaction_date);
         }
 
         if (queryCategoryMatch(t, query)) {
