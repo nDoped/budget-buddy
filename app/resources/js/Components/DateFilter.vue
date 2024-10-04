@@ -64,7 +64,7 @@
       transEnd.value = transStart.value;
     }
   });
-  watch(() => transStart.value, () => {
+  watch(transStart, () => {
     if (useStartDate.value) {
       transEnd.value = transStart.value;
     }
@@ -72,7 +72,7 @@
 
   const filterData = ref({});
   const filterAccounts = ref({});
-  watch(() => filterAccounts.value, () => {
+  watch(filterAccounts, () => {
     filterData.value.filter_accounts = filterAccounts.value;
   });
 

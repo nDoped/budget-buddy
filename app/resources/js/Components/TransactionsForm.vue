@@ -314,7 +314,7 @@
               :disabled="form.processing"
               type="submit"
             >
-              Add Transaction
+              Create Transaction
             </PrimaryButton>
           </div>
         </form>

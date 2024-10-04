@@ -64,6 +64,12 @@
               <!-- Navigation Links -->
               <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                 <NavLink
+                  :href="route('create_transaction')"
+                  :active="route().current('create_transaction')"
+                >
+                  Create a Transaction
+                </NavLink>
+                <NavLink
                   :href="route('dashboard')"
                   :active="route().current('dashboard')"
                 >
@@ -289,6 +295,13 @@
           class="sm:hidden"
         >
           <div class="pt-2 pb-3 space-y-1">
+            <ResponsiveNavLink
+              :href="route('create_transaction')"
+              :active="route().current('create_transaction')"
+            >
+              Create a Transaction
+            </ResponsiveNavLink>
+
             <ResponsiveNavLink
               :href="route('dashboard')"
               :active="route().current('dashboard')"

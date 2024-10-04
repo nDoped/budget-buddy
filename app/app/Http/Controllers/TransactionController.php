@@ -93,19 +93,47 @@ class TransactionController extends Controller
         $data['end'] = $end;
         $data['transactions_created_count'] = session('transactions_created_count');
         $data['transactions_updated_count'] = session('transactions_updated_count');
-        $data['categories'] = $this->_fetch_categories();
-        $data['category_types'] = $this->_fetch_category_types();
-        $accounts = Account::where('user_id', '=', $current_user->id)->get();
-        foreach ($accounts as $acct) {
-            $data['accounts'][] = [
-                'id' => strval($acct->id),
-                'name' => $acct->name,
-            ];
-        }
+        list(
+            $data['accounts'],
+            $data['categories'],
+            $data['category_types']
+        ) = $this->_fetch_category_and_account_data();
+
         return Inertia::render('Transactions', [
             'data' => $data,
         ]);
     }
+
+    private function _fetch_category_and_account_data() : array
+    {
+        $current_user = Auth::user();
+        $categories = $this->_fetch_categories();
+        $category_types = $this->_fetch_category_types();
+        $accounts = [];
+        foreach ($current_user->accounts as $acct) {
+            $accounts[] = [
+                'id' => strval($acct->id),
+                'name' => $acct->name,
+            ];
+        }
+        return [ $accounts, $categories, $category_types ];
+    }
+
+
+    public function create_transaction() : \Inertia\Response
+    {
+        list(
+            $accounts,
+            $categories,
+            $category_types
+        ) = $this->_fetch_category_and_account_data();
+        return Inertia::render('CreateTransaction', [
+            'accounts' => $accounts,
+            'categories' => $categories,
+            'categoryTypes' => $category_types,
+        ]);
+    }
+
 
     /**
      * @return array

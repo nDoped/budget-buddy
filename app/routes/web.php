@@ -39,6 +39,7 @@ Route::middleware([
     Route::get('/dashboard', [ DashboardController::class, 'dashboard' ])->name('dashboard');
 
     Route::get('/transactions', [ TransactionController::class, 'index' ])->name('transactions');
+    Route::get('/create_transaction', [ TransactionController::class, 'create_transaction' ])->name('create_transaction');
     Route::post('/transactions/store', [ TransactionController::class, 'store' ])->name('transactions.store');
     Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transactions.update');
     Route::delete('/transactions/destroy/{id}', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');

@@ -1,7 +1,6 @@
 <script setup>
   import { inject, ref, onMounted, watch } from 'vue';
   import { useForm } from '@inertiajs/vue3'
-  import TransactionsForm from '@/Components/TransactionsForm.vue';
   import SearchInput from '@/Components/SearchInput.vue';
   import ElasticFrame from '@/Components/ElasticFrame.vue';
   import TransactionEditForm from '@/Components/TransactionEditForm.vue';
@@ -217,12 +216,6 @@
 
 <template>
   <div class="p-6 sm:px-20 bg-slate-100 dark:bg-slate-700 border-b border-gray-200">
-    <TransactionsForm
-      :accounts="accounts"
-      :categories="categories"
-      :category-types="categoryTypes"
-    />
-
     <ElasticFrame>
       <DateFilter
         :start="transStart"
