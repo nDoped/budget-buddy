@@ -18,6 +18,7 @@
   import {
     forceNumericalInput,
     focusElement,
+    randomUUID,
   } from '@/lib.js';
 
   interface Category {
@@ -257,7 +258,7 @@
   const catSelectBorder = (cat: Category) => {
     return `border: solid ${cat.cat_data.hex_color}; border-radius: 5px;`;
   };
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el, i = 0) => {
     return `${el}-${i}-${uuid}`;
   };

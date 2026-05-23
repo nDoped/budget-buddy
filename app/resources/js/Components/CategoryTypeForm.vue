@@ -1,5 +1,6 @@
 <script setup>
   import { useForm } from '@inertiajs/vue3'
+  import { randomUUID } from '@/lib.js';
   import { toast } from 'vue3-toastify';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
@@ -28,7 +29,7 @@
     });
   }
 
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el) => {
     return `${el}-${uuid}`;
   };

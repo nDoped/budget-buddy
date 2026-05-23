@@ -2,6 +2,7 @@
   import {
     ref
   } from 'vue';
+  import { randomUUID } from '@/lib.js';
   import Camera from '@/Components/CameraComponent.vue';
   import PrimaryButton from '@/Components/PrimaryButton.vue';
   import SecondaryButton from '@/Components/SecondaryButton.vue';
@@ -81,7 +82,7 @@
     photoPreview.value = null;
   };
 
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el, i = 0) => {
     return `${el}-${i}-${uuid}`;
   };

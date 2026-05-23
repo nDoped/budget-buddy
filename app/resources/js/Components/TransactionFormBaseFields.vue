@@ -3,6 +3,7 @@
     ref,
     onMounted
   } from 'vue';
+  import { randomUUID } from '@/lib.js';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputDate from '@/Components/InputDate.vue';
   import InputError from '@/Components/InputError.vue';
@@ -51,7 +52,7 @@
   onMounted(() => {
     currencyInputEl.value.focus();
   });
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el, i = 0) => {
     return `${el}-${i}-${uuid}`;
   };

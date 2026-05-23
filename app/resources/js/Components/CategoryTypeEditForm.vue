@@ -4,6 +4,7 @@
     watch
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
+  import { randomUUID } from '@/lib.js';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
   import ConfirmationModal from '@/Components/ConfirmationModal.vue';
@@ -91,7 +92,7 @@
     });
   }
 
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el) => {
     return `${el}-${uuid}`;
   };

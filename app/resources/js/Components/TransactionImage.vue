@@ -1,5 +1,6 @@
 <script setup>
   import axios from 'axios';
+  import { randomUUID } from '@/lib.js';
   import {
     ref,
     nextTick
@@ -26,7 +27,7 @@
       inputRef.value.select();
     });
   };
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el, i = 0) => {
     return `${el}-${i}-${uuid}`;
   };

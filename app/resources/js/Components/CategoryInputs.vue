@@ -1,4 +1,5 @@
 <script setup>
+  import { randomUUID } from '@/lib.js';
   import InputLabel from '@/Components/InputLabel.vue';
   import TextInput from '@/Components/TextInput.vue';
   import InputError from '@/Components/InputError.vue';
@@ -50,7 +51,7 @@
       emit('fieldUpdate', { name: newName, hex_color: newColor, type: newType, active: newActive});
     }
   );
-  const uuid = crypto.randomUUID();
+  const uuid = randomUUID();
   const getUuid = (el) => {
     return `${el}-${uuid}`;
   };
