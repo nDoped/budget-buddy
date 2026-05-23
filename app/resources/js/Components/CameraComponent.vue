@@ -41,17 +41,7 @@
       if (video.value) {
         video.value.srcObject = s;
       }
-      const [track] = s.getVideoTracks();
-      torchSupported.value = !!track?.getCapabilities?.()?.torch;
-      if (!torchSupported.value && typeof ImageCapture !== 'undefined') {
-        try {
-          const capture = new ImageCapture(track);
-          const caps = await capture.getPhotoCapabilities();
-          torchSupported.value = caps?.torch?.some?.((v: boolean) => v === true) ?? false;
-        } catch {
-          /* ImageCapture API not available */
-        }
-      }
+      torchSupported.value = true;
     } catch (err) {
       console.error("Error accessing the camera", err);
     }
