@@ -40,6 +40,11 @@ class Transaction extends Model
         return $this->belongsTo(Account::class);
     }
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class, 'parent_id');
+    }
+
     /**
      * Get transactions for this account
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -141,16 +146,15 @@ class Transaction extends Model
         $cats = array_key_exists('categories', $data) ? $data['categories'] : [];
         $this->_handleCategories($cats, false, true);
 
-        $ret = $this->children();
+        $children = $this->children();
+        $ret = collect($children->all());
         if ($this->buddy_id) {
             $ret->push($this->buddyTransaction());
         }
-        foreach ($this->children() as $child) {
-            if ($child->buddy_id) {
-                $ret->push($child->buddyTransaction());
-            }
-        }
-        return $ret->push($this);
+        $childBuddies = $children->filter(
+            fn($c) => !is_null($c->buddy_id)
+        )->map(fn($c) => $c->buddyTransaction());
+        return $ret->merge($childBuddies)->push($this);
     }
 
     private function _saveUploadedFile(UploadedFile $file)

@@ -160,12 +160,13 @@ class TransactionController extends Controller
     {
         $cats = [];
         $current_user = Auth::user();
-        $cat_itty = Category::where('user_id', '=', $current_user->id)
+        $cat_itty = Category::with('categoryType')
+            ->where('user_id', '=', $current_user->id)
             ->where('active', 1)
             ->orderBy('name')
             ->get();
         foreach ($cat_itty as $cat) {
-            $catt = CategoryType::find($cat->category_type_id);
+            $catt = $cat->categoryType;
             $cats[] = [
                 'name' => $cat->name,
                 'cat_id' => $cat->id,

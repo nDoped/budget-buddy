@@ -136,7 +136,7 @@ class User extends Authenticatable
 
         $transactions_in_range
             = $this->transactions()
-                   ->with('account.accountType', 'categories.categoryType', 'transactionImages')
+                   ->with('account.accountType', 'categories.categoryType', 'transactionImages', 'parent')
                    ->orderBy('transaction_date', $orderBy)
                    ->orderBy('buddy_id', $orderBy);
 
@@ -167,7 +167,30 @@ class User extends Authenticatable
         }
 
         $category_type_breakdowns = [];
-        foreach ($transactions_in_range->get() as $trans) {
+        $transactions = $transactions_in_range->get();
+
+        $childParentIds = $transactions->filter(fn($t) => !is_null($t->parent_id))->pluck('parent_id')->unique()->values();
+        $isLastChildLookup = [];
+        if ($childParentIds->isNotEmpty()) {
+            $siblingGroups = Transaction::whereIn('parent_id', $childParentIds)
+                ->whereNotNull('parent_id')
+                ->get(['id', 'parent_id', 'transaction_date'])
+                ->groupBy('parent_id');
+
+            foreach ($transactions as $trans) {
+                if (is_null($trans->parent_id)) {
+                    $isLastChildLookup[$trans->id] = false;
+                    continue;
+                }
+                $siblings = $siblingGroups->get($trans->parent_id, collect());
+                $hasLaterSibling = $siblings->contains(
+                    fn($s) => $s->id !== $trans->id && $s->transaction_date >= $trans->transaction_date
+                );
+                $isLastChildLookup[$trans->id] = !$hasLaterSibling;
+            }
+        }
+
+        foreach ($transactions as $trans) {
             $acct = $trans->account;
             $type = $acct->accountType;
             $categories = [];
@@ -285,9 +308,9 @@ class User extends Authenticatable
                 'id' => $trans->id,
                 'buddy_id' => $trans->buddy_id,
                 'parent_id' => $trans->parent_id,
-                'is_last_child' => $trans->isLastChild(),
+                'is_last_child' => $isLastChildLookup[$trans->id] ?? false,
                 'existing_images' =>  $trans->transactionImages,
-                'parent_transaction_date' => $trans->parentTransaction()?->transaction_date,
+                'parent_transaction_date' => $trans->parent?->transaction_date,
                 'categories' => $categories,
             ];
         }

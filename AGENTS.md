@@ -8,7 +8,6 @@ Everything runs inside `app/`:
 
 ```sh
 cd app
-cp .env.example .env
 vendor/bin/sale artisan key:generate
 vendor/bin/sale composer install && npm install
 vendor/bin/sale npm run build
