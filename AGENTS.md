@@ -8,21 +8,21 @@ Everything runs inside `app/`:
 
 ```sh
 cd app
-vendor/bin/sale artisan key:generate
-vendor/bin/sale composer install && npm install
-vendor/bin/sale npm run build
+vendor/bin/sail artisan key:generate
+vendor/bin/sail composer install && npm install
+vendor/bin/sail npm run build
 # needs MySQL on localhost:3306
-vendor/bin/sale artisan migrate && vendor/bin/sale artisan serve
+vendor/bin/sail artisan migrate && vendor/bin/sail artisan serve
 ```
 
 ## Test commands
 
 ```sh
 cd app
-vendor/bin/sale artisan test                     # all PHP backend tests (PHPUnit 11)
-vendor/bin/sale artisan test --group=transactions # run by PHP 8 #[Group] attributes
-vendor/bin/sale npm run test                         # vitest run --dom (frontend)
-vendor/bin/sale npm run test -- --mode production    # CI frontend, needs LARAVEL_BYPASS_ENV_CHECK=1
+vendor/bin/sail artisan test                     # all PHP backend tests (PHPUnit 11)
+vendor/bin/sail artisan test --group=transactions # run by PHP 8 #[Group] attributes
+vendor/bin/sail npm run test                         # vitest run --dom (frontend)
+vendor/bin/sail npm run test -- --mode production    # CI frontend, needs LARAVEL_BYPASS_ENV_CHECK=1
 ```
 
 Both are run in CI (`.github/workflows/php.yml`). Order there: `composer validate → npm install → npm run build → php artisan migrate → php artisan test → npm run test`.
@@ -44,8 +44,8 @@ Both are run in CI (`.github/workflows/php.yml`). Order there: `composer validat
 ## Dev tooling
 
 ```sh
-vendor/bin/sale npm run dev       # vite dev server
-vendor/bin/sale npm run watch     # vite build --watch
+vendor/bin/sail npm run dev       # vite dev server
+vendor/bin/sail npm run watch     # vite build --watch
 ./vendor/bin/phpstan  # PHP static analysis
 ./vendor/bin/pint     # Laravel PHP linter / formatter
 ```
@@ -53,5 +53,5 @@ vendor/bin/sale npm run watch     # vite build --watch
 ## Docker (Laravel Sail)
 
 ```sh
-cd app && vendor/bin/sale up -d  # MySQL 8, Redis, Meilisearch, Mailpit, Selenium
+cd app && vendor/bin/sail up -d  # MySQL 8, Redis, Meilisearch, Mailpit, Selenium
 ```
