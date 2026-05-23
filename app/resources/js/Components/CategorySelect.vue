@@ -3,6 +3,7 @@
   import {
     computed,
     onMounted,
+    onUnmounted,
     ref
   } from 'vue';
   import { focusElement } from '@/lib.js';
@@ -41,6 +42,11 @@
   const multiSelect = ref(null);
   onMounted(() => {
     multiSelect.value.$refs.search.addEventListener('keydown', preventBackspaceNavigation);
+  });
+  onUnmounted(() => {
+    if (multiSelect.value?.$refs?.search) {
+      multiSelect.value.$refs.search.removeEventListener('keydown', preventBackspaceNavigation);
+    }
   });
   const preventBackspaceNavigation = (ev) => {
     if (ev.key === 'Backspace') {

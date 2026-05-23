@@ -8,6 +8,8 @@ export const forceNumericalInput = (evt) => {
   }
 };
 
+let lastKeyPress = '';
+
 export const forceMonetaryInput = (event, allowNegativeValues = false, currencyCode = "USD") => {
   const currencyRegexs = {
     USD: {
@@ -29,7 +31,6 @@ export const forceMonetaryInput = (event, allowNegativeValues = false, currencyC
     // the first demical key press will not register until
     // the next numerical key is pressed. So we must store the
     // state to block multiple .'s in a row
-    const lastKeyPress = localStorage.getItem('lastKeyPress');
     if (key === '.'
       && (target.value.includes('.') || lastKeyPress === '.')
     ) {
@@ -58,7 +59,7 @@ export const forceMonetaryInput = (event, allowNegativeValues = false, currencyC
       //   event.preventDefault();
       // }
     }
-    localStorage.setItem("lastKeyPress", key);
+    lastKeyPress = key;
   }
 };
 

@@ -1,5 +1,5 @@
 <script setup>
-  import { inject, ref, onMounted, watch } from 'vue';
+  import { inject, ref, onMounted, onUnmounted, watch } from 'vue';
   import { useForm } from '@inertiajs/vue3'
   import SearchInput from '@/Components/SearchInput.vue';
   import ElasticFrame from '@/Components/ElasticFrame.vue';
@@ -79,6 +79,8 @@
   const searchText = ref('');
   const debouncedSearchText = ref('');
   let searchTimer;
+
+  onUnmounted(() => clearTimeout(searchTimer));
   const filteredTransactions = ref(props.transactions);
 
   const clearSearchResults = () => {

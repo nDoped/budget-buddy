@@ -1,4 +1,5 @@
 <script setup>
+  import { onUnmounted } from 'vue';
   import { MagnifyingGlassIcon } from "@heroicons/vue/24/solid";
 
   defineProps({
@@ -53,7 +54,7 @@
   const emit = defineEmits(["update:modelValue"]);
   const debounce = (fn, wait) => {
     let timer;
-    return function(...args){
+    const debounced = function(...args){
       if(timer) {
         clearTimeout(timer); // clear any pre-existing timer
       }
@@ -61,12 +62,15 @@
       timer = setTimeout(()=>{
         fn.apply(context, args); // call the function if time expires
       }, wait);
-    }
+    };
+    debounced.cancel = () => clearTimeout(timer);
+    return debounced;
   };
   const emitUpdate = (value) => {
     emit("update:modelValue", value);
   }
   const debouncedUpdateEmit = debounce(emitUpdate, 300);
+  onUnmounted(() => debouncedUpdateEmit.cancel());
 </script>
 
 <template>
