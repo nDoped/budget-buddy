@@ -903,7 +903,7 @@ class TransactionTest extends TestCase
                 ],
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $targetTrans = $createdTrans->first();
 
         $this->assertCount(1, $targetTrans->transactionImages);
@@ -1026,7 +1026,7 @@ class TransactionTest extends TestCase
                 ],
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $targetTrans = $createdTrans->first();
 
         $this->assertCount(2, $targetTrans->transactionImages);
@@ -1327,7 +1327,7 @@ class TransactionTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $expectedTrans = $createdTrans->first();
         $this->assertCount(1, $expectedTrans->transactionImages);
         $transImg = $expectedTrans->transactionImages->first();
@@ -1438,7 +1438,7 @@ class TransactionTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $toDelete = $createdTrans->first();
         $transImg = $toDelete->transactionImages->first();
         $toDeleteImgPath = $transImg->path;

@@ -87,7 +87,7 @@ class Transaction extends Model
      *                    its buddy, its children, and their buddies
      * @throws \InvalidArgumentException
      */
-    public function create(array $data): Collection
+    public function createTransaction(array $data): Collection
     {
         $this->amount = $data['amount'] * 100;
         $this->credit = ($data['credit']) ? true : false;
@@ -189,7 +189,7 @@ class Transaction extends Model
      * @return int A count of the number of transactions that were updated
      * @throws \InvalidArgumentException
      */
-    public function updateTrans(array $data): int
+    public function updateTransaction(array $data): int
     {
         $updatedTransactionCount = 0;
         $this->amount = $data['amount'] * 100;
@@ -268,7 +268,7 @@ class Transaction extends Model
      * @return bool
      * @throws \InvalidArgumentException
      */
-    public function deleteTrans(bool $deleteChildren = false): bool
+    public function deleteTransaction(bool $deleteChildren = false): bool
     {
         // we're deleting a parent and not wanting to delete all of the children
         // so we need to move the parent id for all children to the next in line
@@ -418,23 +418,20 @@ class Transaction extends Model
         }
 
         if ($updateChildren) {
-            // first clear all cats from the children
-            foreach ($this->children() as $child) {
+            $children = $this->children();
+            foreach ($children as $child) {
                 $child->categories()->detach();
             }
-            // now process the new cats for each child
             foreach ($data as $catData) {
                 $percent = $catData['percentage'];
                 $catModel = $catData['category'];
-                foreach ($this->children() as $child) {
+                foreach ($children as $child) {
                     $child
                         ->categories()
                         ->save(
                             $catModel,
                             [ 'percentage' => $percent * 100 ]
                         );
-                    // sync buddy categories on create only.. note that there's no
-                    // need to detach current categories since none should yet exist
                     if (! $isUpdate) {
                         $childBuddy = $child->buddyTransaction();
                         if ($childBuddy) {
@@ -643,11 +640,23 @@ class Transaction extends Model
         foreach ($imgs as $img) {
             $base64 = $img['base64'];
             $name = $img['name'];
-            @list(, $file_data) = explode(';', $base64);
-            @list(, $file_data) = explode(',', $file_data);
-            // save it to temporary dir first.
+            if (is_array($img) && ! isset($base64)) {
+                throw new \InvalidArgumentException('Missing base64 image data');
+            }
+            $parts = explode(';', $base64);
+            if (count($parts) < 2 || ! str_starts_with($parts[0], 'data:')) {
+                throw new \InvalidArgumentException('Invalid base64 image format');
+            }
+            $file_data = explode(',', $parts[1])[1] ?? null;
+            if (! $file_data) {
+                throw new \InvalidArgumentException('Missing image data after base64 header');
+            }
+            $decoded = base64_decode($file_data, true);
+            if ($decoded === false) {
+                throw new \InvalidArgumentException('Invalid base64 image encoding');
+            }
             $tmp_file_path = sys_get_temp_dir() . '/' . Str::uuid()->toString();
-            file_put_contents($tmp_file_path, base64_decode($file_data));
+            file_put_contents($tmp_file_path, $decoded);
 
             // this just to help us get file info.
             $tmpFile = new File($tmp_file_path);

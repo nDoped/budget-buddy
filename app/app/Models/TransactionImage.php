@@ -16,14 +16,15 @@ class TransactionImage extends Model
         'path'
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (TransactionImage $image) {
+            Storage::disk('local')->delete($image->path);
+        });
+    }
+
     public function transaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class);
-    }
-
-    public function delete()
-    {
-        Storage::disk('local')->delete($this->path);
-        return parent::delete();
     }
 }

@@ -264,7 +264,7 @@ class TransactionsTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $this->assertCount(1, $createdTrans);
         $newTrans = $createdTrans->first();
         $this->assertEquals($data['account_id'], $newTrans->account_id);
@@ -306,7 +306,7 @@ class TransactionsTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $this->assertCount(1, $createdTrans);
         $newTrans = $createdTrans->first();
         $this->assertEquals($data['account_id'], $newTrans->account_id);
@@ -341,7 +341,7 @@ class TransactionsTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $trans->refresh();
         $this->assertNotNull($trans->buddy_id);
         $this->assertCount(2, $createdTrans);
@@ -380,7 +380,7 @@ class TransactionsTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $this->assertCount(13, $createdTrans);
         $children = $trans->children();
         $this->assertCount(12, $children);
@@ -436,7 +436,7 @@ class TransactionsTest extends TestCase
                 ]
             ]
         ];
-        $createdTrans = $trans->create($data);
+        $createdTrans = $trans->createTransaction($data);
         $this->assertCount(24, $createdTrans);
         $this->assertEquals($data['account_id'], $trans->account_id);
         $this->assertEquals($data['trans_buddy_account'], $trans->buddyTransaction()->account_id);

@@ -136,6 +136,7 @@ class User extends Authenticatable
 
         $transactions_in_range
             = $this->transactions()
+                   ->with('account.accountType', 'categories.categoryType', 'transactionImages')
                    ->orderBy('transaction_date', $orderBy)
                    ->orderBy('buddy_id', $orderBy);
 
@@ -146,13 +147,12 @@ class User extends Authenticatable
         if ($start) {
             $transactions_in_range = $transactions_in_range->where('transaction_date', '>=', $start);
             if ($includeToRange) {
-                $transactions_to_range = $this->transactions()->where('transaction_date', '<', $start);
+                $transactions_to_range = $this->transactions()->with('account.accountType')->where('transaction_date', '<', $start);
                 if ($filterAccountIds) {
                     $transactions_to_range = $transactions_to_range->whereIn('account_id', $filterAccountIds);
                 }
                 foreach ($transactions_to_range->get() as $trans) {
                     $acct = $trans->account;
-                    $type = AccountType::find($acct->type_id);
                     $data['transactions_to_range'][] = [
                         'amount_raw' => $trans->amount,
                         'account_id' => strval($acct->id),
@@ -179,7 +179,7 @@ class User extends Authenticatable
                 $cat_value = $trans->amount * ($percent / 10000);
 
                 if ($includeCategoryTypeBreakdowns && $cat->category_type_id) {
-                    $cat_type = CategoryType::find($cat->category_type_id);
+                    $cat_type = $cat->categoryType;
                     if (isset($category_type_breakdowns[$cat->category_type_id])) {
                         $category_type_breakdowns[$cat->category_type_id]['total'] += $cat_value;
                         if (isset($category_type_breakdowns[$cat->category_type_id]['data'][$cat->id])) {

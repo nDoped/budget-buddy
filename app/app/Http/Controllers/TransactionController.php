@@ -187,7 +187,7 @@ class TransactionController extends Controller
     {
         $data = $request->validated();
         $trans = new Transaction();
-        $newTransactions = $trans->create($data);
+        $newTransactions = $trans->createTransaction($data);
         return redirect()
             ->route(
                 'transactions',
@@ -205,7 +205,7 @@ class TransactionController extends Controller
     public function update(TransactionPostRequest $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
-        $updatedTransCnt = $transaction->updateTrans($data);
+        $updatedTransCnt = $transaction->updateTransaction($data);
         return redirect()
             ->route(
                 'transactions',
@@ -230,7 +230,7 @@ class TransactionController extends Controller
                 );
         }
         $deleteChildren = ($request->delete_child_transactions) ? true : false;
-        $target->deleteTrans($deleteChildren);
+        $target->deleteTransaction($deleteChildren);
 
         return redirect()
             ->route(
