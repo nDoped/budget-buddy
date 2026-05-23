@@ -88,6 +88,8 @@ class TransactionPostRequest extends FormRequest
             } else {
                 $ret = array_merge($ret, [
                     'existing_images' => [ 'nullable', 'array'],
+                    'deleted_image_ids' => [ 'nullable', 'array' ],
+                    'deleted_image_ids.*' => [ 'numeric' ],
                 ]);
             }
 

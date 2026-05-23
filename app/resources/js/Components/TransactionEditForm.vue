@@ -92,6 +92,7 @@
     categories: props.transaction.categories,
     new_images: [],
     existing_images: props.transaction.existing_images,
+    deleted_image_ids: [],
     uploaded_file: null
   });
 
@@ -106,6 +107,7 @@
       deleteTransactionForm.id = props.transaction.id;
       form.bank_identifier = props.transaction.bank_identifier;
       form.existing_images = props.transaction.existing_images;
+      form.deleted_image_ids = [];
       form.new_images = [];
       form.categories = props.transaction.categories;
       form.uploaded_file = null;
@@ -230,6 +232,7 @@
             <TransactionFiles
               v-model:new-images="form.new_images"
               v-model:existing-images="form.existing_images"
+              v-model:deleted-image-ids="form.deleted_image_ids"
               v-model:uploaded-file="form.uploaded_file"
             />
           </div>

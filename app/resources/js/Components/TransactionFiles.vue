@@ -26,6 +26,10 @@
     type: Array,
     default: []
   });
+  const deletedImageIds = defineModel('deletedImageIds', {
+    type: Array,
+    default: []
+  });
 
   /*
    * Camera
@@ -41,12 +45,13 @@
   const saveImage = (val) => {
     showCameraModal.value = false;
     newImages.value.push({
-      base64: val.base64.value,
-      name: val.name.value
+      base64: val.base64,
+      name: val.name
     });
   };
   const deleteExistingImage = (image) => {
     existingImages.value = existingImages.value.filter(i => i.id !== image.id);
+    deletedImageIds.value = [...deletedImageIds.value, image.id];
   };
 
   /*

@@ -237,6 +237,10 @@ class Transaction extends Model
 
         $this->save();
         // delete any images before creating new ones, lest they be deleted too
+        if (array_key_exists('deleted_image_ids', $data)) {
+            TransactionImage::whereIn('id', $data['deleted_image_ids'])->delete();
+            $this->load('transactionImages');
+        }
         if (array_key_exists('existing_images', $data)) {
             $toKeep = $toKeepIds = [];
             foreach ($data['existing_images'] as $img) {
