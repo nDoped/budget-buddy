@@ -147,6 +147,7 @@
 
     form.post(route('transactions.update', { transaction: props.transaction.id }), {
       preserveScroll: true,
+      forceFormData: true,
       onSuccess: (data) => success(false, data.props.data.transactions_updated_count),
       onError: (err) =>  {
         transCatCounter.value++;

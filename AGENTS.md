@@ -9,21 +9,21 @@ Everything runs inside `app/`:
 ```sh
 cd app
 cp .env.example .env
-php artisan key:generate
-composer install && npm install
-npm run build
+vendor/bin/sale artisan key:generate
+vendor/bin/sale composer install && npm install
+vendor/bin/sale npm run build
 # needs MySQL on localhost:3306
-php artisan migrate && php artisan serve
+vendor/bin/sale artisan migrate && vendor/bin/sale artisan serve
 ```
 
 ## Test commands
 
 ```sh
 cd app
-php artisan test                     # all PHP backend tests (PHPUnit 11)
-php artisan test --group=transactions # run by PHP 8 #[Group] attributes
-npm run test                         # vitest run --dom (frontend)
-npm run test -- --mode production    # CI frontend, needs LARAVEL_BYPASS_ENV_CHECK=1
+vendor/bin/sale artisan test                     # all PHP backend tests (PHPUnit 11)
+vendor/bin/sale artisan test --group=transactions # run by PHP 8 #[Group] attributes
+vendor/bin/sale npm run test                         # vitest run --dom (frontend)
+vendor/bin/sale npm run test -- --mode production    # CI frontend, needs LARAVEL_BYPASS_ENV_CHECK=1
 ```
 
 Both are run in CI (`.github/workflows/php.yml`). Order there: `composer validate → npm install → npm run build → php artisan migrate → php artisan test → npm run test`.
@@ -45,8 +45,8 @@ Both are run in CI (`.github/workflows/php.yml`). Order there: `composer validat
 ## Dev tooling
 
 ```sh
-npm run dev       # vite dev server
-npm run watch     # vite build --watch
+vendor/bin/sale npm run dev       # vite dev server
+vendor/bin/sale npm run watch     # vite build --watch
 ./vendor/bin/phpstan  # PHP static analysis
 ./vendor/bin/pint     # Laravel PHP linter / formatter
 ```
@@ -54,5 +54,5 @@ npm run watch     # vite build --watch
 ## Docker (Laravel Sail)
 
 ```sh
-cd app && docker-compose up -d  # MySQL 8, Redis, Meilisearch, Mailpit, Selenium
+cd app && vendor/bin/sale up -d  # MySQL 8, Redis, Meilisearch, Mailpit, Selenium
 ```

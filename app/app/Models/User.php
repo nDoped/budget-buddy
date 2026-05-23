@@ -253,11 +253,20 @@ class User extends Authenticatable
                 $allowedMimeTypes = [ 'image/png', 'image/jpeg' ];
                 if (in_array(Storage::mimeType($transImg->path), $allowedMimeTypes)) {
                     $path = storage_path() . '/app/' . $transImg->path;
-                    $img = new \Imagick($path);
-                    $img->thumbnailImage(100, 0);
                     $imgType = pathinfo($path, PATHINFO_EXTENSION);
-                    $base64 = 'data:image/' . $imgType . ';base64,' . base64_encode($img->getImageBlob());
-                    $transImg['thumbnail'] = $base64;
+                    $src = ($imgType === 'png') ? @imagecreatefrompng($path) : @imagecreatefromjpeg($path);
+                    if ($src) {
+                        $width = 100;
+                        $height = (int)(imagesy($src) * ($width / imagesx($src)));
+                        $thumb = imagecreatetruecolor($width, $height);
+                        imagecopyresampled($thumb, $src, 0, 0, 0, 0, $width, $height, imagesx($src), imagesy($src));
+                        ob_start();
+                        $imgType === 'png' ? imagepng($thumb) : imagejpeg($thumb);
+                        $base64 = 'data:image/' . $imgType . ';base64,' . base64_encode(ob_get_clean());
+                        imagedestroy($src);
+                        imagedestroy($thumb);
+                        $transImg['thumbnail'] = $base64;
+                    }
                 }
             }
             $data['transactions_in_range'][] = [
