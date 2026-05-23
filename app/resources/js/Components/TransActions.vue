@@ -77,6 +77,8 @@
     return false;
   };
   const searchText = ref('');
+  const debouncedSearchText = ref('');
+  let searchTimer;
   const filteredTransactions = ref(props.transactions);
 
   const clearSearchResults = () => {
@@ -152,7 +154,17 @@
       + "</mark>" + value.substring(index + query.length);
     return ret;
   };
-  watch(searchText, (query) => {
+  watch(searchText, (val) => {
+    clearTimeout(searchTimer);
+    if (! val) {
+      debouncedSearchText.value = '';
+      return;
+    }
+    searchTimer = setTimeout(() => {
+      debouncedSearchText.value = val;
+    }, 200);
+  });
+  watch(debouncedSearchText, (query) => {
     applySearchFilter(query);
   });
   const applySearchFilter = (query) => {
@@ -161,20 +173,21 @@
       return;
     }
     let searchResults = [];
+    const q = query.toLowerCase();
     props.transactions.forEach((t) => {
-      if (t.account.toLowerCase().includes(query.toLowerCase())
-        || (t.note && t.note.toLowerCase().includes(query.toLowerCase()))
+      if (t.account.toLowerCase().includes(q)
+        || (t.note && t.note.toLowerCase().includes(q))
         || t.amountFormated.includes(query)
         || formatDate(t.transaction_date).includes(query)
         || queryCategoryMatch(t, query)
       ) {
 
-        if (t.account.toLowerCase().includes(query.toLowerCase())) {
+        if (t.account.toLowerCase().includes(q)) {
           t.accountSearchMatchText = buildMarkString(query, t.account);
         } else {
           t.accountSearchMatchText = t.account;
         }
-        if (t.note && t.note.toLowerCase().includes(query.toLowerCase())) {
+        if (t.note && t.note.toLowerCase().includes(q)) {
           t.noteSearchMatchText = buildMarkString(query, t.note);
         } else {
           t.noteSearchMatchText = t.note;
@@ -194,9 +207,8 @@
 
         searchResults.push(t);
       }
-
-      filteredTransactions.value = searchResults;
     });
+    filteredTransactions.value = searchResults;
   };
   const formatDate = (isoDate) => {
     return dateFormatter.format(new Date(isoDate));
