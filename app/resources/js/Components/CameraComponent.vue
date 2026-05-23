@@ -42,7 +42,16 @@
         video.value.srcObject = s;
       }
       const [track] = s.getVideoTracks();
-      torchSupported.value = track?.getCapabilities?.()?.torch ?? false;
+      torchSupported.value = !!track?.getCapabilities?.()?.torch;
+      if (!torchSupported.value && typeof ImageCapture !== 'undefined') {
+        try {
+          const capture = new ImageCapture(track);
+          const caps = await capture.getPhotoCapabilities();
+          torchSupported.value = caps?.torch?.some?.((v: boolean) => v === true) ?? false;
+        } catch {
+          /* ImageCapture API not available */
+        }
+      }
     } catch (err) {
       console.error("Error accessing the camera", err);
     }
@@ -57,11 +66,22 @@
     if (!mediaStream) return;
     const [track] = mediaStream.getVideoTracks();
     if (!track) return;
+    const newState = !torchOn.value;
     try {
-      await track.applyConstraints({ advanced: [{ torch: !torchOn.value }] });
-      torchOn.value = !torchOn.value;
-    } catch (err) {
-      console.error("Torch not supported", err);
+      await track.applyConstraints({ advanced: [{ torch: newState }] });
+      torchOn.value = newState;
+      return;
+    } catch {
+      /* fall through to ImageCapture */
+    }
+    if (typeof ImageCapture !== 'undefined') {
+      try {
+        const capture = new ImageCapture(track);
+        await capture.setTorch(newState);
+        torchOn.value = newState;
+      } catch (err) {
+        console.error("Torch not supported", err);
+      }
     }
   }
 
@@ -139,7 +159,7 @@
         type="button"
         @click="toggleCamera"
       >
-        {{ facingMode === 'environment' ? 'Front Camera' : 'Back Camera' }}
+        Switch Camera
       </SecondaryButton>
 
       <SecondaryButton
