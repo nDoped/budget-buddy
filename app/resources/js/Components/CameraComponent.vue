@@ -57,21 +57,21 @@
     const [track] = mediaStream.getVideoTracks();
     if (!track) return;
     const newState = !torchOn.value;
-    try {
-      await track.applyConstraints({ advanced: [{ torch: newState }] });
-      torchOn.value = newState;
-      return;
-    } catch {
-      /* fall through to ImageCapture */
-    }
     if (typeof ImageCapture !== 'undefined') {
       try {
         const capture = new ImageCapture(track);
         await capture.setTorch(newState);
         torchOn.value = newState;
-      } catch (err) {
-        console.error("Torch not supported", err);
+        return;
+      } catch {
+        /* fall through to applyConstraints */
       }
+    }
+    try {
+      await track.applyConstraints({ advanced: [{ torch: newState }] });
+      torchOn.value = newState;
+    } catch (err) {
+      console.error("Torch not supported", err);
     }
   }
 
