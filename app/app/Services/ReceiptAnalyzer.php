@@ -32,19 +32,18 @@ class ReceiptAnalyzer
         return Cache::remember($cacheKey, 86400, function () use ($catsList, $imageBase64) {
             $prompt = <<<'PROMPT'
 You are a receipt analyzer. Extract all line items from this receipt image.
-- Only extract line items that are purchases (do not include "savings" or line items that are in bold or not aligned with the reset of the prices)
+- Only extract line items that are purchases (do not include "savings" or line items that are in bold or not aligned with the rest of the prices)
 - For each line item, return:
     - description: the item name
     - price: the numeric price (as a float)
     - suggested_category: a suggested_category that exists in this json:
         [CATEGORIES]
-        - when determining the suggested_category for each line item, consider the following:
-            - the json is structured as:
-                {
-                    category type name: [ "category name 1", "category name 2", ... ],
-                }
-            - do NOT use the category type's name for the suggested_category value, but consider its value when picking the best category name match for the line item
-            - use keywords from the line item description to help determine the best category name match as well
+        - the json is structured as:
+            {
+                category type name: [ "category name 1", "category name 2", ... ],
+            }
+        - do NOT use the category type's name for the suggested_category value, but consider its value when picking the best category name match for the line item
+        - use keywords from the line item description to help determine the best category name match as well
 
 Also extract:
 - tax: the tax amount (float or null)
