@@ -68,7 +68,6 @@
   const success = (deleting) => {
     accountBeingDeleted.value = null;
     toast.success((deleting) ? 'Account Deleted!' : 'Account Updated!');
-    emit('success');
   };
 
   const deleteAccountForm = useForm({

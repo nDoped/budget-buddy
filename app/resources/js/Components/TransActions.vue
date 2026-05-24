@@ -65,10 +65,6 @@
     transEnd.value = props.end;
   });
 
-  const hideTr = (hiddenTrRefs, i) => {
-    hiddenTrRefs[i].classList.add("hidden");
-  };
-
   const colorText = (key) => {
     let test = fields.value.find(field => field.key === key );
     if (test.color_text) {
@@ -294,14 +290,14 @@
           </div>
         </template>
 
-        <template #hidden_row="{hidden_tr_refs, item, i}">
+        <template #hidden_row="{collapse, item}">
           <TransactionEditForm
             :accounts="accounts"
             :transaction="item"
             :categories="categories"
             :category-types="categoryTypes"
-            @cancel="hideTr(hidden_tr_refs, i)"
-            @success="hideTr(hidden_tr_refs, i)"
+            @cancel="collapse"
+            @success="collapse"
           />
         </template>
       </ExpandableTable>

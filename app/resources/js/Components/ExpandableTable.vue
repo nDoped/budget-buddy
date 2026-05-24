@@ -54,30 +54,21 @@
     }
   };
 
-  const showHideRow = (item, i) => {
-    if (! props.expand) {
-      return;
-    }
-    let hiddenRow = hiddenTrRefs.value[i];
-    if (hiddenRow && hiddenRow.classList.contains("hidden")) {
-      hiddenRow.classList.remove("hidden");
-      emit('row-expanded', hiddenRow, i);
-    } else if (hiddenRow) {
-      hiddenRow.classList.add("hidden");
-      emit('row-collapsed', hiddenRow, i);
-    }
+  const expandedRows = reactive(new Set());
 
-    /*
-    if (! hiddenRow.classList.contains("active")) {
-      if (hiddenRow.classList.contains("deactive")) {
-        hiddenRow.classList.remove("deactive");
-      }
-      hiddenRow.classList.add("active");
+  watch(() => props.items, () => {
+    expandedRows.clear();
+  });
+
+  const showHideRow = (item, i) => {
+    if (!props.expand) return;
+    if (expandedRows.has(item)) {
+      expandedRows.delete(item);
+      emit('row-collapsed', hiddenTrRefs.value[i], i);
     } else {
-      hiddenRow.classList.remove("active");
-      hiddenRow.classList.add("deactive");
+      expandedRows.add(item);
+      emit('row-expanded', hiddenTrRefs.value[i], i);
     }
-    */
   };
 
   const setSort = (key) => {
@@ -260,18 +251,23 @@
             v-if="expand && item.expand"
             :ref="(el) => { hiddenTrRefs.push(el) }"
             :id="`hidden_row_${i}`"
-            class="hidden"
             :class="getSpecialRowClasses(item)"
           >
             <td :colspan="fieldCount">
-              <slot
-                name="hidden_row"
-                :i="i"
-                :item="item"
-                :hidden_tr_refs="hiddenTrRefs"
+              <div
+                class="expandable-content"
+                :class="{ 'expanded': expandedRows.has(item) }"
               >
-                Boo!
-              </slot>
+                <slot
+                  name="hidden_row"
+                  :i="i"
+                  :item="item"
+                  :hidden_tr_refs="hiddenTrRefs"
+                  :collapse="() => expandedRows.delete(item)"
+                >
+                  Boo!
+                </slot>
+              </div>
             </td>
           </tr>
         </template>
@@ -405,6 +401,16 @@
     height: 100px;
     opacity: 1;
     transition: all 2s ease-in-out;
+  }
+
+  .expandable-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+  }
+
+  .expandable-content.expanded {
+    max-height: 9999px;
   }
 
   .content-page.deactive {

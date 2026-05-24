@@ -49,9 +49,6 @@
     }));
   });
 
-  const hideTr = (hiddenTrRefs, i) => {
-    hiddenTrRefs[i].classList.add("hidden");
-  };
 </script>
 
 <template>
@@ -80,12 +77,11 @@
       </div>
     </template>
 
-    <template #hidden_row="{hidden_tr_refs, item, i}">
+    <template #hidden_row="{collapse, item}">
       <AccountEditForm
         :account="item"
         :account-types="accountTypes"
-        @cancel="hideTr(hidden_tr_refs, i)"
-        @success="hideTr(hidden_tr_refs, i)"
+        @cancel="collapse"
       />
     </template>
   </ExpandableTable>
