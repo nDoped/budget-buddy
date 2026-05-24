@@ -123,6 +123,18 @@
       const result = response.data;
 
       toast.success('Receipt analyzed successfully!', { autoClose: 3000 });
+
+      if (newImages.value.length > 0) {
+        newImages.value[0].ai_analysis = {
+          store_name: result.store_name,
+          line_items: result.line_items,
+          subtotal: result.subtotal,
+          tax: result.tax,
+          total: result.total,
+          date: result.date,
+        };
+      }
+
       emit('analyze-receipt', {
         store_name: result.store_name,
         line_items: result.line_items,

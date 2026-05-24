@@ -680,7 +680,8 @@ class Transaction extends Model
             TransactionImage::create([
                 'transaction_id' => $this->id,
                 'name' => $name,
-                'path' => $file->store('/transaction_images/' . auth()->user()->id)
+                'path' => $file->store('/transaction_images/' . auth()->user()->id),
+                'ai_analysis' => $img['ai_analysis'] ?? null,
             ]);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Category;
@@ -25,7 +26,10 @@ class ReceiptAnalyzer
         $cats = Category::with('categoryType')->get()->groupBy(fn($c) => $c->categoryType?->name ?? 'Uncategorized')->map(fn($group) => $group->pluck('name')->toArray())->toArray();
         $catsList = json_encode($cats);
 
-        $prompt = <<<'PROMPT'
+        $cacheKey = 'receipt_analysis_' . md5($imageBase64 . $catsList);
+
+        return Cache::remember($cacheKey, 86400, function () use ($catsList, $imageBase64) {
+            $prompt = <<<'PROMPT'
 You are a receipt analyzer. Extract all line items from this receipt image.
 For each line item, return:
 - description: the item name
@@ -62,56 +66,57 @@ Return ONLY valid JSON with this structure:
 If you cannot read the receipt clearly, return {"error": "Could not read receipt image clearly"}.
 PROMPT;
 
-        $prompt = str_replace('[CATEGORIES]', $catsList, $prompt);
+            $prompt = str_replace('[CATEGORIES]', $catsList, $prompt);
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->apiKey,
-            'Content-Type' => 'application/json',
-        ])->post('https://api.openai.com/v1/chat/completions', [
-            'model' => $this->model,
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => $prompt,
-                        ],
-                        [
-                            'type' => 'image_url',
-                            'image_url' => [
-                                'url' => $imageBase64,
-                                'detail' => 'high',
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://api.openai.com/v1/chat/completions', [
+                'model' => $this->model,
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => [
+                            [
+                                'type' => 'text',
+                                'text' => $prompt,
+                            ],
+                            [
+                                'type' => 'image_url',
+                                'image_url' => [
+                                    'url' => $imageBase64,
+                                    'detail' => 'high',
+                                ],
                             ],
                         ],
                     ],
                 ],
-            ],
-            'max_tokens' => 2000,
-            'temperature' => 0.1,
-        ]);
-
-        if ($response->failed()) {
-            Log::error('OpenAI API error', [
-                'status' => $response->status(),
-                'body' => $response->body(),
+                'max_tokens' => 2000,
+                'temperature' => 0.1,
             ]);
-            throw new \RuntimeException('AI analysis failed: ' . ($response->json('error.message') ?? 'Unknown error'));
-        }
 
-        $content = $response->json('choices.0.message.content');
-        $content = trim($content);
-        if (str_starts_with($content, '```')) {
-            $content = preg_replace('/^```(?:json)?\s*\n?/i', '', $content);
-            $content = preg_replace('/\n?```\s*$/', '', $content);
-        }
+            if ($response->failed()) {
+                Log::error('OpenAI API error', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \RuntimeException('AI analysis failed: ' . ($response->json('error.message') ?? 'Unknown error'));
+            }
 
-        $result = json_decode($content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('Failed to parse OpenAI response', ['content' => $content]);
-            throw new \RuntimeException('Failed to parse AI analysis response');
-        }
+            $content = $response->json('choices.0.message.content');
+            $content = trim($content);
+            if (str_starts_with($content, '```')) {
+                $content = preg_replace('/^```(?:json)?\s*\n?/i', '', $content);
+                $content = preg_replace('/\n?```\s*$/', '', $content);
+            }
 
-        return $result;
+            $result = json_decode($content, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('Failed to parse OpenAI response', ['content' => $content]);
+                throw new \RuntimeException('Failed to parse AI analysis response');
+            }
+
+            return $result;
+        });
     }
 }
