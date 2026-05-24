@@ -28,19 +28,24 @@ class AnalysisTest extends TestCase
     {
         Http::fake([
             'api.openai.com/*' => Http::response([
-                'choices' => [
+                'output' => [
                     [
-                        'message' => [
-                            'content' => json_encode([
-                                'store_name' => 'Test Store',
-                                'line_items' => [
-                                    ['description' => 'Milk', 'price' => 4.99, 'suggested_category' => 'Groceries'],
-                                    ['description' => 'Bread', 'price' => 2.49, 'suggested_category' => 'Groceries'],
-                                ],
-                                'subtotal' => 7.48,
-                                'tax' => 0.60,
-                                'total' => 8.08,
-                            ]),
+                        'type' => 'message',
+                        'role' => 'assistant',
+                        'content' => [
+                            [
+                                'type' => 'output_text',
+                                'text' => json_encode([
+                                    'store_name' => 'Test Store',
+                                    'line_items' => [
+                                        ['description' => 'Milk', 'price' => 4.99, 'suggested_category' => 'Groceries'],
+                                        ['description' => 'Bread', 'price' => 2.49, 'suggested_category' => 'Groceries'],
+                                    ],
+                                    'subtotal' => 7.48,
+                                    'tax' => 0.60,
+                                    'total' => 8.08,
+                                ]),
+                            ],
                         ],
                     ],
                 ],
@@ -91,13 +96,18 @@ class AnalysisTest extends TestCase
 
         Http::fake([
             'api.openai.com/*' => Http::response([
-                'choices' => [
+                'output' => [
                     [
-                        'message' => [
-                            'content' => json_encode([
-                                'store_name' => 'Test Store',
-                                'line_items' => [],
-                            ]),
+                        'type' => 'message',
+                        'role' => 'assistant',
+                        'content' => [
+                            [
+                                'type' => 'output_text',
+                                'text' => json_encode([
+                                    'store_name' => 'Test Store',
+                                    'line_items' => [],
+                                ]),
+                            ],
                         ],
                     ],
                 ],
