@@ -56,11 +56,11 @@
     let timer;
     const debounced = function(...args){
       if(timer) {
-        clearTimeout(timer); // clear any pre-existing timer
+        clearTimeout(timer);
       }
-      const context = this; // get the current context
-      timer = setTimeout(()=>{
-        fn.apply(context, args); // call the function if time expires
+      const context = this;
+      timer = setTimeout(() => {
+        fn.apply(context, args);
       }, wait);
     };
     debounced.cancel = () => clearTimeout(timer);
@@ -71,6 +71,7 @@
   }
   const debouncedUpdateEmit = debounce(emitUpdate, 300);
   onUnmounted(() => debouncedUpdateEmit.cancel());
+
 </script>
 
 <template>
@@ -98,7 +99,8 @@
           type="search"
           class="pl-10 pr-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           :placeholder="placeholder"
-          @keyup="debouncedUpdateEmit($event.target.value)"
+          :value="modelValue"
+          @input="debouncedUpdateEmit($event.target.value)"
         >
       </div>
       <p

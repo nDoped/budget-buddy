@@ -30,7 +30,7 @@ class ReceiptAnalyzer
 
         return Cache::remember($cacheKey, 86400, function () use ($catsList, $imageBase64) {
             $prompt = <<<'PROMPT'
-You are a receipt analyzer. Extract all line items from this receipt image.
+You are a receipt analyzer. Extract all line items from this receipt image. Do not include include line items that are not actual purchases (e.g. "kroger savings")
 For each line item, return:
 - description: the item name
 - price: the numeric price (as a float)
@@ -42,7 +42,7 @@ For each line item, return:
             category_type1: [ "category_name1", "category_name2", ... ],
             category_type2: [ "category_name3", "category_name4", ... ],
         }
-    - consider the category_type when picking a categort, but do not include the category type name in the suggested_category value
+    - consider the category_type when picking a category, but do not include the category type name in the suggested_category value
     - also use keywords from the line item description to help determine the best category_name match
 
 

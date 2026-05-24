@@ -1,7 +1,6 @@
 <script setup>
-  import { inject, ref, onMounted, onUnmounted, watch } from 'vue';
+  import { inject, ref, nextTick, onMounted, onUnmounted, watch } from 'vue';
   import { useForm } from '@inertiajs/vue3'
-  import SearchInput from '@/Components/SearchInput.vue';
   import ElasticFrame from '@/Components/ElasticFrame.vue';
   import TransactionEditForm from '@/Components/TransactionEditForm.vue';
   import DateFilter from '@/Components/DateFilter.vue';
@@ -79,25 +78,50 @@
   onUnmounted(() => clearTimeout(searchTimer));
   const filteredTransactions = ref(props.transactions);
 
+  let matchedTransactions = [];
+
   const clearSearchResults = () => {
     filteredTransactions.value = props.transactions;
     resetSearchMatchTextValues();
   };
   const resetSearchMatchTextValues = () => {
-    filteredTransactions.value.forEach((t) => {
+    const list = matchedTransactions.length ? matchedTransactions : props.transactions;
+    list.forEach((t) => {
       t.accountSearchMatchText = t.account;
       t.noteSearchMatchText = t.note;
-      t.amountSearchMatchText = formatter.format(t.amount);
-      t.categorySearchMatchText = fetchCatString(t);
-      // use this member for search matches
+      t.amountSearchMatchText = t.amountFormated;
+      t.categorySearchMatchText = t._catText;
+    });
+    matchedTransactions = [];
+  };
+  const initFormattedValues = () => {
+    props.transactions.forEach((t) => {
       t.amountFormated = formatter.format(t.amount);
+      t.accountSearchMatchText = t.account;
+      t.noteSearchMatchText = t.note;
+      t.amountSearchMatchText = t.amountFormated;
+      t._catText = fetchCatString(t);
+      t.categorySearchMatchText = t._catText;
     });
   };
   onMounted(() => {
-    resetSearchMatchTextValues();
+    initFormattedValues();
+    nextTick(() => {
+      const input = document.getElementById('transactions-search');
+      if (input && input.value) {
+        searchText.value = input.value;
+      }
+    });
     watch(() => props.transactions, () => {
-      searchText.value = '';
-      clearSearchResults();
+      initFormattedValues();
+      if (searchText.value) {
+        debouncedSearchText.value = '';
+        nextTick(() => {
+          debouncedSearchText.value = searchText.value;
+        });
+      } else {
+        clearSearchResults();
+      }
     });
   });
 
@@ -164,6 +188,7 @@
   });
   watch(debouncedSearchText, (query) => {
     applySearchFilter(query);
+    nextTick(() => document.getElementById('transactions-search')?.focus());
   });
   const applySearchFilter = (query) => {
     if (! query) {
@@ -171,11 +196,12 @@
       return;
     }
     let searchResults = [];
+    matchedTransactions = [];
     const q = query.toLowerCase();
     props.transactions.forEach((t) => {
       if (t.account.toLowerCase().includes(q)
         || (t.note && t.note.toLowerCase().includes(q))
-        || t.amountFormated.includes(query)
+        || (t.amountFormated && t.amountFormated.includes(query))
         || formatDate(t.transaction_date).includes(query)
         || queryCategoryMatch(t, query)
       ) {
@@ -191,7 +217,7 @@
           t.noteSearchMatchText = t.note;
         }
 
-        if (t.amountFormated.includes(query)) {
+        if (t.amountFormated && t.amountFormated.includes(query)) {
           t.amountSearchMatchText = buildMarkString(query, t.amountFormated);
         } else {
           t.amountSearchMatchText = t.amountFormated;
@@ -203,6 +229,7 @@
           t.categorySearchMatchText = fetchCatString(t);
         }
 
+        matchedTransactions.push(t);
         searchResults.push(t);
       }
     });
@@ -239,14 +266,27 @@
         </template>
       </DateFilter>
 
-      <SearchInput
+      <label
         v-if="transactions.length > 0"
         class="place-self-end"
-        v-model="searchText"
-        input-name="search"
-        hint="Search Transactions"
-        placeholder="Search"
-      />
+      >
+        <div class="relative mt-1">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="h-5 w-5 text-surface-400 dark:text-surface-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </div>
+          <input
+            id="transactions-search"
+            type="search"
+            class="pl-10 pr-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Search"
+            :value="searchText"
+            @input="searchText = $event.target.value"
+          >
+        </div>
+        <p class="ls5-form-hint mt-1">Search Transactions</p>
+      </label>
     </ElasticFrame>
 
     <div class="mt-4 overflow-x-auto">
