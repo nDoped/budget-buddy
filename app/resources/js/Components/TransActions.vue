@@ -284,6 +284,10 @@
             />
 
             <div
+              v-else-if="key === 'accountSearchMatchText' && !item.account_active"
+              v-html="value + ' (inactive)'"
+            />
+            <div
               v-else
               v-html="value"
             />

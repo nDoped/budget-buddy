@@ -114,6 +114,7 @@ class TransactionController extends Controller
             $accounts[] = [
                 'id' => strval($acct->id),
                 'name' => $acct->name,
+                'active' => $acct->active
             ];
         }
         return [ $accounts, $categories, $category_types ];

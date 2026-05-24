@@ -297,6 +297,7 @@ class User extends Authenticatable
                 'amount' => strval($trans->amount / 100),
                 'account_id' => strval($acct->id),
                 'account' => $acct->name,
+                'account_active' => $acct->active,
                 'account_type' => $type->name,
                 'asset_text' => ($trans->credit) ? 'Credit' : 'Debit',
                 'asset' => ($trans->credit) ? true : false,

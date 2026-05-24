@@ -286,7 +286,7 @@
                             :key="account + ':' + account.id"
                             :value="account.id"
                           >
-                            {{ account.name }}
+                            {{ account.name }}<template v-if="!account.active"> (inactive)</template>
                           </option>
                         </select>
                         <InputError
