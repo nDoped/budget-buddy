@@ -20,6 +20,7 @@
       width: { ideal: 1920, max: 3840 },
       height: { ideal: 1080, max: 2160 },
       facingMode: facingMode.value,
+      focusMode: 'continuous',
     },
     audio: false,
   }));

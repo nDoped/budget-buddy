@@ -13,8 +13,16 @@ class TransactionImage extends Model
     protected $fillable = [
         'transaction_id',
         'name',
-        'path'
+        'path',
+        'ai_analysis'
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'ai_analysis' => 'array',
+        ];
+    }
 
     protected static function booted(): void
     {

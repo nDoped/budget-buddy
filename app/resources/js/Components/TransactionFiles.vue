@@ -10,6 +10,9 @@
   import CameraModal from '@/Components/CameraModal.vue';
   import ActionMessage from '@/Components/ActionMessage.vue';
   import TransactionImage from '@/Components/TransactionImage.vue';
+  import { toast } from 'vue3-toastify';
+  import 'vue3-toastify/dist/index.css';
+  import axios from 'axios';
 
   /*
    * Models
@@ -87,6 +90,64 @@
     photoPreview.value = null;
   };
 
+  /*
+   * AI Receipt Analysis
+   */
+  const emit = defineEmits(['analyze-receipt']);
+  const analyzing = ref(false);
+  const analyzeImage = async () => {
+    if (newImages.value.length === 0 && ! uploadedFile.value) {
+      toast.error('Please capture or upload an image first', { autoClose: 3000 });
+      return;
+    }
+
+    let imageData = null;
+    if (newImages.value.length > 0) {
+      imageData = newImages.value[0].base64;
+    } else if (uploadedFile.value) {
+      imageData = await fileToBase64(uploadedFile.value);
+    }
+
+    if (! imageData) {
+      toast.error('No image data found', { autoClose: 3000 });
+      return;
+    }
+
+    analyzing.value = true;
+    try {
+      /* global axios route */
+      const response = await axios.post(route('receipt.analyze'), {
+        image: imageData,
+      });
+
+      const result = response.data;
+
+      toast.success('Receipt analyzed successfully!', { autoClose: 3000 });
+      emit('analyze-receipt', {
+        store_name: result.store_name,
+        line_items: result.line_items,
+        subtotal: result.subtotal,
+        tax: result.tax,
+        total: result.total,
+        date: result.date,
+      });
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Failed to analyze receipt';
+      toast.error(msg, { autoClose: 6000 });
+    } finally {
+      analyzing.value = false;
+    }
+  };
+
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const uuid = randomUUID();
   const getUuid = (el, i = 0) => {
     return `${el}-${i}-${uuid}`;
@@ -151,6 +212,20 @@
                 />
               </div>
             </div>
+          </div>
+
+          <div
+            v-if="newImages.length > 0 || uploadedFile"
+            class="mt-4"
+          >
+            <PrimaryButton
+              type="button"
+              :class="{ 'opacity-25': analyzing }"
+              :disabled="analyzing"
+              @click="analyzeImage"
+            >
+              {{ analyzing ? 'Analyzing...' : 'Analyze with AI' }}
+            </PrimaryButton>
           </div>
         </div>
       </div>

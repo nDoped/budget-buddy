@@ -63,6 +63,10 @@
       type: Object,
       default: () => {return {}}
     },
+    aiAnalysis: {
+      type: Object,
+      default: null
+    },
   });
 
   const calcCatsByReciept = ref(false);
@@ -313,6 +317,38 @@
       deep: true
     }
   );
+  const matchCategory = (suggestedCategory) => {
+    if (! suggestedCategory) return null;
+    const lower = suggestedCategory.toLowerCase();
+    return props.availableCategories.find(c =>
+      c.name.toLowerCase() === lower
+    ) || null;
+  };
+
+  watch(() => props.aiAnalysis, (analysis) => {
+    if (! analysis || ! analysis.line_items || analysis.line_items.length === 0) return;
+
+    calcCatsByReciept.value = true;
+    lineItems.value = [];
+    taxAmount.value = analysis.tax || null;
+
+    analysis.line_items.forEach((item) => {
+      const match = matchCategory(item.suggested_category);
+      lineItems.value.push({
+        cat_data: {
+          cat_id: match ? match.cat_id : null,
+          name: match ? match.name : (item.suggested_category || null),
+          cat_type_id: match ? match.cat_type_id : null,
+          cat_type_name: match ? match.cat_type_name : null,
+          hex_color: match ? match.hex_color : '#000000',
+        },
+        price: item.price,
+      });
+    });
+
+    focusElement(getUuid('tax-amount'), true);
+  }, { deep: true });
+
   const receiptToggleEventHandler = (value) => {
     if (value) {
       focusElement(getUuid('tax-amount'), true);

@@ -16,6 +16,16 @@
   import 'vue3-toastify/dist/index.css';
 
   const transCatCounter = ref(0);
+  const aiAnalysis = ref(null);
+  const handleAnalyzeReceipt = (results) => {
+    aiAnalysis.value = results;
+    if (results.total) {
+      form.amount = String(results.total);
+    }
+    if (results.date) {
+      form.transaction_date = results.date;
+    }
+  };
   function submit() {
     if (categoriesInvalid.value === true) {
       toast.error("Transaction category percentages must sum to 100%", {
@@ -123,21 +133,23 @@
           </div>
 
           <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
+            <TransactionFiles
+              v-model:uploaded-file="form.uploaded_file"
+              v-model:new-images="form.new_images"
+              @analyze-receipt="handleAnalyzeReceipt"
+            />
+          </div>
+
+          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
             <TransactionCategory
               :available-categories="categories"
               :total-amount="form.amount"
               :category-types="categoryTypes"
               :key="transCatCounter"
               :errors="form.errors"
+              :ai-analysis="aiAnalysis"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
-            />
-          </div>
-
-          <div class="pt-4 pb-4  bg-slate-500 border-t border-gray-200">
-            <TransactionFiles
-              v-model:uploaded-file="form.uploaded_file"
-              v-model:new-images="form.new_images"
             />
           </div>
 

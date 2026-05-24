@@ -42,6 +42,16 @@
     transBeingDeleted.value = props.transaction.id;
   };
 
+  const aiAnalysis = ref(null);
+  const handleAnalyzeReceipt = (results) => {
+    aiAnalysis.value = results;
+    if (results.total) {
+      form.amount = String(results.total);
+    }
+    if (results.date) {
+      form.transaction_date = results.date;
+    }
+  };
   const transCatCounter = ref(0);
   const success = (deleted, transactionsUpdatedCount = 0) => {
     transBeingDeleted.value = null;
@@ -223,6 +233,7 @@
               :category-types="categoryTypes"
               :available-categories="props.categories"
               :key="transCatCounter"
+              :ai-analysis="aiAnalysis"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
             />
@@ -234,6 +245,7 @@
               v-model:existing-images="form.existing_images"
               v-model:deleted-image-ids="form.deleted_image_ids"
               v-model:uploaded-file="form.uploaded_file"
+              @analyze-receipt="handleAnalyzeReceipt"
             />
           </div>
 

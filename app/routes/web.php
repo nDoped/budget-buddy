@@ -9,6 +9,7 @@ use App\Http\Controllers\TransactionImageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryTypeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AnalysisController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,6 +50,7 @@ Route::middleware([
     Route::patch('/category_types/update/{categoryType}', [ CategoryTypeController::class, 'update' ])->name('category_types.update');
 
     Route::get('/transaction_images/{image}', [ TransactionImageController::class, 'getImageData' ])->name('images.data');
+    Route::post('/api/receipt/analyze', [ AnalysisController::class, 'analyzeReceipt' ])->name('receipt.analyze');
 
     Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.accounts');
     Route::get('/settings/account_types', [ SettingsController::class, 'account_types' ])->name('settings.account_types');
