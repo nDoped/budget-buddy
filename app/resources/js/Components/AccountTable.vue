@@ -1,12 +1,12 @@
 <script setup>
-  import { ref, inject } from 'vue';
-  import { toast } from 'vue3-toastify';
-  import { useForm } from '@inertiajs/vue3'
+  import { ref, inject, computed } from 'vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
   import AccountUrlLink from '@/Components/AccountUrlLink.vue';
+  import AccountEditForm from '@/Components/AccountEditForm.vue';
+
   const formatter = inject('formatter');
 
-  defineProps({
+  const props = defineProps({
     accounts: {
       type: Object,
       default: () => {}
@@ -32,48 +32,42 @@
     return false;
   };
 
-
   const fields = ref([
     { key: 'name', label: 'Name', sortable: true, has_url:true },
     { key: 'type', label: 'Account Type', sortable: true },
-    //{ key: 'owner', label: 'Owner' },
     { key: 'interest_rate', label: 'Interest Rate' },
     { key: 'initial_balance', label: 'Initial Balance', sortable:true, format:true },
+    { key: 'active', label: 'Active', sortable: true },
     { key: 'url', label: 'URL' }
   ]);
 
-  const success = () => {
-    toast.success('Account Created!');
-    form.reset();
-  };
-
-  const form = useForm({
-    name: null,
-    type: null,
-    url: null,
-    interest_rate: null,
-    initial_balance: null,
+  const itemsWithExpand = computed(() => {
+    if (!props.accounts) return [];
+    return props.accounts.map(acct => ({
+      ...acct,
+      expand: true
+    }));
   });
-  function submit() {
-    /* global route */
-    form.post(route('accounts.store'), {
-      preserveScroll: true,
-      onSuccess: success,
-    });
-  }
+
+  const hideTr = (hiddenTrRefs, i) => {
+    hiddenTrRefs[i].classList.add("hidden");
+  };
 </script>
 
 <template>
   <ExpandableTable
     class="grow w-full bg-gray-800 text-slate-300"
-    :items="accounts"
+    :items="itemsWithExpand"
     :fields="fields"
-    :expand="false"
+    :expand="true"
     :pagination-start="100"
   >
     <template #visible_row="{ item , value, key }">
       <div class="font-semibold text-l">
-        <template v-if="formatField(key, value, item)">
+        <template v-if="key === 'active'">
+          {{ value ? 'Yes' : '' }}
+        </template>
+        <template v-else-if="formatField(key, value, item)">
           {{ formatter.format(value) }}
         </template>
         <template v-else>
@@ -84,6 +78,15 @@
           <AccountUrlLink :url="item['url']" />
         </template>
       </div>
+    </template>
+
+    <template #hidden_row="{hidden_tr_refs, item, i}">
+      <AccountEditForm
+        :account="item"
+        :account-types="accountTypes"
+        @cancel="hideTr(hidden_tr_refs, i)"
+        @success="hideTr(hidden_tr_refs, i)"
+      />
     </template>
   </ExpandableTable>
 </template>

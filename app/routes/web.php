@@ -55,6 +55,8 @@ Route::middleware([
     Route::get('/settings', [ SettingsController::class, 'index' ])->name('settings.accounts');
     Route::get('/settings/account_types', [ SettingsController::class, 'account_types' ])->name('settings.account_types');
     Route::post('/settings/store_account', [ SettingsController::class, 'store_account' ])->name('accounts.store');
+    Route::patch('/settings/update_account/{account}', [ SettingsController::class, 'update_account' ])->name('accounts.update');
+    Route::delete('/settings/destroy_account/{id}', [ SettingsController::class, 'destroy_account' ])->name('accounts.destroy');
     Route::post('/settings/store_account_type', [ SettingsController::class, 'store_account_type' ])->name('account_types.store');
     Route::get('/settings/categories', [ SettingsController::class, 'categories' ])->name('settings.categories');
     Route::post('/settings/store_category', [ CategoryController::class, 'store' ])->name('categories.store');

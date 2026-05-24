@@ -150,10 +150,12 @@ class SettingsController extends Controller
                 'name' => $acct->name,
                 'id' => $acct->id,
                 'type' => $type->name,
+                'type_id' => $acct->type_id,
                 'asset' => $type->asset,
                 'interest_rate' => $acct->interest_rate,
                 'url' => $acct->url,
                 'initial_balance' => $acct->initial_balance / 100,
+                'active' => $acct->active,
                 'owner' => $user->name
             ];
         }
@@ -183,6 +185,7 @@ class SettingsController extends Controller
         $acct->interest_rate = $request->interest_rate;
         $acct->initial_balance = $request->initial_balance * 100;
         $acct->url = $request->url;
+        $acct->active = $request->boolean('active');
         $acct->save();
         return redirect()->route('settings.accounts')->with('message', 'Successfully Created Account: #' . $acct->id);
     }
@@ -197,6 +200,59 @@ class SettingsController extends Controller
       return [
         'url.url' => 'A valid url is required. eg. https://example.org',
       ];
+    }
+
+    /**
+     * Update the specified account in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Account  $account
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update_account(Request $request, Account $account)
+    {
+        $current_user = Auth::user();
+        if ($account->user_id !== $current_user->id) {
+            abort(403);
+        }
+        $request->validate([
+            'name' => [ 'required', 'max:50' ],
+            'type' => [ 'required' ],
+            'initial_balance' => [ 'nullable', 'numeric' ],
+            'interest_rate' => [ 'nullable', 'numeric' ],
+            'url' => [ 'nullable', 'url' ]
+        ]);
+        $account->name = $request->name;
+        $account->type_id = $request->type;
+        $account->interest_rate = $request->interest_rate;
+        $account->initial_balance = $request->initial_balance * 100;
+        $account->url = $request->url;
+        $account->active = $request->boolean('active');
+        $account->save();
+        return redirect()->route('settings.accounts')->with('message', 'Successfully Updated Account: #' . $account->id);
+    }
+
+    /**
+     * Remove the specified account from storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy_account(Request $request) : \Illuminate\Http\RedirectResponse
+    {
+        $account = Account::where('id', '=', $request->id)->first();
+        if ($account) {
+            $linked_transactions = $account->transactions();
+            if ($linked_transactions->count() > 0) {
+                return redirect()->back()->withErrors([
+                    'message' => 'This account has at least 1 transaction and cannot be deleted'
+                ]);
+            }
+            Account::destroy($request->id);
+        } else {
+            return redirect()->back()->withErrors('Invalid account id');
+        }
+        return redirect()->route('settings.accounts');
     }
 
     /**

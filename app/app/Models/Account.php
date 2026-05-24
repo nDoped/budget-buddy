@@ -17,6 +17,13 @@ class Account extends Model
 {
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'active' => 'boolean',
+        ];
+    }
+
     /**
     * Get transactions for this account
     * @return \Illuminate\Database\Eloquent\Relations\HasMany

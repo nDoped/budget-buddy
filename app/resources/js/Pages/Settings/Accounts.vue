@@ -172,7 +172,10 @@
       </div>
 
       <div class="overflow-x-auto">
-        <AccountTable :accounts="data.accounts" />
+        <AccountTable
+          :accounts="data.accounts"
+          :account-types="data.account_types"
+        />
       </div>
     </div>
   </AppLayout>
