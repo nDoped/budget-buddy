@@ -54,20 +54,37 @@
     }
   };
 
+  const expandingRows = reactive(new Set());
   const expandedRows = reactive(new Set());
+  const collapsingRows = reactive(new Set());
 
   watch(() => props.items, () => {
+    expandingRows.clear();
     expandedRows.clear();
+    collapsingRows.clear();
   });
 
   const showHideRow = (item, i) => {
     if (!props.expand) return;
-    if (expandedRows.has(item)) {
+    if (expandedRows.has(item) || expandingRows.has(item)) {
       expandedRows.delete(item);
+      expandingRows.delete(item);
+      collapsingRows.add(item);
       emit('row-collapsed', hiddenTrRefs.value[i], i);
     } else {
-      expandedRows.add(item);
+      expandingRows.add(item);
+      collapsingRows.delete(item);
       emit('row-expanded', hiddenTrRefs.value[i], i);
+    }
+  };
+
+  const onAnimationEnd = (item, event) => {
+    if (event.animationName === 'slideDown' && expandingRows.has(item)) {
+      expandingRows.delete(item);
+      expandedRows.add(item);
+    }
+    if (event.animationName === 'slideUp' && collapsingRows.has(item)) {
+      collapsingRows.delete(item);
     }
   };
 
@@ -249,21 +266,27 @@
 
           <tr
             v-if="expand && item.expand"
+            v-show="expandingRows.has(item) || expandedRows.has(item) || collapsingRows.has(item)"
             :ref="(el) => { hiddenTrRefs.push(el) }"
             :id="`hidden_row_${i}`"
             :class="getSpecialRowClasses(item)"
           >
             <td :colspan="fieldCount">
               <div
-                class="expandable-content"
-                :class="{ 'expanded': expandedRows.has(item) }"
+                class="expand-wrapper"
+                :class="{
+                  'expanding': expandingRows.has(item),
+                  'expanded': expandedRows.has(item),
+                  'collapsing': collapsingRows.has(item)
+                }"
+                @animationend="onAnimationEnd(item, $event)"
               >
                 <slot
                   name="hidden_row"
                   :i="i"
                   :item="item"
                   :hidden_tr_refs="hiddenTrRefs"
-                  :collapse="() => expandedRows.delete(item)"
+                  :collapse="() => { expandingRows.delete(item); expandedRows.delete(item); collapsingRows.add(item); }"
                 >
                   Boo!
                 </slot>
@@ -403,14 +426,31 @@
     transition: all 2s ease-in-out;
   }
 
-  .expandable-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease-in-out;
+  .expand-wrapper {
+    clip-path: inset(0 0 100% 0);
   }
 
-  .expandable-content.expanded {
-    max-height: 9999px;
+  .expand-wrapper.expanding {
+    animation: slideDown 0.35s ease-in-out forwards;
+  }
+
+  .expand-wrapper.expanded {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .expand-wrapper.collapsing {
+    clip-path: inset(0 0 0 0);
+    animation: slideUp 0.3s ease-in-out forwards;
+  }
+
+  @keyframes slideDown {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+
+  @keyframes slideUp {
+    from { clip-path: inset(0 0 0 0); }
+    to { clip-path: inset(0 0 100% 0); }
   }
 
   .content-page.deactive {
