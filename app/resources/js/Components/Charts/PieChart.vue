@@ -29,9 +29,11 @@
 </script>
 
 <template>
-  <Pie
-    v-if="mounted"
-    :data="chartData"
-    :options="chartOptions"
-  />
+  <div class="h-full w-full">
+    <Pie
+      v-if="mounted"
+      :data="chartData"
+      :options="chartOptions"
+    />
+  </div>
 </template>
