@@ -337,6 +337,7 @@ class User extends Authenticatable
         $ret = [];
         foreach ($this->accounts as $acct) {
             $ret[$acct->id] = [
+                'id' => $acct->id,
                 'name' => $acct->name,
                 'init_balance' => $acct->initial_balance / 100,
                 'init_balance_raw' => $acct->initial_balance,

@@ -177,6 +177,13 @@
   const mounted = ref(false);
   onMounted(() => {
     mounted.value = true;
+    const saved = sessionStorage.getItem('dashboard_scroll');
+    if (saved) {
+      sessionStorage.removeItem('dashboard_scroll');
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: parseInt(saved, 10) });
+      });
+    }
   });
 
   const getBreakdownTitle = (br) => {
@@ -278,8 +285,9 @@
           </template>
 
           <template #hidden_row="{item}">
-            <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
+            <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" :account-id="item.id" />
           </template>
+
         </ExpandableTable>
       </div>
     </div>
@@ -314,11 +322,12 @@
           </template>
 
           <template #hidden_row="{ item }">
-            <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" />
+            <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" :account-id="item.id" />
           </template>
         </ExpandableTable>
       </div>
     </div>
+
   </div>
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">

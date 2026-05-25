@@ -39,9 +39,11 @@
 </script>
 
 <template>
-  <Line
-    v-if="mounted"
-    :data="chartData"
-    :options="chartOptions"
-  />
+  <div class="h-full w-full">
+    <Line
+      v-if="mounted"
+      :data="chartData"
+      :options="chartOptions"
+    />
+  </div>
 </template>
