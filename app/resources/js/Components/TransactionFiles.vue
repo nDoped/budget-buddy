@@ -104,6 +104,7 @@
    */
   const emit = defineEmits(['analyze-receipt']);
   const analyzing = ref(false);
+  const forceRefresh = ref(false);
   const analyzeImage = async () => {
     if (newImages.value.length === 0 && ! uploadedFile.value) {
       toast.error('Please capture or upload an image/PDF first', { autoClose: 3000 });
@@ -127,6 +128,7 @@
       /* global axios route */
       const response = await axios.post(route('receipt.analyze'), {
         image: imageData,
+        force_refresh: forceRefresh.value,
       });
 
       const result = response.data;
@@ -247,7 +249,7 @@
 
           <div
             v-if="newImages.length > 0 || uploadedFile"
-            class="mt-4"
+            class="mt-4 flex flex-row items-center gap-3"
           >
             <PrimaryButton
               type="button"
@@ -257,6 +259,14 @@
             >
               {{ analyzing ? 'Analyzing...' : 'Analyze with AI' }}
             </PrimaryButton>
+            <label class="flex items-center gap-1 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                v-model="forceRefresh"
+                class="rounded"
+              />
+              Refresh
+            </label>
           </div>
         </div>
       </div>

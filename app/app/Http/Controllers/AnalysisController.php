@@ -12,16 +12,18 @@ class AnalysisController extends Controller
     {
         $request->validate([
             'image' => ['required', 'string'],
+            'force_refresh' => ['nullable', 'boolean'],
         ]);
 
         $image = $request->input('image');
+        $forceRefresh = $request->boolean('force_refresh');
 
         if (!str_starts_with($image, 'data:image/') && !str_starts_with($image, 'data:application/pdf')) {
             return response()->json(['error' => 'Invalid format. Must be a base64 data URI (image or PDF).'], 422);
         }
 
         try {
-            $result = $analyzer->analyze($image);
+            $result = $analyzer->analyze($image, $forceRefresh);
 
             if (isset($result['error'])) {
                 return response()->json(['error' => $result['error']], 422);

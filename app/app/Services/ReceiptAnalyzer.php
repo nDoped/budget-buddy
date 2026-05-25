@@ -18,7 +18,7 @@ class ReceiptAnalyzer
         $this->model = config('services.openai.model', 'gpt-4o');
     }
 
-    public function analyze(string $dataUri): array
+    public function analyze(string $dataUri, bool $forceRefresh = false): array
     {
         if (empty($this->apiKey)) {
             throw new \RuntimeException('OpenAI API key is not configured. Set OPENAI_API_KEY in .env');
@@ -28,7 +28,10 @@ class ReceiptAnalyzer
         $catsList = json_encode($cats);
 
         $cacheKey = 'receipt_analysis_' . md5($dataUri . $catsList);
-        // Cache::forget($cacheKey); // Clear cache for testing - remove this line in production
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
+        }
 
         return Cache::remember($cacheKey, 86400, function () use ($catsList, $dataUri) {
             $images = $this->ensureImages($dataUri);
