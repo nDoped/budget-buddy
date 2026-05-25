@@ -13,11 +13,12 @@ class TransactionImageController extends Controller
      */
     public function getImageData(TransactionImage $image)
     {
-        // @todo verify requested image belonds to current user
+        // @todo verify requested file belongs to current user
         $path = $image->path;
-        $type = pathinfo($path, PATHINFO_EXTENSION);
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+        $mime = $ext === 'pdf' ? 'application/pdf' : 'image/' . $ext;
         $data = file_get_contents(storage_path() . '/app/' . $path);
-        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        $base64 = 'data:' . $mime . ';base64,' . base64_encode($data);
         return response()->json(['base64' => $base64]);
     }
 }

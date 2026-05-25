@@ -16,8 +16,8 @@ class AnalysisController extends Controller
 
         $image = $request->input('image');
 
-        if (!str_starts_with($image, 'data:image/')) {
-            return response()->json(['error' => 'Invalid image format. Must be a base64 data URI.'], 422);
+        if (!str_starts_with($image, 'data:image/') && !str_starts_with($image, 'data:application/pdf')) {
+            return response()->json(['error' => 'Invalid format. Must be a base64 data URI (image or PDF).'], 422);
         }
 
         try {

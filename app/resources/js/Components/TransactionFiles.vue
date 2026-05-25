@@ -1,6 +1,7 @@
 <script setup>
   import {
-    ref
+    ref,
+    computed,
   } from 'vue';
   import { randomUUID } from '@/lib.js';
   import Camera from '@/Components/CameraComponent.vue';
@@ -81,8 +82,16 @@
       photoPreview.value = e.target.result;
     };
 
-    reader.readAsDataURL(photo);
+    if (photo.type === 'application/pdf') {
+      photoPreview.value = 'pdf:' + photo.name;
+    } else {
+      reader.readAsDataURL(photo);
+    }
   };
+
+  const isPdfPreview = computed(() => {
+    return typeof photoPreview.value === 'string' && photoPreview.value.startsWith('pdf:');
+  });
   const saveFileUpload = () => {
     let file = uploadFileInput.value.files[0];
     uploadedFile.value = file;
@@ -97,7 +106,7 @@
   const analyzing = ref(false);
   const analyzeImage = async () => {
     if (newImages.value.length === 0 && ! uploadedFile.value) {
-      toast.error('Please capture or upload an image first', { autoClose: 3000 });
+      toast.error('Please capture or upload an image/PDF first', { autoClose: 3000 });
       return;
     }
 
@@ -185,16 +194,26 @@
                 type="button"
                 @click="showFileUploadModal = true"
               >
-                Upload a file
+                Upload image/PDF
               </SecondaryButton>
 
-              <ActionMessage
+              <div
                 v-if="uploadedFile !== null"
-                :on="uploadedFile !== null"
-                class="ml-2"
+                class="flex flex-row items-center ml-2"
               >
-                {{ uploadedFile.name }}
-              </ActionMessage>
+                <ActionMessage
+                  :on="uploadedFile !== null"
+                >
+                  {{ uploadedFile.name }}
+                </ActionMessage>
+                <button
+                  type="button"
+                  class="ml-2 text-red-500 hover:text-red-700 text-sm font-medium"
+                  @click="uploadedFile = null"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -275,6 +294,13 @@
           class="mt-2"
         >
           <span
+            v-if="isPdfPreview"
+            class="block text-gray-700 dark:text-gray-300 text-sm"
+          >
+            {{ uploadedFile?.name || 'PDF selected' }}
+          </span>
+          <span
+            v-else
             class="block w-20 h-20 bg-cover bg-no-repeat bg-center"
             :style="'background-image: url(\'' + photoPreview + '\');'"
           />
@@ -285,6 +311,7 @@
         <input
           ref="uploadFileInput"
           type="file"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,image/jpeg,image/png,image/gif,image/webp,application/pdf"
           class="hidden"
           @change="updatePhotoPreview"
         >
@@ -294,7 +321,7 @@
           type="button"
           @click.prevent="selectNewPhoto"
         >
-          Select an image
+          Select a file
         </PrimaryButton>
 
         <SecondaryButton

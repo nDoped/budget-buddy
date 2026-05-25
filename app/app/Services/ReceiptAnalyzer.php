@@ -18,20 +18,23 @@ class ReceiptAnalyzer
         $this->model = config('services.openai.model', 'gpt-4o');
     }
 
-    public function analyze(string $imageBase64): array
+    public function analyze(string $dataUri): array
     {
         if (empty($this->apiKey)) {
             throw new \RuntimeException('OpenAI API key is not configured. Set OPENAI_API_KEY in .env');
         }
+
         $cats = Category::with('categoryType')->where('active', true)->get()->groupBy(fn($c) => $c->categoryType?->name ?? 'Uncategorized')->map(fn($group) => $group->pluck('name')->toArray())->toArray();
         $catsList = json_encode($cats);
 
-        $cacheKey = 'receipt_analysis_' . md5($imageBase64 . $catsList);
+        $cacheKey = 'receipt_analysis_' . md5($dataUri . $catsList);
         // Cache::forget($cacheKey); // Clear cache for testing - remove this line in production
 
-        return Cache::remember($cacheKey, 86400, function () use ($catsList, $imageBase64) {
+        return Cache::remember($cacheKey, 86400, function () use ($catsList, $dataUri) {
+            $images = $this->ensureImages($dataUri);
             $prompt = <<<'PROMPT'
-You are a receipt analyzer. Extract all line items from this receipt image.
+You are a receipt analyzer. Extract all line items from this receipt image(s).
+Some receipts may span multiple pages — treat all images as part of the same receipt.
 - Only extract line items that are purchases (do not include "savings" or line items that are in bold or not aligned with the rest of the prices)
 - For each line item, return:
     - description: the item name
@@ -65,6 +68,19 @@ PROMPT;
 
             $prompt = str_replace('[CATEGORIES]', $catsList, $prompt);
 
+            $contentItems = [
+                [
+                    'type' => 'input_text',
+                    'text' => $prompt,
+                ],
+            ];
+            foreach ($images as $imageData) {
+                $contentItems[] = [
+                    'type' => 'input_image',
+                    'image_url' => $imageData,
+                ];
+            }
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
@@ -73,16 +89,7 @@ PROMPT;
                 'input' => [
                     [
                         'role' => 'user',
-                        'content' => [
-                            [
-                                'type' => 'input_text',
-                                'text' => $prompt,
-                            ],
-                            [
-                                'type' => 'input_image',
-                                'image_url' => $imageBase64,
-                            ],
-                        ],
+                        'content' => $contentItems,
                     ],
                 ],
                 'max_output_tokens' => 2000,
@@ -112,5 +119,64 @@ PROMPT;
 
             return $result;
         });
+    }
+
+    private function ensureImages(string $dataUri): array
+    {
+        if (!str_starts_with($dataUri, 'data:application/pdf')) {
+            return [$dataUri];
+        }
+
+        $base64 = substr($dataUri, strpos($dataUri, ';base64,') + 8);
+        $pdfData = base64_decode($base64, true);
+        if ($pdfData === false) {
+            throw new \RuntimeException('Invalid PDF base64 data');
+        }
+
+        $tempDir = storage_path('app/tmp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $pdfPath = $tempDir . '/' . uniqid('pdf_', true) . '.pdf';
+        $pngPattern = $tempDir . '/' . uniqid('pdf_', true) . '_page_%d.png';
+
+        try {
+            file_put_contents($pdfPath, $pdfData);
+
+            $escapedPdf = escapeshellarg($pdfPath);
+            $escapedPattern = escapeshellarg($pngPattern);
+            $cmd = "/usr/bin/gs -dNOPAUSE -dBATCH -sDEVICE=png16m -r150 -sOutputFile=$escapedPattern $escapedPdf 2>&1";
+            exec($cmd, $output, $exitCode);
+
+            if ($exitCode !== 0) {
+                throw new \RuntimeException('Failed to convert PDF to image: ' . implode("\n", $output));
+            }
+
+            $images = [];
+            $pageNum = 1;
+            $pngPath = sprintf($pngPattern, $pageNum);
+
+            while (file_exists($pngPath)) {
+                $pngData = file_get_contents($pngPath);
+                if ($pngData === false) {
+                    throw new \RuntimeException("Failed to read PDF page $pageNum image");
+                }
+                $images[] = 'data:image/png;base64,' . base64_encode($pngData);
+                unlink($pngPath);
+                $pageNum++;
+                $pngPath = sprintf($pngPattern, $pageNum);
+            }
+
+            if (empty($images)) {
+                throw new \RuntimeException('No pages found in PDF');
+            }
+
+            return $images;
+        } finally {
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
+            }
+        }
     }
 }
