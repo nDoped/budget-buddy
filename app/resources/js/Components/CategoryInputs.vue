@@ -62,8 +62,8 @@
 </script>
 
 <template>
-  <div class="flex flex-col bg-slate-500">
-    <div>
+  <div class="flex flex-col p-6 bg-slate-500">
+    <div class="mb-4">
       <InputLabel
         :for="getUuid('cat-name')"
         value="New Category's Name"
@@ -73,7 +73,7 @@
         ref="nameEl"
         v-model="catName"
         type="text"
-        class="mt-1 block w-full"
+        class="mt-1 block w-full max-w-sm"
       />
       <InputError
         :message="errors.name"
@@ -87,7 +87,7 @@
       />
     </div>
 
-    <div>
+    <div class="mb-4">
       <InputLabel
         :for="getUuid('cat-type')"
         value="New Category's Type"
@@ -95,7 +95,7 @@
       <select
         :id="getUuid('cat-type')"
         v-model="catType"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full max-w-sm p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
       >
         <option value="">
           Select type...
@@ -111,11 +111,10 @@
       </select>
     </div>
 
-    <div>
+    <div class="mb-4">
       <InputLabel
         :for="getUuid('cat-color')"
         value="New Category's Color"
-        class="mt-2"
       />
       <input
         :id="getUuid('cat-color')"

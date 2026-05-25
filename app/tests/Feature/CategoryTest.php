@@ -146,4 +146,25 @@ class CategoryTest extends TestCase
         $this->user->refresh();
         $this->assertCount(2, $this->user->categories);
     }
+
+    #[Group('categories')]
+    public function test_category_search()
+    {
+        $response = $this->get(route('settings.categories', [ 'search' => 'cat1' ]));
+        $response->assertInertia(function ($page) {
+            $page->component('Settings/Categories')
+                ->has('categories', 1)
+                ->where('categories.0.name', 'cat1');
+        });
+    }
+
+    #[Group('categories')]
+    public function test_category_search_empty()
+    {
+        $response = $this->get(route('settings.categories', [ 'search' => 'nonexistent' ]));
+        $response->assertInertia(function ($page) {
+            $page->component('Settings/Categories')
+                ->has('categories', 0);
+        });
+    }
 }

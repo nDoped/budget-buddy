@@ -51,8 +51,17 @@ class SettingsController extends Controller
     {
         $cats = [];
         $current_user = Auth::user();
+        $search = $request->query('search');
+        $categoryTypeId = $request->query('category_type_id');
 
-        $cat_itty = $current_user->categories;
+        $cat_itty = $current_user->categories()
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', '%'.$search.'%');
+            })
+            ->when($categoryTypeId, function ($query, $categoryTypeId) {
+                return $query->where('category_type_id', $categoryTypeId);
+            })
+            ->get();
         foreach ($cat_itty as $cat) {
             $catt = CategoryType::find($cat->category_type_id);
             $cats[] = [
