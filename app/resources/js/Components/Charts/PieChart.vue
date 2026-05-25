@@ -7,9 +7,8 @@
     Legend
   } from 'chart.js'
   import { Pie } from 'vue-chartjs'
-  import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-  ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
+  ChartJS.register(ArcElement, Tooltip, Legend);
   defineProps({
     chartData: {
       type: Object,
@@ -29,7 +28,7 @@
 </script>
 
 <template>
-  <div class="h-full w-full">
+  <div style="height: 1200px; width: 100%">
     <Pie
       v-if="mounted"
       :data="chartData"

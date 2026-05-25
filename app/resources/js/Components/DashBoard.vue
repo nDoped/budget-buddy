@@ -3,6 +3,7 @@
   import {
     inject,
     computed,
+    watch,
     onMounted,
     ref
   } from 'vue';
@@ -15,6 +16,7 @@
   import StatsComponent from '@/Components/StatsComponent.vue';
   const formatter = inject('formatter');
   const dateFormatter = inject('dateFormatter');
+  const storage = window.sessionStorage;
 
   const props = defineProps({
     assets: {
@@ -174,12 +176,27 @@
     return false;
   };
 
+  const selectedBreakdown = ref(null);
   const mounted = ref(false);
+
+  const PERSIST_KEY = 'dashboard_selected_category_type';
+
+  watch(selectedBreakdown, (br) => {
+    if (br) {
+      const id = Object.entries(props.categoryTypeBreakdowns).find(([, v]) => v === br)?.[0];
+      if (id) storage.setItem(PERSIST_KEY, id);
+    }
+  });
+
   onMounted(() => {
+    const savedId = storage.getItem(PERSIST_KEY);
+    if (savedId && props.categoryTypeBreakdowns[savedId]) {
+      selectedBreakdown.value = props.categoryTypeBreakdowns[savedId];
+    }
     mounted.value = true;
-    const saved = sessionStorage.getItem('dashboard_scroll');
+    const saved = storage.getItem('dashboard_scroll');
     if (saved) {
-      sessionStorage.removeItem('dashboard_scroll');
+      storage.removeItem('dashboard_scroll');
       requestAnimationFrame(() => {
         window.scrollTo({ top: parseInt(saved, 10) });
       });
@@ -336,27 +353,50 @@
     </div>
   </div>
 
-  <div class="p-6 bg-zinc-300 dark:text-white dark:bg-slate-700">
-    <StatsComponent
-      :stats="dashboardStats"
-      last=""
-    />
-  </div>
-
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75">
-    <div class="h-full bg-slate-700 bg-opacity-75 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-      <div
-        v-for="(br, i) in categoryTypeBreakdowns"
-        class="m-2 h-[36rem] text-center"
-        :key="i"
-      >
-        <ExpenseBreakdown
-          v-if="mounted && ! filterTransactionsForm.processing"
-          :categorized-expenses="br.data"
-          :title="getBreakdownTitle(br)"
-          :color="br.hex_color"
-        />
+    <div class="bg-slate-700 bg-opacity-75 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div
+          v-for="(br, i) in categoryTypeBreakdowns"
+          class="text-center cursor-pointer transition-transform hover:scale-105"
+          :class="selectedBreakdown === br ? 'ring-2 ring-white rounded-lg p-2' : 'p-2'"
+          :key="i"
+          @click="selectedBreakdown = selectedBreakdown === br ? null : br; storage.setItem(PERSIST_KEY, selectedBreakdown ? i : '')"
+        >
+          <div
+            class="font-bold text-2xl"
+            :style="{ color: br.hex_color }"
+          >
+            {{ getBreakdownTitle(br) }}
+          </div>
+        </div>
       </div>
+      <Transition name="fade-slide">
+        <ExpenseBreakdown
+          v-if="selectedBreakdown && mounted && ! filterTransactionsForm.processing"
+          :categorized-expenses="selectedBreakdown.data"
+          :title="getBreakdownTitle(selectedBreakdown)"
+          :color="selectedBreakdown.hex_color"
+          class="mt-4"
+        />
+      </Transition>
     </div>
   </div>
 </template>
+
+<style>
+.fade-slide-enter-active {
+  transition: all 0.3s ease-out;
+}
+.fade-slide-leave-active {
+  transition: all 0.2s ease-in;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

@@ -176,64 +176,7 @@ export const expenseBreakdownOptions = {
     },
 
     title: {
-      text: 'Expense Breakdown',
-      display: true
-    },
-
-    datalabels: {
       display: false
-      /*
-      anchor: 'end',
-      align: 'start',
-      listeners: {
-        enter: (ctx, event) => {
-          console.log({
-              'resources/js/Components/Charts/chartConfig.js:143 enter' : event,
-          });
-          // Receives `enter` events for any labels of any dataset. Indices of the
-          // clicked label are: `context.datasetIndex` and `context.dataIndex`.
-          // For example, we can modify keep track of the hovered state and
-          // return `true` to update the label and re-render the chart.
-          ctx.hovered = true;
-          return true;
-        },
-
-        leave: (ctx, event) => {
-          // Receives `leave` events for any labels of any dataset.
-          console.log({
-            'resources/js/Components/Charts/chartConfig.js:143 leave' : event,
-          });
-          ctx.hovered = false;
-          return true;
-        }
-      },
-
-      display: (ctx) => {
-        let sum = 0;
-        let dataArr = ctx.chart.data.datasets[0].data;
-        dataArr.map(data => {
-          sum += data;
-        });
-        let value = dataArr[ctx.dataIndex];
-        let percentage = value * 100 / sum
-        return percentage > 4;
-      },
-
-      formatter: (value, ctx) => {
-        let sum = 0;
-        let dataArr = ctx.chart.data.datasets[0].data;
-        dataArr.map(data => {
-          sum += data;
-        });
-        let labelArr = ctx.chart.data.labels;
-        let percentage = (value * 100 / sum).toFixed(2)+"%";
-        let displayVal = value.toFixed(2);
-        return ctx.active ?
-          [ `${labelArr[ctx.dataIndex]}`, `$${displayVal}`,   `${percentage}` ]
-          : null;
-      },
-      color: '#000000'
-      */
     }
   },
   elements: {

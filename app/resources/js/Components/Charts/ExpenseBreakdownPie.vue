@@ -2,6 +2,7 @@
   import {
     watch,
     ref,
+    computed,
     onMounted
   } from 'vue';
   import { router } from '@inertiajs/vue3';
@@ -42,6 +43,26 @@
     }, {});
   };
 
+  const topCategory = computed(() => {
+    let best = null;
+    for (const cat of Object.values(props.categorizedExpenses)) {
+      if (!best || cat.value > best.value) {
+        best = cat;
+      }
+    }
+    return best;
+  });
+
+  const bottomCategory = computed(() => {
+    let worst = null;
+    for (const cat of Object.values(props.categorizedExpenses)) {
+      if (!worst || cat.value < worst.value) {
+        worst = cat;
+      }
+    }
+    return worst;
+  });
+
   const pieChartData = ref(structuredClone(defaultChartStruct));
   watch(() => props.categorizedExpenses, () => {
     pieChartData.value = structuredClone(defaultChartStruct);
@@ -54,6 +75,7 @@
   });
 
   const options = cloneDeep(expenseBreakdownOptions);
+  options.plugins.title.display = false;
   const tooltipRef = ref(null);
   const isHoveringTooltip = ref(false);
   let hideTimeout = null;
@@ -73,13 +95,6 @@
       pieChartData.value.datasets[0].transactions.push(props.categorizedExpenses[id].transactions);
       pieChartData.value.labels.push(props.categorizedExpenses[id].name);
     }
-    options.plugins.title.text = props.title;
-    options.plugins.title.font = {
-      weight: 'bold',
-      size:24
-    };
-    options.plugins.title.color = props.color;
-
     const tEl = tooltipRef.value;
     if (tEl) {
       tEl.addEventListener('mouseenter', () => {
@@ -152,9 +167,16 @@
 
       el.innerHTML = html;
 
-      const canvasRect = ctx.chart.canvas.getBoundingClientRect();
-      let left = canvasRect.left + tooltip.caretX;
-      let top = canvasRect.top + tooltip.caretY;
+      const evt = ctx.chart._lastEvent?.native;
+      let left, top;
+      if (evt) {
+        left = evt.clientX;
+        top = evt.clientY;
+      } else {
+        const canvasRect = ctx.chart.canvas.getBoundingClientRect();
+        left = canvasRect.left + tooltip.caretX;
+        top = canvasRect.top + tooltip.caretY;
+      }
 
       const elRect = el.getBoundingClientRect();
       if (left + elRect.width > window.innerWidth) {
@@ -173,11 +195,35 @@
 </script>
 
 <template>
-  <div class="relative h-full w-full">
-    <PieChart
-      :chart-data="pieChartData"
-      :chart-options="options"
-    />
+  <div class="relative w-full flex flex-col items-center">
+    <div class="text-center mb-1 shrink-0">
+      <div
+        class="font-bold text-2xl"
+        :style="{ color: props.color }"
+      >
+        {{ props.title }}
+      </div>
+      <div
+        v-if="topCategory"
+        class="text-lg"
+        :style="{ color: props.color }"
+      >
+        Highest: {{ topCategory.name }} ({{ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(topCategory.value) }})
+      </div>
+      <div
+        v-if="bottomCategory"
+        class="text-lg mt-1"
+        :style="{ color: props.color }"
+      >
+        Lowest: {{ bottomCategory.name }} ({{ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(bottomCategory.value) }})
+      </div>
+    </div>
+    <div class="flex-1 w-full min-h-0">
+      <PieChart
+        :chart-data="pieChartData"
+        :chart-options="options"
+      />
+    </div>
     <div
       ref="tooltipRef"
       class="fixed z-50 px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none"
