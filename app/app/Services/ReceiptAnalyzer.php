@@ -37,7 +37,6 @@ You are a receipt analyzer. Extract all line items from this receipt image(s).
 Some receipts may span multiple pages — treat all images as part of the same receipt.
 - Only extract line items that are purchases (do not include "savings" or line items that are in bold or not aligned with the rest of the prices)
 - For each line item, return:
-    - description: the item name
     - price: the numeric price (as a float)
     - suggested_category: a suggested_category that exists in this json:
         [CATEGORIES]
@@ -46,7 +45,7 @@ Some receipts may span multiple pages — treat all images as part of the same r
                 category type name: [ "category name 1", "category name 2", ... ],
             }
         - do NOT use the category type's name for the suggested_category value, but consider its value when picking the best category name match for the line item
-        - use keywords from the line item description to help determine the best category name match as well
+        - use keywords from the line item name to help determine the best category name match as well
 
 Also extract:
 - tax: the tax amount (float or null)
@@ -56,7 +55,7 @@ Also extract:
 Return ONLY valid JSON with this structure:
 {
   "line_items": [
-    { "description": "Item", "price": 9.99, "suggested_category": "category name4" }
+    { "price": 9.99, "suggested_category": "category name4" }
   ],
   "tax": 0.80,
   "date": "2024-05-01",
