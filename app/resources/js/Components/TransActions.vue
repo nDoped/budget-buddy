@@ -1,7 +1,6 @@
 <script setup>
   import { inject, ref, nextTick, onMounted, onUnmounted, watch } from 'vue';
   import { useForm } from '@inertiajs/vue3'
-  import ElasticFrame from '@/Components/ElasticFrame.vue';
   import TransactionEditForm from '@/Components/TransactionEditForm.vue';
   import DateFilter from '@/Components/DateFilter.vue';
   import ExpandableTable from '@/Components/ExpandableTable.vue';
@@ -253,7 +252,7 @@
 
 <template>
   <div class="p-6 sm:px-20 bg-slate-100 dark:bg-slate-700 border-b border-gray-200">
-    <ElasticFrame>
+    <div class="grid grid-flow-row content-between gap-5 sm:grid-cols-1 md:grid-cols-[1fr_auto]">
       <DateFilter
         :start="transStart"
         :end="transEnd"
@@ -287,7 +286,7 @@
         </div>
         <p class="ls5-form-hint mt-1">Search Transactions</p>
       </label>
-    </ElasticFrame>
+    </div>
 
     <div class="mt-4 overflow-x-auto">
       <ExpandableTable

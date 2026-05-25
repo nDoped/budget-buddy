@@ -132,7 +132,7 @@
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row ">
+  <div class="flex flex-col sm:flex-row flex-wrap ">
     <div class="m-2">
       <InputLabel
         for="transaction_start_date"
@@ -170,7 +170,7 @@
 
     <div
       v-if="accounts.length > 0"
-      class="m-2"
+      class="m-2 min-w-48"
     >
       <InputLabel
         for="type"
