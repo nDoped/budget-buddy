@@ -103,6 +103,7 @@ test("test receipt line items with two items in the same cat", async () => {
   await addLineItemBttn.trigger('click');
   let expectedLineItems = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       price: null
     }
@@ -111,16 +112,19 @@ test("test receipt line items with two items in the same cat", async () => {
   await addLineItemBttn.trigger('click');
   expectedLineItems = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       price: null
     },
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       price: null
     }
   ];
   let expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 100
     },
@@ -153,6 +157,7 @@ test("test receipt line items with two items in different cats", async () => {
   await toggle.vm.$emit('update:modelValue', true);
 
   expect(wrapper.vm.calcCatsByReciept).toBe(true);
+  expect(wrapper.find("#" + taxElId).exists()).toBe(true);
   expect(wrapper.find("#" + addCatBtnId).exists()).toBe(false);
   expect(wrapper.find("#" + createCatBtnId).exists()).toBe(false);
   const taxEl = wrapper.get("#" + taxElId);
@@ -161,6 +166,7 @@ test("test receipt line items with two items in different cats", async () => {
   await addLineItemBttn.trigger('click');
   let expectedLineItems = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       price: null
     }
@@ -173,6 +179,7 @@ test("test receipt line items with two items in different cats", async () => {
   };
   expectedLineItems = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       price: null
     },
@@ -183,10 +190,12 @@ test("test receipt line items with two items in different cats", async () => {
   ];
   let expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 25.93 // 23.34 / 90 = 0.2593333
     },
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[1],
       percent: 74.07 // (90 - 23.34) / 90 = 0.7406666
     },
@@ -211,6 +220,7 @@ test("test Add an Existing Cat button", async () => {
   await addCatBtn.trigger('click');
   let expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 0
     }
@@ -225,6 +235,7 @@ test("test Add an Existing Cat button with percentages", async () => {
   await addCatBtn.trigger('click');
   let expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 0
     }
@@ -235,6 +246,7 @@ test("test Add an Existing Cat button with percentages", async () => {
   await percentInput.setValue(10);
   expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 10
     }
@@ -243,10 +255,12 @@ test("test Add an Existing Cat button with percentages", async () => {
   await addCatBtn.trigger('click');
   expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 10
     },
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[1],
       percent: 0
     }
@@ -260,6 +274,7 @@ test("test Create New Cat button", async () => {
   await createCatBtn.trigger('click');
   let expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: {
         cat_id: null,
         name: null,
@@ -280,6 +295,7 @@ test("test Create New Cat button", async () => {
   await categoryInputs.vm.$emit('fieldUpdate', eventPayload);
   expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: {
         cat_id: null,
         name: eventPayload.name,
@@ -299,6 +315,7 @@ test("test Create New Cat button when appending to catsRef", async () => {
   await addCatBtn.trigger('click');
   let expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 0
     }
@@ -309,10 +326,12 @@ test("test Create New Cat button when appending to catsRef", async () => {
 
   expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 0
     },
     {
+      _key: expect.any(String),
       cat_data: {
         cat_id: null,
         name: null,
@@ -333,10 +352,12 @@ test("test Create New Cat button when appending to catsRef", async () => {
   await categoryInputs.vm.$emit('fieldUpdate', eventPayload);
   expectedCatsRef = [
     {
+      _key: expect.any(String),
       cat_data: props.availableCategories[0],
       percent: 0
     },
     {
+      _key: expect.any(String),
       cat_data: {
         cat_id: null,
         name: eventPayload.name,
@@ -380,6 +401,29 @@ test("test catsRef when props.categories is not empty", async () => {
   const wrapper = mount(TransactionCategory, {
     props: newProps
   })
-  expect(wrapper.vm.catsRef).toEqual(newProps.categories);
+  expect(wrapper.vm.catsRef).toEqual([
+    {
+      _key: expect.any(String),
+      cat_data: {
+        cat_id: 1,
+        name: "Eggs",
+        cat_type_id: 1,
+        cat_type_name: "Food",
+        hex_color: "#FF0000",
+      },
+      percent: 50
+    },
+    {
+      _key: expect.any(String),
+      cat_data: {
+        cat_id: 2,
+        name: "Bacon",
+        cat_type_id: 1,
+        cat_type_name: "Food",
+        hex_color: "#FF3546",
+      },
+      percent: 50
+    }
+  ]);
   expect(wrapper.vm.filteredCats).toEqual([]);
 });

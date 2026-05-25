@@ -61,10 +61,10 @@ test("test aiAnalysis populates line items with matching categories", async () =
 
   expect(wrapper.vm.calcCatsByReciept).toBe(true);
   expect(wrapper.vm.lineItems.length).toBe(2);
-  expect(wrapper.vm.lineItems[0].price).toBe(5.99);
+  expect(wrapper.vm.lineItems[0].price).toBe("5.99");
   expect(wrapper.vm.lineItems[0].cat_data.cat_id).toBe(1);
   expect(wrapper.vm.lineItems[0].cat_data.name).toBe("Eggs");
-  expect(wrapper.vm.lineItems[1].price).toBe(3.49);
+  expect(wrapper.vm.lineItems[1].price).toBe("3.49");
   expect(wrapper.vm.lineItems[1].cat_data.cat_id).toBeNull();
   expect(wrapper.vm.lineItems[1].cat_data.name).toBe("Dairy");
 });
@@ -83,7 +83,7 @@ test("test aiAnalysis with no matching categories uses suggested name", async ()
   });
 
   expect(wrapper.vm.lineItems.length).toBe(1);
-  expect(wrapper.vm.lineItems[0].price).toBe(45.00);
+  expect(wrapper.vm.lineItems[0].price).toBe("45");
   expect(wrapper.vm.lineItems[0].cat_data.name).toBe("Transportation");
   expect(wrapper.vm.lineItems[0].cat_data.cat_id).toBeNull();
 });

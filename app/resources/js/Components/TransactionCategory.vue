@@ -161,6 +161,7 @@
       let catData = catTotals[catId].cat_data;
 
       catsRef.value.push({
+        _key: randomUUID(),
         "cat_data": {
           cat_id: catData.cat_id,
           name: catData.name,
@@ -174,6 +175,7 @@
     // add the to be created cats
     catTotals.new.forEach((c) => {
       catsRef.value.push({
+        _key: randomUUID(),
         "cat_data": {
           cat_id: c.cat_data.cat_id,
           name: c.cat_data.name,
@@ -195,6 +197,7 @@
       lastEnteredCatIndex = 0;
     }
     lineItems.value.push({
+      _key: randomUUID(),
       "cat_data": {
         cat_id: props.availableCategories[lastEnteredCatIndex].cat_id,
         name: props.availableCategories[lastEnteredCatIndex].name,
@@ -216,6 +219,7 @@
   };
   const createANewLineItemCategory = () => {
     lineItems.value.push({
+      _key: randomUUID(),
       "cat_data" : {
         cat_id: null,
         name: null,
@@ -230,8 +234,9 @@
   /*
    * Percent logic
    */
-  const catsRef = ref(props.categories);
-  watch(() => props.categories, () => catsRef.value = props.categories);
+  const addKeyToCat = (cat) => ({ ...cat, _key: randomUUID() });
+  const catsRef = ref(props.categories.map(addKeyToCat));
+  watch(() => props.categories, () => catsRef.value = props.categories.map(addKeyToCat));
 
   const percentError = ref(null);
   const percentTotal = computed(() => {
@@ -283,6 +288,7 @@
   };
   const addCategory = () => {
     catsRef.value.push({
+      _key: randomUUID(),
       "cat_data": {
         cat_id: filteredCats.value[0].cat_id,
         name: filteredCats.value[0].name,
@@ -301,6 +307,7 @@
   };
   const createANewCategory = () => {
     catsRef.value.push({
+      _key: randomUUID(),
       "cat_data" : {
         cat_id: null,
         name: null,
@@ -330,11 +337,12 @@
 
     calcCatsByReciept.value = true;
     lineItems.value = [];
-    taxAmount.value = analysis.tax || null;
+    taxAmount.value = analysis.tax != null ? String(analysis.tax) : null;
 
     analysis.line_items.forEach((item) => {
       const match = matchCategory(item.suggested_category);
       lineItems.value.push({
+        _key: randomUUID(),
         cat_data: {
           cat_id: match ? match.cat_id : null,
           name: match ? match.name : (item.suggested_category || null),
@@ -342,7 +350,7 @@
           cat_type_name: match ? match.cat_type_name : null,
           hex_color: match ? match.hex_color : '#000000',
         },
-        price: item.price,
+        price: String(item.price),
       });
     });
 
@@ -393,7 +401,7 @@
         >
           <div
             v-for="(category, i) in catsRef"
-            :key="i"
+            :key="category._key"
             class="m-2"
           >
             <template v-if="category.cat_data.cat_id">
@@ -505,7 +513,7 @@
         >
           <div
             v-for="(item, i) in lineItems"
-            :key="i"
+            :key="item._key"
             class="m-2"
           >
             <template v-if="item.cat_data.cat_id">
