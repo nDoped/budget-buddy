@@ -225,6 +225,16 @@
             :errors="form.errors"
           />
 
+          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
+            <TransactionFiles
+              v-model:new-images="form.new_images"
+              v-model:existing-images="form.existing_images"
+              v-model:deleted-image-ids="form.deleted_image_ids"
+              v-model:uploaded-file="form.uploaded_file"
+              @analyze-receipt="handleAnalyzeReceipt"
+            />
+          </div>
+
           <!-- categories -->
           <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
             <TransactionCategory
@@ -236,16 +246,6 @@
               :ai-analysis="aiAnalysis"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
-            />
-          </div>
-
-          <div class="pt-4 pb-4 bg-slate-500 border-t border-gray-200">
-            <TransactionFiles
-              v-model:new-images="form.new_images"
-              v-model:existing-images="form.existing_images"
-              v-model:deleted-image-ids="form.deleted_image_ids"
-              v-model:uploaded-file="form.uploaded_file"
-              @analyze-receipt="handleAnalyzeReceipt"
             />
           </div>
 
