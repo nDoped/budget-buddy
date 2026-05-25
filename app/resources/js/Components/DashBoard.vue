@@ -225,13 +225,11 @@
 <template>
   <div class="p-6 sm:px-20 border-b border-gray-200">
     <div
-      class="max-w-xl"
       style="text-align: left"
     >
       <DateFilter
         :start="start"
         :end="end"
-        :show-transactions-link="true"
         @filter="crunchIt"
         :processing="filterTransactionsForm.processing"
       >

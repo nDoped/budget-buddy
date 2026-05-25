@@ -16,12 +16,25 @@ class DashboardController extends Controller
         $start = $request->start;
         $end = $request->end;
 
-        if (! $start && ! $end && ! $show_all) {
+        if ($show_all) {
+            $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
+            $start = $end = null;
+
+        } elseif ($request->chart_click && ($start || $end)) {
+
+        } elseif ($start || $end) {
+            session([ 'filter_start_date' => $start ]);
+            session([ 'filter_end_date' => $end ]);
+
+        } elseif (session('filter_start_date') && session('filter_end_date')) {
+            $start = session('filter_start_date');
+            $end = session('filter_end_date');
+
+        } else {
             $start = date('Y-m-01');
             $end = date('Y-m-t');
-
-        } else if ($show_all) {
-            $start = $end = null;
+            session(['filter_start_date' => $start]);
+            session(['filter_end_date' => $end]);
         }
 
         /**

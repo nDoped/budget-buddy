@@ -6,7 +6,6 @@
   import {
     ref,
     onMounted,
-    computed,
     watch
   } from 'vue';
 
@@ -32,17 +31,9 @@
       type: Array,
       default: () => []
     },
-    showTransactionsLink: {
-      type: Boolean,
-      default: false
-    },
     processing: {
       type: Boolean,
       default: false
-    },
-    includeShowAll: {
-      type: Boolean,
-      default: true
     },
   });
 
@@ -76,24 +67,42 @@
     filterData.value.filter_accounts = filterAccounts.value;
   });
 
-  const transactionsUrl = computed(() => {
-    let url = 'transactions';
-    if (transStart.value && transEnd.value) {
-      url += `?start=${props.start}&end=${props.end}`;
+  const pad = (n) => String(n).padStart(2, '0');
+  const calcMonthRange = (preset) => {
+    const now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth();
 
-    } else if (transStart.value) {
-      url += `?start=${props.start}`;
+    if (preset === 'last') month -= 1;
+    else if (preset === 'next') month += 1;
 
-    } else if (transEnd.value) {
-      url += `?end=${props.end}`;
+    year += Math.floor(month / 12);
+    month = ((month % 12) + 12) % 12;
 
-    } else if (props.includeShowAll) {
-      url += `?show_all=1`;
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
 
-    } else {
-      url += `?use_session_filters=1`;
+    const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    return { start: fmt(firstDay), end: fmt(lastDay) };
+  };
+  const matchMonthPreset = (start, end) => {
+    if (!start || !end) return null;
+    for (const preset of ['last', 'current', 'next']) {
+      const range = calcMonthRange(preset);
+      if (start === range.start && end === range.end) {
+        return preset;
+      }
     }
-    return url;
+    return null;
+  };
+
+  const monthPreset = ref(null);
+  watch(monthPreset, (preset) => {
+    if (!preset) return;
+    const range = calcMonthRange(preset);
+    transStart.value = range.start;
+    transEnd.value = range.end;
   });
 
   watch([ () => transStart.value, () => transEnd.value ], ([newStart, newEnd]) => {
@@ -112,16 +121,13 @@
       filterData.value.end = newEnd;
       filterData.value.show_all = null;
 
-    } else if (props.includeShowAll) {
+    } else {
       filterData.value.show_all = true;
       filterData.value.start = null;
       filterData.value.end = null;
-
-    } else {
-      filterData.value.start = null;
-      filterData.value.end = null;
-      filterData.value.show_all = null;
     }
+
+    monthPreset.value = matchMonthPreset(newStart, newEnd);
   });
 </script>
 
@@ -146,7 +152,7 @@
         class="text-black dark:text-white"
       />
       <InputDate
-        id="transactions_start_date"
+        id="transactions_end_date"
         v-model="transEnd"
       />
       <InputLabel
@@ -187,6 +193,42 @@
       </select>
     </div>
 
+    <div class="m-2">
+      <InputLabel
+        value="Quick Month"
+        class="text-black dark:text-white"
+      />
+      <div class="flex flex-col gap-1 mt-1">
+        <label class="flex items-center gap-1 text-black dark:text-white text-sm">
+          <input
+            type="radio"
+            v-model="monthPreset"
+            value="last"
+            class="text-indigo-600"
+          />
+          Last Month
+        </label>
+        <label class="flex items-center gap-1 text-black dark:text-white text-sm">
+          <input
+            type="radio"
+            v-model="monthPreset"
+            value="current"
+            class="text-indigo-600"
+          />
+          Current Month
+        </label>
+        <label class="flex items-center gap-1 text-black dark:text-white text-sm">
+          <input
+            type="radio"
+            v-model="monthPreset"
+            value="next"
+            class="text-indigo-600"
+          />
+          Next Month
+        </label>
+      </div>
+    </div>
+
     <div class="m-2 mt-7">
       <SecondaryButton
         type="button"
@@ -199,15 +241,6 @@
         </slot>
       </SecondaryButton>
 
-      <div class="mt-2">
-        <a
-          v-if="showTransactionsLink"
-          class="underline"
-          :href="transactionsUrl"
-        >
-          View these transactions
-        </a>
-      </div>
     </div>
   </div>
 </template>

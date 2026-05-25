@@ -26,51 +26,26 @@ class TransactionController extends Controller
         $end = $request->end;
         $show_all = $request->show_all;
         $filter_accounts = $request->filter_accounts;
-        $use_session_dates = $request->use_session_filter_dates;
 
-        /*
-            start   end     show_all        use_ses ||  default current month       show everything         use start/end       use session start/end         clear session
-                0     0         0               0   ||      1                           0                      0                      0                            0
-                0     0         0               1   ||      0                           0                      0                      1                            0
-                0     0         1               0   ||      0                           1                      0                      0                            1
-                0     0         1               1   ||
-                0     1         0               0   ||      0                           0                      1                      0                            0
-                0     1         0               1   ||      0                           0                      1                      0                            0
-                0     1         1               0   ||
-                0     1         1               1   ||
-                1     0         0               0   ||      0                           0                      1                      0                            0
-                1     0         0               1   ||      0                           0                      1                      0                            0
-                1     1         0               0   ||      0                           0                      1                      0                            0
-                1     1         0               1   ||      0                           0                      1                      0                            0
-         */
-
-        if (! $start && ! $end && !$show_all && ! $use_session_dates) {
+        if ($show_all) {
             $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
+            $start = $end = null;
+
+        } elseif ($request->chart_click && ($start || $end)) {
+
+        } elseif ($start || $end) {
+            session([ 'filter_start_date' => $start ]);
+            session([ 'filter_end_date' => $end ]);
+
+        } elseif (session('filter_start_date') && session('filter_end_date')) {
+            $start = session('filter_start_date');
+            $end = session('filter_end_date');
+
+        } else {
             $start = date('Y-m-01');
             $end = date('Y-m-t');
             session(['filter_start_date' => $start]);
             session(['filter_end_date' => $end]);
-
-        } else if ($use_session_dates) {
-            $start = session('filter_start_date');
-            $end = session('filter_end_date');
-            $filter_accounts = session('filter_accounts');
-
-        } else if ($show_all) {
-            $request->session()->forget([ 'filter_start_date', 'filter_end_date' ]);
-            $start = $end = null;
-
-        } else if ($start || $end) {
-            if ($start && $end) {
-                session([ 'filter_start_date' => $start ]);
-                session([ 'filter_end_date' => $end ]);
-            } else if ($start) {
-                session([ 'filter_start_date' => $start ]);
-                session([ 'filter_end_date' => null ]);
-            } else {
-                session([ 'filter_start_date' => null ]);
-                session([ 'filter_end_date' => $end ]);
-            }
         }
         if ($filter_accounts) {
             session([ 'filter_accounts' => $filter_accounts ]);
@@ -193,7 +168,6 @@ class TransactionController extends Controller
         return redirect()
             ->route(
                 'transactions',
-                [ 'use_session_filter_dates' => true ]
             )->with('transactions_created_count', $newTransactions->count());
     }
 
@@ -211,7 +185,6 @@ class TransactionController extends Controller
         return redirect()
             ->route(
                 'transactions',
-                [ 'use_session_filter_dates' => true ]
             )->with('transactions_updated_count', $updatedTransCnt);
     }
 
@@ -228,7 +201,6 @@ class TransactionController extends Controller
             return redirect()
                 ->route(
                     'transactions',
-                    [ 'use_session_filter_dates' => true ]
                 );
         }
         $deleteChildren = ($request->delete_child_transactions) ? true : false;
@@ -237,7 +209,6 @@ class TransactionController extends Controller
         return redirect()
             ->route(
                 'transactions',
-                [ 'use_session_filter_dates' => true ]
             );
     }
 }

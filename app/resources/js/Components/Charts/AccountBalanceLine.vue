@@ -42,7 +42,7 @@
     const item = e.target.closest('[data-date]');
     if (item) {
       sessionStorage.setItem('dashboard_scroll', window.scrollY.toString());
-      const params = { start: item.dataset.date, end: item.dataset.date };
+      const params = { start: item.dataset.date, end: item.dataset.date, chart_click: 1 };
       if (props.accountId) {
         params.filter_accounts = [props.accountId];
       }

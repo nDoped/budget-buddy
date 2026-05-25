@@ -62,7 +62,7 @@
     const item = e.target.closest('[data-date]');
     if (item) {
       sessionStorage.setItem('dashboard_scroll', window.scrollY.toString());
-      router.visit(route('transactions', { start: item.dataset.date, end: item.dataset.date }));
+      router.visit(route('transactions', { start: item.dataset.date, end: item.dataset.date, chart_click: 1 }));
     }
   };
 
