@@ -131,12 +131,13 @@
       const dataIndex = dp.dataIndex;
       const dataset = dp.dataset;
 
+      const label = ctx.chart.data.labels[dataIndex];
       const sum = dataset.data.reduce((a, b) => a + b, 0);
       const value = dataset.data[dataIndex];
       const percentage = (value * 100 / sum).toFixed(2) + '%';
       const displayVal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
-      let html = `<div style="font-weight:bold;margin-bottom:4px">${displayVal} - ${percentage}</div>`;
+      let html = `<div style="font-weight:bold;margin-bottom:4px">${label}: ${displayVal} - ${percentage}</div>`;
 
       const transactions = dataset.transactions[dataIndex];
       if (transactions && transactions.length) {

@@ -48,6 +48,12 @@
   <div>
     <Head :title="title" />
     <Banner />
+    <div
+      v-if="$page.props.app_env && $page.props.app_env !== 'production'"
+      class="bg-yellow-300 text-black text-center text-lg font-bold py-2 px-4 border-b-4 border-yellow-600 sticky top-0 z-[100]"
+    >
+      ⚡ {{ $page.props.app_env.toUpperCase() }} ENVIRONMENT
+    </div>
     <div class="min-h-screen bg-gray-400 dark:bg-gray-800">
       <nav class="text-black bg-slate-200 dark:bg-slate-500 border-b border-gray-100">
         <!-- Primary Navigation Menu -->
