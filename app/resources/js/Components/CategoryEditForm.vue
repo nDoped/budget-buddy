@@ -108,14 +108,15 @@
   };
 
   const mergeCategory = () => {
+    const sourceName = props.category.name;
+    const targetName = mergeTargetId.value?.name;
     mergeForm.target_category_id = mergeTargetId.value?.id;
     mergeForm.post(route('categories.merge', { category: props.category.id }), {
       preserveScroll: true,
       onSuccess: () => {
-        const targetName = mergeTargetId.value?.name;
         catBeingMerged.value = false;
         mergeTargetId.value = null;
-        toast.success(`"${props.category.name}" merged into "${targetName}"`);
+        toast.success(`"${sourceName}" merged into "${targetName}"`);
         emit('success');
       },
       onError: (err) => {
@@ -314,5 +315,17 @@
 }
 .merge-multiselect .multiselect__input {
   @apply bg-gray-400;
+}
+
+.bg-white.rounded-lg.overflow-hidden:has(.merge-multiselect) {
+  overflow: visible !important;
+}
+
+.merge-multiselect .multiselect__content-wrapper {
+  max-height: 20rem !important;
+}
+.merge-multiselect .multiselect__content {
+  max-height: 20rem !important;
+  overflow-y: auto;
 }
 </style>
