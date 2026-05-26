@@ -150,7 +150,7 @@
 
     } else {
       cats.forEach((c) => {
-        ret += `<span style='border-bottom: solid ${c.cat_data.hex_color}'>`;
+        ret += `<span style='border-bottom: solid ${c.cat_data.hex_color}; white-space: nowrap; margin-right: 8px;'>`;
         if (query) {
           ret += buildMarkString(query, c.cat_data.name);
         } else {
@@ -158,7 +158,7 @@
         }
         ret += ` : ${c.percent}%`;
 
-        ret += '</span><br/>';
+        ret += '</span>';
       });
     }
     return ret;
@@ -318,7 +318,7 @@
 
             <div
               v-else-if="key === 'categories'"
-              class="w-full"
+              class="flex flex-wrap gap-x-2"
               v-html="item['categorySearchMatchText']"
             />
 
