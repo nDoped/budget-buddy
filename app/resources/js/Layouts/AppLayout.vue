@@ -239,6 +239,10 @@
                       Profile
                     </DropdownLink>
 
+                    <DropdownLink :href="route('activity_log')">
+                      Activity Log
+                    </DropdownLink>
+
                     <DropdownLink :href="route('settings.accounts')">
                       Settings
                     </DropdownLink>
@@ -353,6 +357,13 @@
                 :active="route().current('profile.show')"
               >
                 Profile
+              </ResponsiveNavLink>
+
+              <ResponsiveNavLink
+                :href="route('activity_log')"
+                :active="route().current('activity_log')"
+              >
+                Activity Log
               </ResponsiveNavLink>
 
               <ResponsiveNavLink

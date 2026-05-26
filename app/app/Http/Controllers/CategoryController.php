@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Category;
+use App\Services\ActivityLogService;
 
 class CategoryController extends Controller
 {
@@ -28,6 +29,7 @@ class CategoryController extends Controller
         $cat->user_id = $current_user->id;
         $cat->category_type_id = $request->category_type;
         $cat->save();
+        ActivityLogService::categoryCreated($cat->id, $cat->name);
         return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
     }
 
@@ -46,11 +48,24 @@ class CategoryController extends Controller
             'active' => [ 'required' ],
         ]);
 
+        $old = [
+            'name' => $category->name,
+            'hex_color' => $category->hex_color,
+            'category_type_id' => $category->category_type_id,
+            'active' => $category->active,
+        ];
         $category->name = $request->name;
         $category->hex_color = $request->hex_color;
         $category->category_type_id = $request->category_type;
         $category->active = $request->active;
         $category->save();
+        $changes = array_filter([
+            'name' => ['old' => $old['name'], 'new' => $category->name],
+            'hex_color' => ['old' => $old['hex_color'], 'new' => $category->hex_color],
+            'category_type_id' => ['old' => $old['category_type_id'], 'new' => $category->category_type_id],
+            'active' => ['old' => $old['active'], 'new' => $category->active],
+        ], fn($v) => $v['old'] != $v['new']);
+        ActivityLogService::categoryUpdated($category->id, $category->name, $changes);
         return redirect()->route('settings.categories');
     }
 
@@ -113,6 +128,8 @@ class CategoryController extends Controller
             $category->delete();
         });
 
+        ActivityLogService::categoryMerged($category->id, $category->name, $targetCategory->id, $targetCategory->name);
+
         return redirect()->back()->with('message', "{$category->name} merged into {$targetCategory->name}");
     }
 
@@ -132,6 +149,8 @@ class CategoryController extends Controller
                     'message' => 'This category appears on at least 1 transaction and cannot be deleted. It must be merged with another category or removed from all transactions before it can be deleted.'
                 ]);
             }
+            $catName = $category->name;
+            ActivityLogService::categoryDeleted($request->id, $catName);
             Category::destroy($request->id);
         } else {
             return redirect()->back()->withErrors('Invalid category id');

@@ -10,6 +10,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnalysisController;
+use App\Http\Controllers\ActivityLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,8 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', [ DashboardController::class, 'dashboard' ])->name('dashboard');
+
+    Route::get('/activity-log', [ ActivityLogController::class, 'index' ])->name('activity_log');
 
     Route::get('/transactions', [ TransactionController::class, 'index' ])->name('transactions');
     Route::get('/create_transaction', [ TransactionController::class, 'create_transaction' ])->name('create_transaction');

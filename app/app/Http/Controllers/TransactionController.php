@@ -11,6 +11,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\CategoryType;
 use App\Models\Transaction;
+use App\Services\ActivityLogService;
 /* use thiagoalessio\TesseractOCR\TesseractOCR; */
 
 class TransactionController extends Controller
@@ -165,6 +166,13 @@ class TransactionController extends Controller
         $data = $request->validated();
         $trans = new Transaction();
         $newTransactions = $trans->createTransaction($data);
+        $trans->refresh();
+        $trans->load('categories');
+        $cats = $trans->categories->map(fn($cat) => [
+            'name' => $cat->name,
+            'percentage' => $cat->pivot->percentage / 100,
+        ])->values()->toArray();
+        ActivityLogService::transactionCreated($trans->id, $trans->note ?? '', $cats ? ['categories' => $cats] : null);
         return redirect()
             ->route(
                 'transactions',
@@ -181,7 +189,36 @@ class TransactionController extends Controller
     public function update(TransactionPostRequest $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
+        $transaction->load('categories');
+        $old = [
+            'amount' => $transaction->amount,
+            'account_id' => $transaction->account_id,
+            'credit' => $transaction->credit,
+            'transaction_date' => $transaction->transaction_date,
+            'note' => $transaction->note,
+            'categories' => $transaction->categories->map(fn($cat) => [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'percentage' => $cat->pivot->percentage / 100,
+            ])->values()->toArray(),
+        ];
         $updatedTransCnt = $transaction->updateTransaction($data);
+        $transaction->refresh();
+        $transaction->load('categories');
+        $newCategories = $transaction->categories->map(fn($cat) => [
+            'id' => $cat->id,
+            'name' => $cat->name,
+            'percentage' => $cat->pivot->percentage / 100,
+        ])->values()->toArray();
+        $changes = array_filter([
+            'amount' => ['old' => $old['amount'], 'new' => $transaction->amount],
+            'account_id' => ['old' => $old['account_id'], 'new' => $transaction->account_id],
+            'credit' => ['old' => $old['credit'], 'new' => $transaction->credit],
+            'transaction_date' => ['old' => $old['transaction_date'], 'new' => $transaction->transaction_date],
+            'note' => ['old' => $old['note'], 'new' => $transaction->note],
+            'categories' => ['old' => $old['categories'], 'new' => $newCategories],
+        ], fn($v) => $v['old'] != $v['new']);
+        ActivityLogService::transactionUpdated($transaction->id, $changes);
         return redirect()
             ->route(
                 'transactions',
@@ -204,6 +241,13 @@ class TransactionController extends Controller
                 );
         }
         $deleteChildren = ($request->delete_child_transactions) ? true : false;
+        ActivityLogService::transactionDeleted($target->id, [
+            'amount' => $target->amount,
+            'account_id' => $target->account_id,
+            'credit' => $target->credit,
+            'transaction_date' => $target->transaction_date,
+            'note' => $target->note,
+        ]);
         $target->deleteTransaction($deleteChildren);
 
         return redirect()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CategoryType;
+use App\Services\ActivityLogService;
 
 class CategoryTypeController extends Controller
 {
@@ -27,6 +28,7 @@ class CategoryTypeController extends Controller
         $cat_type->hex_color = $request->hex_color;
         $cat_type->user_id = $current_user->id;
         $cat_type->save();
+        ActivityLogService::categoryTypeCreated($cat_type->id, $cat_type->name);
         return redirect()->route('settings.category_types');
     }
 
@@ -43,10 +45,21 @@ class CategoryTypeController extends Controller
             'name' => [ 'required', 'max:50' ],
             'hex_color' => [ 'required' ],
         ]);
+        $old = [
+            'name' => $categoryType->name,
+            'note' => $categoryType->note,
+            'hex_color' => $categoryType->hex_color,
+        ];
         $categoryType->name = $request->name;
         $categoryType->note = $request->note;
         $categoryType->hex_color = $request->hex_color;
         $categoryType->save();
+        $changes = array_filter([
+            'name' => ['old' => $old['name'], 'new' => $categoryType->name],
+            'note' => ['old' => $old['note'], 'new' => $categoryType->note],
+            'hex_color' => ['old' => $old['hex_color'], 'new' => $categoryType->hex_color],
+        ], fn($v) => $v['old'] != $v['new']);
+        ActivityLogService::categoryTypeUpdated($categoryType->id, $categoryType->name, $changes);
         return redirect()->route('settings.category_types');
     }
 
@@ -66,6 +79,7 @@ class CategoryTypeController extends Controller
                     'message' => 'This category type is used by at least 1 category and cannot be deleted'
                 ]);
             }
+            ActivityLogService::categoryTypeDeleted($catType->id, $catType->name);
             CategoryType::destroy($catType->id);
         } else {
             return redirect()->back()->withErrors('Invalid category type id');

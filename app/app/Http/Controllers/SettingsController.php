@@ -12,6 +12,7 @@ use App\Models\AccountType;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\CategoryType;
+use App\Services\ActivityLogService;
 
 class SettingsController extends Controller
 {
@@ -207,6 +208,7 @@ class SettingsController extends Controller
         $acct->url = $request->url;
         $acct->active = $request->boolean('active');
         $acct->save();
+        ActivityLogService::accountCreated($acct->id, $acct->name);
         return redirect()->route('settings.accounts')->with('message', 'Successfully Created Account: #' . $acct->id);
     }
 
@@ -242,6 +244,14 @@ class SettingsController extends Controller
             'interest_rate' => [ 'nullable', 'numeric' ],
             'url' => [ 'nullable', 'url' ]
         ]);
+        $old = [
+            'name' => $account->name,
+            'type_id' => $account->type_id,
+            'interest_rate' => $account->interest_rate,
+            'initial_balance' => $account->initial_balance,
+            'url' => $account->url,
+            'active' => $account->active,
+        ];
         $account->name = $request->name;
         $account->type_id = $request->type;
         $account->interest_rate = $request->interest_rate;
@@ -249,6 +259,15 @@ class SettingsController extends Controller
         $account->url = $request->url;
         $account->active = $request->boolean('active');
         $account->save();
+        $changes = array_filter([
+            'name' => ['old' => $old['name'], 'new' => $account->name],
+            'type_id' => ['old' => $old['type_id'], 'new' => $account->type_id],
+            'interest_rate' => ['old' => $old['interest_rate'], 'new' => $account->interest_rate],
+            'initial_balance' => ['old' => $old['initial_balance'], 'new' => $account->initial_balance],
+            'url' => ['old' => $old['url'], 'new' => $account->url],
+            'active' => ['old' => $old['active'], 'new' => $account->active],
+        ], fn($v) => $v['old'] != $v['new']);
+        ActivityLogService::accountUpdated($account->id, $account->name, $changes);
         return redirect()->route('settings.accounts')->with('message', 'Successfully Updated Account: #' . $account->id);
     }
 
@@ -268,6 +287,7 @@ class SettingsController extends Controller
                     'message' => 'This account has at least 1 transaction and cannot be deleted'
                 ]);
             }
+            ActivityLogService::accountDeleted($request->id, $account->name);
             Account::destroy($request->id);
         } else {
             return redirect()->back()->withErrors('Invalid account id');
@@ -293,6 +313,7 @@ class SettingsController extends Controller
         $acct->user_id = $current_user->id;
         $acct->asset = $request->boolean('asset');
         $acct->save();
+        ActivityLogService::accountTypeCreated($acct->id, $acct->name);
         return redirect()->route('settings.account_types');
     }
 }
