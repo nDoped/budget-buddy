@@ -156,6 +156,7 @@
 
       const transactions = dataset.transactions[dataIndex];
       if (transactions && transactions.length) {
+        html += `<div style="max-height:250px;overflow-y:auto">`;
         transactions.forEach((t) => {
           const catVal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(t.cat_value);
           const dateStr = new Date(t.date).toLocaleString('us-en', { timeZone: 'utc', weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' });
@@ -163,6 +164,7 @@
           if (t.note) txt += ` - ${t.note}`;
           html += `<div data-date="${t.date}" style="cursor:pointer;white-space:nowrap;padding:1px 0">${txt}</div>`;
         });
+        html += `</div>`;
       }
 
       el.innerHTML = html;
@@ -184,6 +186,9 @@
       }
       if (top + elRect.height > window.innerHeight) {
         top = window.innerHeight - elRect.height - 8;
+      }
+      if (top < 8) {
+        top = 8;
       }
 
       el.style.left = left + 'px';
