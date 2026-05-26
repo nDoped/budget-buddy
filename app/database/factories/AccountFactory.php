@@ -24,6 +24,7 @@ class AccountFactory extends Factory
             'type_id' => AccountType::factory(),
             'user_id' => User::factory(),
             'url' => 'https://www.example.com',
+            'number' => $this->faker->numerify('####'),
         ];
     }
 }

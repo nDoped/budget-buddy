@@ -175,6 +175,7 @@ class SettingsController extends Controller
                 'asset' => $type->asset,
                 'interest_rate' => $acct->interest_rate,
                 'url' => $acct->url,
+                'number' => $acct->number,
                 'initial_balance' => $acct->initial_balance / 100,
                 'active' => $acct->active,
                 'owner' => $user->name
@@ -197,7 +198,8 @@ class SettingsController extends Controller
             'type' => [ 'required' ],
             'initial_balance' => [ 'nullable', 'numeric' ],
             'interest_rate' => [ 'nullable', 'numeric' ],
-            'url' => [ 'nullable', 'url' ]
+            'url' => [ 'nullable', 'url' ],
+            'number' => [ 'nullable', 'string', 'max:4' ]
         ]);
         $acct = new Account();
         $acct->name = $request->name;
@@ -206,6 +208,7 @@ class SettingsController extends Controller
         $acct->interest_rate = $request->interest_rate;
         $acct->initial_balance = $request->initial_balance * 100;
         $acct->url = $request->url;
+        $acct->number = $request->number;
         $acct->active = $request->boolean('active');
         $acct->save();
         ActivityLogService::accountCreated($acct->id, $acct->name);
@@ -242,7 +245,8 @@ class SettingsController extends Controller
             'type' => [ 'required' ],
             'initial_balance' => [ 'nullable', 'numeric' ],
             'interest_rate' => [ 'nullable', 'numeric' ],
-            'url' => [ 'nullable', 'url' ]
+            'url' => [ 'nullable', 'url' ],
+            'number' => [ 'nullable', 'string', 'max:4' ]
         ]);
         $old = [
             'name' => $account->name,
@@ -251,12 +255,14 @@ class SettingsController extends Controller
             'initial_balance' => $account->initial_balance,
             'url' => $account->url,
             'active' => $account->active,
+            'number' => $account->number,
         ];
         $account->name = $request->name;
         $account->type_id = $request->type;
         $account->interest_rate = $request->interest_rate;
         $account->initial_balance = $request->initial_balance * 100;
         $account->url = $request->url;
+        $account->number = $request->number;
         $account->active = $request->boolean('active');
         $account->save();
         $changes = array_filter([
@@ -265,6 +271,7 @@ class SettingsController extends Controller
             'interest_rate' => ['old' => $old['interest_rate'], 'new' => $account->interest_rate],
             'initial_balance' => ['old' => $old['initial_balance'], 'new' => $account->initial_balance],
             'url' => ['old' => $old['url'], 'new' => $account->url],
+            'number' => ['old' => $old['number'], 'new' => $account->number],
             'active' => ['old' => $old['active'], 'new' => $account->active],
         ], fn($v) => $v['old'] != $v['new']);
         ActivityLogService::accountUpdated($account->id, $account->name, $changes);

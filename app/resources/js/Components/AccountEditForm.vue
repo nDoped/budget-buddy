@@ -31,6 +31,7 @@
     name: props.account.name,
     type: props.account.type_id || getTypeIdFromName(props.account.type),
     url: props.account.url,
+    number: props.account.number,
     interest_rate: props.account.interest_rate,
     initial_balance: props.account.initial_balance,
     active: props.account.active,
@@ -48,6 +49,7 @@
       form.name = props.account.name;
       form.type = props.account.type_id || getTypeIdFromName(props.account.type);
       form.url = props.account.url;
+      form.number = props.account.number;
       form.interest_rate = props.account.interest_rate;
       form.initial_balance = props.account.initial_balance;
       form.active = props.account.active;
@@ -208,6 +210,25 @@
               />
               <InputError
                 :message="form.errors.url"
+                class="mt-2"
+              />
+            </div>
+
+            <div class="m-4">
+              <InputLabel
+                :for="'edit-number-' + account.id"
+                value="Number (last 4 digits)"
+              />
+              <TextInput
+                :id="'edit-number-' + account.id"
+                v-model="form.number"
+                type="text"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="1234"
+                maxlength="4"
+              />
+              <InputError
+                :message="form.errors.number"
                 class="mt-2"
               />
             </div>

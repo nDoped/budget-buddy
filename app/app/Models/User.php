@@ -343,6 +343,7 @@ class User extends Authenticatable
                 'init_balance_raw' => $acct->initial_balance,
                 'asset' => $acct->accountType->asset,
                 'url' => $acct->url,
+                'number' => $acct->number,
                 /* 'in_range_net_growth' => 0, */
                 /* 'pre_range_net_growth' => 0, */
                 /* 'expand' => true, */

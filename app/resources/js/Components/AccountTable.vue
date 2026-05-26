@@ -37,6 +37,7 @@
     { key: 'type', label: 'Account Type', sortable: true },
     { key: 'interest_rate', label: 'Interest Rate' },
     { key: 'initial_balance', label: 'Initial Balance', sortable:true, format:true },
+    { key: 'number', label: 'Number', sortable: true },
     { key: 'active', label: 'Active', sortable: true },
     { key: 'url', label: 'URL' }
   ]);
