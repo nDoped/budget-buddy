@@ -116,7 +116,7 @@ class CategoryTest extends TestCase
         $response->assertSessionHasErrors();
         $this->assertCount(3, $this->user->categories);
         $errors = session()->get('errors');
-        $this->assertEquals('This category appears on at least 1 transaction and cannot be deleted', $errors->first());
+        $this->assertEquals('This category appears on at least 1 transaction and cannot be deleted. It must be merged with another category or removed from all transactions before it can be deleted.', $errors->first());
     }
 
     #[Group('categories')]
