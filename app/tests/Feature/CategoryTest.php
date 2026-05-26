@@ -21,6 +21,7 @@ class CategoryTest extends TestCase
     private $creditTransaction2;
     private $cat1;
     private $cat2;
+    private $cat3;
     private $catType1;
     private $catType2;
     private $user;
@@ -33,6 +34,7 @@ class CategoryTest extends TestCase
         $this->actingAs($this->user);
         $this->cat1 = Category::find(TestHarnessSeeder::CAT1_ID);
         $this->cat2 = Category::find(TestHarnessSeeder::CAT2_ID);
+        $this->cat3 = Category::find(TestHarnessSeeder::CAT3_ID);
         $this->catType1 = $this->cat1->categoryType;
         $this->catType2 = $this->cat2->categoryType;
         $this->savingsTransaction0
@@ -165,6 +167,102 @@ class CategoryTest extends TestCase
         $response->assertInertia(function ($page) {
             $page->component('Settings/Categories')
                 ->has('categories', 0);
+        });
+    }
+
+    #[Group('categories')]
+    public function test_category_merge()
+    {
+        $this->assertCount(3, $this->user->categories);
+        $this->assertCount(5, $this->cat1->transactions);
+
+        $response = $this->post(route('categories.merge', [ 'category' => $this->cat1->id ]), [
+            'target_category_id' => $this->cat2->id,
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionDoesntHaveErrors();
+        $this->user->refresh();
+        $this->assertCount(2, $this->user->categories);
+        $this->assertNull(Category::find($this->cat1->id));
+
+        $this->savingsTransaction0->refresh();
+        $this->assertCount(1, $this->savingsTransaction0->categories);
+        $this->assertEquals($this->cat2->id, $this->savingsTransaction0->categories->first()->id);
+        $this->assertEquals(10000, $this->savingsTransaction0->categories->first()->pivot->percentage);
+
+        $this->savingsTransaction2->refresh();
+        $this->assertCount(1, $this->savingsTransaction2->categories);
+        $this->assertEquals($this->cat2->id, $this->savingsTransaction2->categories->first()->id);
+        $this->assertEquals(10000, $this->savingsTransaction2->categories->first()->pivot->percentage);
+    }
+
+    #[Group('categories')]
+    public function test_category_merge_into_self()
+    {
+        $response = $this->post(route('categories.merge', [ 'category' => $this->cat1->id ]), [
+            'target_category_id' => $this->cat1->id,
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors();
+        $this->assertCount(3, $this->user->categories);
+        $errors = session()->get('errors');
+        $this->assertEquals('Cannot merge a category into itself', $errors->first());
+    }
+
+    #[Group('categories')]
+    public function test_category_merge_sums_percentages()
+    {
+        $this->savingsTransaction2->refresh();
+        $this->assertCount(2, $this->savingsTransaction2->categories);
+        $cat1Pivot = $this->savingsTransaction2->categories->firstWhere('id', $this->cat1->id);
+        $cat2Pivot = $this->savingsTransaction2->categories->firstWhere('id', $this->cat2->id);
+        $this->assertEquals(2513, $cat1Pivot->pivot->percentage);
+        $this->assertEquals(7487, $cat2Pivot->pivot->percentage);
+
+        $response = $this->post(route('categories.merge', [ 'category' => $this->cat1->id ]), [
+            'target_category_id' => $this->cat2->id,
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionDoesntHaveErrors();
+        $this->savingsTransaction2->refresh();
+        $this->assertCount(1, $this->savingsTransaction2->categories);
+        $this->assertEquals($this->cat2->id, $this->savingsTransaction2->categories->first()->id);
+        $this->assertEquals(10000, $this->savingsTransaction2->categories->first()->pivot->percentage);
+    }
+
+    #[Group('categories')]
+    public function test_category_merge_target_not_found()
+    {
+        $response = $this->post(route('categories.merge', [ 'category' => $this->cat1->id ]), [
+            'target_category_id' => 9999999,
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors();
+    }
+
+    #[Group('categories')]
+    public function test_category_merge_missing_target()
+    {
+        $response = $this->post(route('categories.merge', [ 'category' => $this->cat1->id ]), []);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors();
+    }
+
+    #[Group('categories')]
+    public function test_settings_page_has_all_categories()
+    {
+        $response = $this->get(route('settings.categories'));
+        $response->assertInertia(function ($page) {
+            $page->component('Settings/Categories')
+                ->has('all-categories', 3)
+                ->where('all-categories.0.id', $this->cat1->id)
+                ->where('all-categories.1.id', $this->cat2->id)
+                ->where('all-categories.2.id', $this->cat3->id);
         });
     }
 }

@@ -15,6 +15,10 @@
     categoryTypes: {
       type: Array,
       default: () => {}
+    },
+    allCategories: {
+      type: Array,
+      default: () => []
     }
   });
 
@@ -112,6 +116,7 @@
             <CategoryEditForm
               :category="item"
               :category-types="categoryTypes"
+              :all-categories="allCategories"
               @cancel="hideTr(hidden_tr_refs, i)"
               @success="hideTr(hidden_tr_refs, i)"
             />

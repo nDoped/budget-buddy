@@ -1,6 +1,7 @@
 <script setup>
   import {
     ref,
+    computed,
     watch
   } from 'vue';
   import { useForm } from '@inertiajs/vue3'
@@ -22,6 +23,10 @@
     categoryTypes: {
       type: Object,
       default: () => {}
+    },
+    allCategories: {
+      type: Array,
+      default: () => []
     }
   });
 
@@ -40,6 +45,8 @@
       form.active = props.category.active;
       form.category_type = props.category.category_type_id;
       deleteCategoryForm.id = props.category.id;
+      mergeTargetId.value = null;
+      catBeingMerged.value = false;
     }
   );
 
@@ -57,6 +64,42 @@
     catBeingDeleted.value = null;
     toast.success((deleting) ? 'Category Deleted!' : 'Category Updated!');
     emit('success');
+  };
+
+  const mergeTargetId = ref(null);
+  const catBeingMerged = ref(false);
+  const mergeForm = useForm({
+    target_category_id: null
+  });
+
+  const mergeTargetOptions = computed(() => {
+    return props.allCategories.filter(c => c.id !== props.category.id);
+  });
+
+  const confirmMerge = () => {
+    catBeingMerged.value = true;
+  };
+
+  const mergeCategory = () => {
+    mergeForm.target_category_id = mergeTargetId.value;
+    mergeForm.post(route('categories.merge', { category: props.category.id }), {
+      preserveScroll: true,
+      onSuccess: () => {
+        const targetName = mergeTargetOptions.value.find(c => c.id === mergeTargetId.value)?.name;
+        catBeingMerged.value = false;
+        mergeTargetId.value = null;
+        toast.success(`"${props.category.name}" merged into "${targetName}"`);
+        emit('success');
+      },
+      onError: (err) => {
+        catBeingMerged.value = false;
+        for (let field in err) {
+          toast.error(err[field], {
+            autoClose: 6000,
+          });
+        }
+      }
+    });
   };
 
   const deleteCategoryForm = useForm({
@@ -138,10 +181,18 @@
               Cancel
             </SecondaryButton>
 
+            <SecondaryButton
+              class="ml-3"
+              :class="{ 'opacity-25': deleteCategoryForm.processing || form.processing || mergeForm.processing }"
+              :disabled="deleteCategoryForm.processing || form.processing || mergeForm.processing"
+              @click="confirmMerge"
+            >
+              Merge
+            </SecondaryButton>
             <DangerButton
               class="ml-3"
-              :class="{ 'opacity-25': deleteCategoryForm.processing || form.processing }"
-              :disabled="deleteCategoryForm.processing || form.processing"
+              :class="{ 'opacity-25': deleteCategoryForm.processing || form.processing || mergeForm.processing }"
+              :disabled="deleteCategoryForm.processing || form.processing || mergeForm.processing"
               @click="confirmCatDeletion"
             >
               Delete
@@ -170,6 +221,51 @@
                   @click="deleteCategory"
                 >
                   Delete
+                </DangerButton>
+              </template>
+            </ConfirmationModal>
+
+            <ConfirmationModal
+              :show="catBeingMerged"
+              @close="catBeingMerged = false"
+            >
+              <template #title>
+                Merge Category
+              </template>
+
+              <template #content>
+                <p class="mb-3">
+                  Merge <strong>{{ category.name }}</strong> into which category?
+                </p>
+                <select
+                  v-model="mergeTargetId"
+                  class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  <option :value="null" disabled>
+                    Select a category...
+                  </option>
+                  <option
+                    v-for="cat in mergeTargetOptions"
+                    :key="cat.id"
+                    :value="cat.id"
+                  >
+                    {{ cat.name }}
+                  </option>
+                </select>
+              </template>
+
+              <template #footer>
+                <SecondaryButton @click="catBeingMerged = false">
+                  Cancel
+                </SecondaryButton>
+
+                <DangerButton
+                  class="ml-3"
+                  :class="{ 'opacity-25': mergeForm.processing || !mergeTargetId }"
+                  :disabled="mergeForm.processing || !mergeTargetId"
+                  @click="mergeCategory"
+                >
+                  Merge
                 </DangerButton>
               </template>
             </ConfirmationModal>

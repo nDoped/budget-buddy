@@ -62,6 +62,7 @@ class SettingsController extends Controller
                 return $query->where('category_type_id', $categoryTypeId);
             })
             ->get();
+        $all_cats = $current_user->categories()->orderBy('name')->get(['id', 'name']);
         foreach ($cat_itty as $cat) {
             $catt = CategoryType::find($cat->category_type_id);
             $cats[] = [
@@ -87,7 +88,8 @@ class SettingsController extends Controller
 
         return Inertia::render('Settings/Categories', [
             'categories' => $cats,
-            'category-types' => $this->_fetch_category_types()
+            'category-types' => $this->_fetch_category_types(),
+            'all-categories' => $all_cats
         ]);
     }
 

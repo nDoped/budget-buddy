@@ -45,6 +45,7 @@ Route::middleware([
     Route::post('/transactions/update/{transaction}', [ TransactionController::class, 'update' ])->name('transactions.update');
     Route::delete('/transactions/destroy/{id}', [ TransactionController::class, 'destroy' ])->name('transactions.destroy');
     Route::patch('/categories/update/{category}', [ CategoryController::class, 'update' ])->name('categories.update');
+    Route::post('/categories/merge/{category}', [ CategoryController::class, 'merge' ])->name('categories.merge');
     Route::delete('/categories/destroy/{id}', [ CategoryController::class, 'destroy' ])->name('categories.destroy');
     Route::delete('/category_types/destroy/{id}', [ CategoryTypeController::class, 'destroy' ])->name('category_types.destroy');
     Route::patch('/category_types/update/{categoryType}', [ CategoryTypeController::class, 'update' ])->name('category_types.update');
