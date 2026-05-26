@@ -179,6 +179,11 @@
   const selectedBreakdown = ref(null);
   const mounted = ref(false);
 
+  const sortedCategoryTypeBreakdowns = computed(() => {
+    return Object.entries(props.categoryTypeBreakdowns)
+      .sort(([, a], [, b]) => b.total - a.total);
+  });
+
   const PERSIST_KEY = 'dashboard_selected_category_type';
 
   watch(selectedBreakdown, (br) => {
@@ -357,11 +362,11 @@
     <div class="bg-slate-700 bg-opacity-75 p-4">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <div
-          v-for="(br, i) in categoryTypeBreakdowns"
+          v-for="[id, br] in sortedCategoryTypeBreakdowns"
           class="text-center cursor-pointer transition-transform hover:scale-105"
           :class="selectedBreakdown === br ? 'ring-2 ring-white rounded-lg p-2' : 'p-2'"
-          :key="i"
-          @click="selectedBreakdown = selectedBreakdown === br ? null : br; storage.setItem(PERSIST_KEY, selectedBreakdown ? i : '')"
+          :key="id"
+          @click="selectedBreakdown = selectedBreakdown === br ? null : br; storage.setItem(PERSIST_KEY, selectedBreakdown ? id : '')"
         >
           <div
             class="font-bold text-2xl"
