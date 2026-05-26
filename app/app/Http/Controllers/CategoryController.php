@@ -113,7 +113,7 @@ class CategoryController extends Controller
             $category->delete();
         });
 
-        return redirect()->route('settings.categories')->with('message', "{$category->name} merged into {$targetCategory->name}");
+        return redirect()->back()->with('message', "{$category->name} merged into {$targetCategory->name}");
     }
 
     /**

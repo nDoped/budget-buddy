@@ -62,7 +62,16 @@ class SettingsController extends Controller
                 return $query->where('category_type_id', $categoryTypeId);
             })
             ->get();
-        $all_cats = $current_user->categories()->orderBy('name')->get(['id', 'name']);
+        $all_cats = $current_user->categories()
+            ->with('categoryType:id,name')
+            ->orderBy('name')
+            ->get(['id', 'name', 'category_type_id'])
+            ->map(fn($cat) => [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'category_type_id' => $cat->category_type_id,
+                'category_type_name' => $cat->categoryType?->name,
+            ]);
         foreach ($cat_itty as $cat) {
             $catt = CategoryType::find($cat->category_type_id);
             $cats[] = [

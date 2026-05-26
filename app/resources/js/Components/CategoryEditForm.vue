@@ -10,6 +10,7 @@
   import SecondaryButton from '@/Components/SecondaryButton.vue';
   import DangerButton from '@/Components/DangerButton.vue';
   import CategoryInputs from '@/Components/CategoryInputs.vue';
+  import Multiselect from 'vue-multiselect';
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
@@ -76,16 +77,42 @@
     return props.allCategories.filter(c => c.id !== props.category.id);
   });
 
+  const groupedMergeTargetOptions = computed(() => {
+    let cats = [...mergeTargetOptions.value];
+    cats.sort((a, b) => {
+      const tA = a.category_type_name || '';
+      const tB = b.category_type_name || '';
+      if (tA !== tB) return tA.localeCompare(tB);
+      return (a.name || '').localeCompare(b.name || '');
+    });
+    let groups = [];
+    let noTypeGroup = { category_type: 'No Category Type', categories: [] };
+    cats.forEach(c => {
+      if (!c.category_type_id) {
+        noTypeGroup.categories.push(c);
+        return;
+      }
+      let existing = groups.find(g => g.category_type === c.category_type_name);
+      if (existing) {
+        existing.categories.push(c);
+      } else {
+        groups.push({ category_type: c.category_type_name, categories: [c] });
+      }
+    });
+    if (noTypeGroup.categories.length) groups.unshift(noTypeGroup);
+    return groups;
+  });
+
   const confirmMerge = () => {
     catBeingMerged.value = true;
   };
 
   const mergeCategory = () => {
-    mergeForm.target_category_id = mergeTargetId.value;
+    mergeForm.target_category_id = mergeTargetId.value?.id;
     mergeForm.post(route('categories.merge', { category: props.category.id }), {
       preserveScroll: true,
       onSuccess: () => {
-        const targetName = mergeTargetOptions.value.find(c => c.id === mergeTargetId.value)?.name;
+        const targetName = mergeTargetId.value?.name;
         catBeingMerged.value = false;
         mergeTargetId.value = null;
         toast.success(`"${props.category.name}" merged into "${targetName}"`);
@@ -237,21 +264,18 @@
                 <p class="mb-3">
                   Merge <strong>{{ category.name }}</strong> into which category?
                 </p>
-                <select
+                <Multiselect
                   v-model="mergeTargetId"
-                  class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                >
-                  <option :value="null" disabled>
-                    Select a category...
-                  </option>
-                  <option
-                    v-for="cat in mergeTargetOptions"
-                    :key="cat.id"
-                    :value="cat.id"
-                  >
-                    {{ cat.name }}
-                  </option>
-                </select>
+                  track-by="id"
+                  label="name"
+                  placeholder="Select a category..."
+                  group-label="category_type"
+                  group-values="categories"
+                  :options="groupedMergeTargetOptions"
+                  :searchable="true"
+                  :allow-empty="false"
+                  class="merge-multiselect"
+                />
               </template>
 
               <template #footer>
@@ -275,3 +299,20 @@
     </div>
   </div>
 </template>
+
+<style lang="css" src="vue-multiselect/dist/vue-multiselect.css"></style>
+
+<style>
+.merge-multiselect .multiselect__tags {
+  min-height: 40px;
+  padding: 6px 40px 0 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.merge-multiselect .multiselect__single {
+  @apply bg-gray-400;
+}
+.merge-multiselect .multiselect__input {
+  @apply bg-gray-400;
+}
+</style>
