@@ -33,6 +33,10 @@
     categoryTypes: {
       type: Array,
       default: () => []
+    },
+    categorySubtypes: {
+      type: Array,
+      default: () => []
     }
   });
 
@@ -244,6 +248,7 @@
               :total-amount="form.amount"
               :categories="props.transaction.categories"
               :category-types="categoryTypes"
+              :category-subtypes="categorySubtypes"
               :available-categories="props.categories"
               :key="transCatCounter"
               :ai-analysis="aiAnalysis"

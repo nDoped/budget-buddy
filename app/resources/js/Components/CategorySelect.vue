@@ -18,6 +18,7 @@
     cat_type_id: number | null;
     cat_type_name: string;
     hex_color: string;
+    cat_subtype_id: number | null;
   }
   const model = defineModel<Category>({
     type: Object,

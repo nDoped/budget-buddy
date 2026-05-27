@@ -15,6 +15,10 @@
     categoryTypes: {
       type: Array,
       default: () => []
+    },
+    categorySubtypes: {
+      type: Array,
+      default: () => []
     }
   });
 </script>
@@ -29,6 +33,7 @@
             :accounts="accounts"
             :categories="categories"
             :category-types="categoryTypes"
+            :category-subtypes="categorySubtypes"
           />
         </div>
       </div>

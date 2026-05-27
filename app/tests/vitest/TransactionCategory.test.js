@@ -35,14 +35,16 @@ beforeEach(() => {
         name: "Eggs",
         cat_type_id: 1,
         cat_type_name: "Food",
-        hex_color: "#FF0000"
+        hex_color: "#FF0000",
+        cat_subtype_id: null
       },
       {
         cat_id: 2,
         name: "Bacon",
         cat_type_id: 1,
         cat_type_name: "Food",
-        hex_color: "#FF3546"
+        hex_color: "#FF3546",
+        cat_subtype_id: null
       }
     ],
     errors: {}
@@ -280,7 +282,8 @@ test("test Create New Cat button", async () => {
         name: null,
         cat_type_id: null,
         cat_type_name: null,
-        hex_color: "#000000"
+        hex_color: "#000000",
+        cat_subtype_id: null
       },
       percent: 0
     }
@@ -290,7 +293,8 @@ test("test Create New Cat button", async () => {
   const eventPayload = {
     name: "New Cat",
     type: 2,
-    hex_color: "#444444"
+    hex_color: "#444444",
+    subtype: null
   };
   await categoryInputs.vm.$emit('fieldUpdate', eventPayload);
   expectedCatsRef = [
@@ -301,7 +305,8 @@ test("test Create New Cat button", async () => {
         name: eventPayload.name,
         cat_type_id: eventPayload.type,
         cat_type_name: null,
-        hex_color: eventPayload.hex_color
+        hex_color: eventPayload.hex_color,
+        cat_subtype_id: null
       },
       percent: 0
     }
@@ -337,7 +342,8 @@ test("test Create New Cat button when appending to catsRef", async () => {
         name: null,
         cat_type_id: null,
         cat_type_name: null,
-        hex_color: "#000000"
+        hex_color: "#000000",
+        cat_subtype_id: null
       },
       percent: 0
     }
@@ -347,7 +353,8 @@ test("test Create New Cat button when appending to catsRef", async () => {
   const eventPayload = {
     name: "New Cat",
     type: 2,
-    hex_color: "#444444"
+    hex_color: "#444444",
+    subtype: null
   };
   await categoryInputs.vm.$emit('fieldUpdate', eventPayload);
   expectedCatsRef = [
@@ -363,7 +370,8 @@ test("test Create New Cat button when appending to catsRef", async () => {
         name: eventPayload.name,
         cat_type_id: eventPayload.type,
         cat_type_name: null,
-        hex_color: eventPayload.hex_color
+        hex_color: eventPayload.hex_color,
+        cat_subtype_id: null
       },
       percent: 0
     }

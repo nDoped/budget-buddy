@@ -28,6 +28,7 @@
       cat_type_id: number | null,
       cat_type_name: string | null,
       hex_color: string,
+      cat_subtype_id: number | null,
     },
     percent: number,
   }
@@ -38,6 +39,7 @@
       cat_type_id: number | null,
       cat_type_name: string | null,
       hex_color: string,
+      cat_subtype_id: number | null,
     },
     price: number,
   }
@@ -52,6 +54,10 @@
       default: () => []
     },
     categoryTypes: {
+      type: Array,
+      default: () => []
+    },
+    categorySubtypes: {
       type: Array,
       default: () => []
     },
@@ -168,6 +174,7 @@
           cat_type_id: catData.cat_type_id,
           cat_type_name: catData.cat_type_name,
           hex_color: catData.hex_color,
+          cat_subtype_id: catData.cat_subtype_id,
         },
         percent: Math.round(((catSubTotal / subTotal) * 100 + Number.EPSILON) * 100) / 100,
       });
@@ -182,6 +189,7 @@
           cat_type_id: c.cat_data.cat_type_id,
           cat_type_name: c.cat_data.cat_type_name,
           hex_color: c.cat_data.hex_color,
+          cat_subtype_id: c.cat_data.cat_subtype_id,
         },
         percent: Math.round(((c.sub_total / subTotal) * 100 + Number.EPSILON) * 100) / 100,
       });
@@ -204,6 +212,7 @@
         cat_type_id: props.availableCategories[lastEnteredCatIndex].cat_type_id,
         cat_type_name: props.availableCategories[lastEnteredCatIndex].cat_type_name,
         hex_color: props.availableCategories[lastEnteredCatIndex].hex_color,
+        cat_subtype_id: props.availableCategories[lastEnteredCatIndex].cat_subtype_id,
       },
       price: null,
     });
@@ -216,6 +225,7 @@
     lineItems.value[i].cat_data.name = data.name;
     lineItems.value[i].cat_data.hex_color = data.hex_color;
     lineItems.value[i].cat_data.cat_type_id = data.type;
+    lineItems.value[i].cat_data.cat_subtype_id = data.subtype;
   };
   const createANewLineItemCategory = () => {
     lineItems.value.push({
@@ -226,6 +236,7 @@
         cat_type_id: null,
         cat_type_name: null,
         hex_color: '#000000',
+        cat_subtype_id: null,
       },
       price: null,
     });
@@ -295,6 +306,7 @@
         cat_type_id: filteredCats.value[0].cat_type_id,
         cat_type_name: filteredCats.value[0].cat_type_name,
         hex_color: filteredCats.value[0].hex_color,
+        cat_subtype_id: filteredCats.value[0].cat_subtype_id,
       },
       percent: 0,
     });
@@ -304,6 +316,7 @@
     catsRef.value[i].cat_data.name = data.name;
     catsRef.value[i].cat_data.hex_color = data.hex_color;
     catsRef.value[i].cat_data.cat_type_id = data.type;
+    catsRef.value[i].cat_data.cat_subtype_id = data.subtype;
   };
   const createANewCategory = () => {
     catsRef.value.push({
@@ -314,6 +327,7 @@
         cat_type_id: null,
         cat_type_name: null,
         hex_color: '#000000',
+        cat_subtype_id: null,
       },
       percent: 0,
     });
@@ -420,6 +434,7 @@
                 :name="category.cat_data.name"
                 :color="category.cat_data.hex_color"
                 :category-types="categoryTypes"
+                :category-subtypes="categorySubtypes"
                 :errors="getError(i)"
                 @field-update="(data) => createCategory(i, data)"
               />
@@ -531,6 +546,7 @@
                 :name="item.cat_data.name"
                 :color="item.cat_data.hex_color"
                 :category-types="categoryTypes"
+                :category-subtypes="categorySubtypes"
                 :errors="getError(i)"
                 @field-update="(data) => createLineItemCategory(i, data)"
               />

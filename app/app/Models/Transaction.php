@@ -363,6 +363,10 @@ class Transaction extends Model
                     $catModel->user_id = $current_user->id;
                     $catModel->save();
                 }
+                if (array_key_exists('cat_subtype_id', $catData)) {
+                    $catModel->category_subtype_id = $catData['cat_subtype_id'] ?: null;
+                    $catModel->save();
+                }
                 $catsToSet[] = [
                     'category' => $catModel,
                     'percentage' => $cat['percent']

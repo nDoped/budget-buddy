@@ -21,6 +21,10 @@
       type: Array,
       default: () => []
     },
+    categorySubtypes: {
+      type: Array,
+      default: () => []
+    },
     accounts: {
       type: Array,
       default: () => []
@@ -339,6 +343,7 @@
             :transaction="item"
             :categories="categories"
             :category-types="categoryTypes"
+            :category-subtypes="categorySubtypes"
             @cancel="collapse"
             @success="collapse"
           />

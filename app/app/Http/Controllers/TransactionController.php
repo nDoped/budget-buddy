@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionPostRequest;
-use App\Models\Account;
-use App\Models\Category;
-use App\Models\CategoryType;
 use App\Models\Transaction;
+use App\Models\CategoryType;
+use App\Models\Category;
+use App\Models\CategorySubtype;
 use App\Services\ActivityLogService;
 /* use thiagoalessio\TesseractOCR\TesseractOCR; */
 
@@ -72,7 +71,8 @@ class TransactionController extends Controller
         list(
             $data['accounts'],
             $data['categories'],
-            $data['category_types']
+            $data['category_types'],
+            $data['category_subtypes']
         ) = $this->_fetch_category_and_account_data();
 
         return Inertia::render('Transactions', [
@@ -85,6 +85,7 @@ class TransactionController extends Controller
         $current_user = Auth::user();
         $categories = $this->_fetch_categories();
         $category_types = $this->_fetch_category_types();
+        $category_subtypes = $this->_fetch_category_subtypes();
         $accounts = [];
         foreach ($current_user->accounts as $acct) {
             $accounts[] = [
@@ -93,7 +94,26 @@ class TransactionController extends Controller
                 'active' => $acct->active
             ];
         }
-        return [ $accounts, $categories, $category_types ];
+        return [ $accounts, $categories, $category_types, $category_subtypes ];
+    }
+
+    private function _fetch_category_subtypes() : array
+    {
+        $current_user = Auth::user();
+        $subtypes = CategorySubtype::where('user_id', '=', $current_user->id)
+            ->with('categoryType')
+            ->orderBy('name')
+            ->get();
+        $ret = [];
+        foreach ($subtypes as $subtype) {
+            $ret[] = [
+                'id' => $subtype->id,
+                'name' => $subtype->name,
+                'category_type_id' => $subtype->category_type_id,
+                'category_type_name' => $subtype->categoryType?->name,
+            ];
+        }
+        return $ret;
     }
 
 
@@ -102,12 +122,14 @@ class TransactionController extends Controller
         list(
             $accounts,
             $categories,
-            $category_types
+            $category_types,
+            $category_subtypes
         ) = $this->_fetch_category_and_account_data();
         return Inertia::render('CreateTransaction', [
             'accounts' => $accounts,
             'categories' => $categories,
             'categoryTypes' => $category_types,
+            'categorySubtypes' => $category_subtypes,
         ]);
     }
 
@@ -149,7 +171,8 @@ class TransactionController extends Controller
                 'cat_id' => $cat->id,
                 'cat_type_name' => ($catt) ? $catt->name : null,
                 'cat_type_id' => ($catt) ? $catt->id : null,
-                'hex_color' => $cat->hex_color
+                'hex_color' => $cat->hex_color,
+                'cat_subtype_id' => $cat->category_subtype_id,
             ];
         }
         return $cats;

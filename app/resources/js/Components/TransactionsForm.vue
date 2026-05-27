@@ -75,6 +75,10 @@
       type: Array,
       default: () => []
     },
+    categorySubtypes: {
+      type: Array,
+      default: () => []
+    },
     startDate: {
       type: String,
       default: () => ''
@@ -148,6 +152,7 @@
               :available-categories="categories"
               :total-amount="form.amount"
               :category-types="categoryTypes"
+              :category-subtypes="categorySubtypes"
               :key="transCatCounter"
               :errors="form.errors"
               :ai-analysis="aiAnalysis"
