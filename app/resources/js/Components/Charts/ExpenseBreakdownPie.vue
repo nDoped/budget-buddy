@@ -6,12 +6,12 @@
     onMounted
   } from 'vue';
   import { router } from '@inertiajs/vue3';
-  import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-  import { Pie } from 'vue-chartjs';
+  import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+  import { Pie, Bar } from 'vue-chartjs';
   import { expenseBreakdownOptions } from './chartConfig.js'
   import cloneDeep from 'lodash/cloneDeep';
 
-  ChartJS.register(ArcElement, Tooltip, Legend);
+  ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
   const props = defineProps({
     categorizedExpenses: {
@@ -196,6 +196,38 @@
     subtypes.value.map(g => worstCat(g.categories))
   );
 
+  const barData = computed(() => ({
+    labels: subtypes.value.map(g => g.subtypeName),
+    datasets: [{
+      data: subtypes.value.map(g => g.total),
+      backgroundColor: subtypes.value.map(() => props.color + 'B3'),
+      borderColor: subtypes.value.map(() => props.color),
+      borderWidth: 1,
+      borderRadius: 4,
+    }],
+  }));
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => fmt(ctx.parsed.x),
+        },
+      },
+    },
+    scales: {
+      y: {
+        ticks: { callback: (v) => '$' + v },
+      },
+      x: {
+        ticks: { font: { size: 13 }, autoSkip: false },
+      },
+    },
+  };
+
   onMounted(() => {
     subtypes.value.forEach((_, idx) => {
       const el = tooltipElements[idx];
@@ -229,16 +261,20 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+    <div class="w-full mb-6" style="height:200px" v-if="subtypes.length > 1">
+      <Bar :data="barData" :options="barOptions" />
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
       <div v-for="(group, idx) in subtypes" :key="group.subtypeId ?? '__none__'" class="flex flex-col items-center">
-        <div class="font-bold text-lg" :style="{ color: props.color }">{{ group.subtypeName }}</div>
-        <div v-if="topCats[idx]" class="text-sm" :style="{ color: props.color }">
+        <div class="font-bold text-lg leading-tight mt-2 mb-1" :style="{ color: props.color }">{{ group.subtypeName }}</div>
+        <div v-if="topCats[idx]" class="text-sm leading-tight mb-0.5" :style="{ color: props.color }">
           Highest: {{ topCats[idx].name }} ({{ fmt(topCats[idx].value) }})
         </div>
-        <div v-if="bottomCats[idx]" class="text-sm" :style="{ color: props.color }">
+        <div v-if="bottomCats[idx]" class="text-sm leading-tight mb-0.5" :style="{ color: props.color }">
           Lowest: {{ bottomCats[idx].name }} ({{ fmt(bottomCats[idx].value) }})
         </div>
-        <div class="w-full" style="height:700px">
+        <div class="w-full max-w-[500px] aspect-square mx-auto">
           <Pie :data="chartDataList[idx]" :options="makeOptions(idx)" />
         </div>
         <div
