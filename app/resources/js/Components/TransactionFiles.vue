@@ -143,6 +143,7 @@
           tax: result.tax,
           total: result.total,
           date: result.date,
+          suggested_account_id: result.suggested_account_id,
         };
       }
 
@@ -153,6 +154,7 @@
         tax: result.tax,
         total: result.total,
         date: result.date,
+        suggested_account_id: result.suggested_account_id,
       });
     } catch (err) {
       const msg = err.response?.data?.error || err.message || 'Failed to analyze receipt';

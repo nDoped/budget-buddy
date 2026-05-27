@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Services\ReceiptAnalyzer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,12 @@ class AnalysisController extends Controller
         }
 
         try {
-            $result = $analyzer->analyze($image, $forceRefresh);
+            $accounts = $request->user()->accounts()
+                ->where('active', true)
+                ->whereNotNull('number')
+                ->get(['id', 'name', 'number']);
+
+            $result = $analyzer->analyze($image, $forceRefresh, $accounts->toArray());
 
             if (isset($result['error'])) {
                 return response()->json(['error' => $result['error']], 422);
@@ -36,6 +42,7 @@ class AnalysisController extends Controller
                 'tax' => $result['tax'] ?? null,
                 'total' => $result['total'] ?? null,
                 'date' => $result['date'] ?? null,
+                'suggested_account_id' => $result['suggested_account_id'] ?? null,
             ]);
         } catch (\RuntimeException $e) {
             Log::error('Receipt analysis failed', ['error' => $e->getMessage()]);

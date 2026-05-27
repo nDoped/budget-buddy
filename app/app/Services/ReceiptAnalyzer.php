@@ -18,7 +18,7 @@ class ReceiptAnalyzer
         $this->model = config('services.openai.model', 'gpt-4o');
     }
 
-    public function analyze(string $dataUri, bool $forceRefresh = false): array
+    public function analyze(string $dataUri, bool $forceRefresh = false, array $accounts = []): array
     {
         if (empty($this->apiKey)) {
             throw new \RuntimeException('OpenAI API key is not configured. Set OPENAI_API_KEY in .env');
@@ -27,13 +27,15 @@ class ReceiptAnalyzer
         $cats = Category::with('categoryType')->where('active', true)->get()->groupBy(fn($c) => $c->categoryType?->name ?? 'Uncategorized')->map(fn($group) => $group->pluck('name')->toArray())->toArray();
         $catsList = json_encode($cats);
 
-        $cacheKey = 'receipt_analysis_' . md5($dataUri . $catsList);
+        $accountsList = json_encode($accounts);
+
+        $cacheKey = 'receipt_analysis_' . md5($dataUri . $catsList . $accountsList);
 
         if ($forceRefresh) {
             Cache::forget($cacheKey);
         }
 
-        return Cache::remember($cacheKey, 86400, function () use ($catsList, $dataUri) {
+        return Cache::remember($cacheKey, 86400, function () use ($catsList, $accountsList, $dataUri) {
             $images = $this->ensureImages($dataUri);
             $prompt = <<<'PROMPT'
 You are a receipt analyzer. Extract all line items from this receipt image(s).
@@ -54,6 +56,14 @@ Also extract:
 - tax: the tax amount (float or null)
 - date: the purchase date in YYYY-MM-DD format (string or null)
 - total: the total amount (float or null)
+- suggested_account_id: the account id that best matches the payment method on this receipt, based on this accounts list:
+    [ACCOUNTS]
+    - the json is structured as:
+        [
+            { "id": 1, "name": "Account Name", "number": "1234" },
+        ]
+    - match the last 4 digits of the account number visible on the receipt (if any) to the "number" field of each account
+    - if no account number is visible on the receipt or no match can be made, set to null
 
 Return ONLY valid JSON with this structure:
 {
@@ -62,13 +72,18 @@ Return ONLY valid JSON with this structure:
   ],
   "tax": 0.80,
   "date": "2024-05-01",
-  "total": 10.79
+  "total": 10.79,
+  "suggested_account_id": 1
 }
 
 If you cannot read the receipt clearly, return {"error": "Could not read receipt image clearly"}.
 PROMPT;
 
             $prompt = str_replace('[CATEGORIES]', $catsList, $prompt);
+            $prompt = str_replace('[ACCOUNTS]', $accountsList, $prompt);
+            Log::info([
+                'app/Services/ReceiptAnalyzer.php:83 prompt' => $prompt,
+            ]);
 
             $contentItems = [
                 [
@@ -108,6 +123,9 @@ PROMPT;
 
             $content = $response->json('output.0.content.0.text');
             $content = trim($content);
+            Log::info([
+                'app/Services/ReceiptAnalyzer.php:125 content' => $content,
+            ]);
             if (str_starts_with($content, '```')) {
                 $content = preg_replace('/^```(?:json)?\s*\n?/i', '', $content);
                 $content = preg_replace('/\n?```\s*$/', '', $content);

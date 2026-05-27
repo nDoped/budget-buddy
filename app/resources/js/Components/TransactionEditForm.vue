@@ -51,6 +51,9 @@
     if (results.date) {
       form.transaction_date = results.date;
     }
+    if (results.suggested_account_id) {
+      form.account_id = String(results.suggested_account_id);
+    }
   };
   const transCatCounter = ref(0);
   const success = (deleted, transactionsUpdatedCount = 0) => {
