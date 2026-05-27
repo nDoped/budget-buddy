@@ -1,9 +1,6 @@
 <script setup>
   import {
-    computed,
-    ref,
-    reactive,
-    onMounted
+    computed
   } from 'vue';
   import { router } from '@inertiajs/vue3';
   import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
@@ -89,8 +86,11 @@
   const baseOptions = cloneDeep(expenseBreakdownOptions);
   baseOptions.plugins.title.display = false;
 
-  const tooltipElements = reactive({});
-  const hoverStates = reactive({});
+  const optionsList = computed(() =>
+    subtypes.value.map((_, idx) => makeOptions(idx))
+  );
+
+  const hoverStates = {};
   const hideTimeouts = {};
 
   const handleTooltipClick = (e) => {
@@ -106,16 +106,16 @@
     opts.plugins.tooltip.enabled = false;
     opts.plugins.tooltip.external = function(ctx) {
       const { tooltip } = ctx;
-      const el = tooltipElements[idx];
+      const el = document.getElementById(`pie-tt-${idx}`);
       if (!el) return;
 
       if (tooltip.opacity === 0) {
         if (hoverStates[idx]) return;
         if (hideTimeouts[idx]) return;
         hideTimeouts[idx] = setTimeout(() => {
-          if (!hoverStates[idx] && tooltipElements[idx]) {
-            tooltipElements[idx].style.opacity = '0';
-            tooltipElements[idx].style.pointerEvents = 'none';
+          if (!hoverStates[idx]) {
+            const e = document.getElementById(`pie-tt-${idx}`);
+            if (e) { e.style.opacity = '0'; e.style.pointerEvents = 'none'; }
           }
           hideTimeouts[idx] = null;
         }, 200);
@@ -153,6 +153,21 @@
       }
 
       el.innerHTML = html;
+
+      if (!el._listeners) {
+        el._listeners = true;
+        el.addEventListener('mouseenter', () => { hoverStates[idx] = true; if (hideTimeouts[idx]) { clearTimeout(hideTimeouts[idx]); hideTimeouts[idx] = null; } });
+        el.addEventListener('mouseleave', () => {
+          hoverStates[idx] = false;
+          hideTimeouts[idx] = setTimeout(() => {
+            if (!hoverStates[idx]) {
+              const e = document.getElementById(`pie-tt-${idx}`);
+              if (e) { e.style.opacity = '0'; e.style.pointerEvents = 'none'; }
+            }
+            hideTimeouts[idx] = null;
+          }, 300);
+        });
+      }
 
       const evt = ctx.chart._lastEvent?.native;
       let left, top;
@@ -207,9 +222,18 @@
     }],
   }));
 
+  const pieChartWrappers = {};
+
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    onClick: (_e, elements) => {
+      if (elements.length) {
+        const idx = elements[0].index;
+        const el = pieChartWrappers[idx];
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -228,23 +252,6 @@
     },
   };
 
-  onMounted(() => {
-    subtypes.value.forEach((_, idx) => {
-      const el = tooltipElements[idx];
-      if (!el) return;
-      el.addEventListener('mouseenter', () => { hoverStates[idx] = true; if (hideTimeouts[idx]) { clearTimeout(hideTimeouts[idx]); hideTimeouts[idx] = null; } });
-      el.addEventListener('mouseleave', () => {
-        hoverStates[idx] = false;
-        hideTimeouts[idx] = setTimeout(() => {
-          if (!hoverStates[idx] && tooltipElements[idx]) {
-            tooltipElements[idx].style.opacity = '0';
-            tooltipElements[idx].style.pointerEvents = 'none';
-          }
-          hideTimeouts[idx] = null;
-        }, 300);
-      });
-    });
-  });
 </script>
 
 <template>
@@ -274,11 +281,11 @@
         <div v-if="bottomCats[idx]" class="text-sm leading-tight mb-0.5" :style="{ color: props.color }">
           Lowest: {{ bottomCats[idx].name }} ({{ fmt(bottomCats[idx].value) }})
         </div>
-        <div class="w-full max-w-[500px] aspect-square mx-auto">
-          <Pie :data="chartDataList[idx]" :options="makeOptions(idx)" />
+        <div :ref="el => { pieChartWrappers[idx] = el }" class="w-full max-w-[500px] aspect-square mx-auto">
+          <Pie :data="chartDataList[idx]" :options="optionsList[idx]" />
         </div>
         <div
-          :ref="el => { tooltipElements[idx] = el }"
+          :id="`pie-tt-${idx}`"
           class="fixed z-50 px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none"
           style="background: rgba(0,0,0,0.8); color: white; opacity: 0; transition: opacity 0.15s;"
           @click="handleTooltipClick"
