@@ -95,6 +95,11 @@ class User extends Authenticatable
         return $this->hasMany(CategoryType::class);
     }
 
+    public function categorySubtypes() : HasMany
+    {
+        return $this->hasMany(CategorySubtype::class);
+    }
+
     /**
      * Get the transactions for this user
      */
@@ -136,7 +141,7 @@ class User extends Authenticatable
 
         $transactions_in_range
             = $this->transactions()
-                   ->with('account.accountType', 'categories.categoryType', 'transactionImages', 'parent')
+                   ->with('account.accountType', 'categories.categoryType', 'categories.categorySubtype', 'transactionImages', 'parent')
                    ->orderBy('transaction_date', $orderBy)
                    ->orderBy('buddy_id', $orderBy);
 
@@ -216,10 +221,13 @@ class User extends Authenticatable
                             ];
 
                         } else {
+                            $subtype = $cat->categorySubtype;
                             $category_type_breakdowns[$cat->category_type_id]['data'][$cat->id] = [
                                 'name' => $cat->name,
                                 'value' => $cat_value,
                                 'hex_color' => $cat->hex_color,
+                                'subtype_id' => $subtype?->id,
+                                'subtype_name' => $subtype?->name,
                                 'transactions' => [
                                     [
                                         'id' => $trans->id,
@@ -233,6 +241,7 @@ class User extends Authenticatable
                         }
 
                     } else {
+                        $subtype = $cat->categorySubtype;
                         $category_type_breakdowns[$cat->category_type_id] = [
                             'name' => $cat_type->name,
                             'hex_color' => $cat_type->hex_color,
@@ -242,6 +251,8 @@ class User extends Authenticatable
                                     'name' => $cat->name,
                                     'value' => $cat_value,
                                     'hex_color' => $cat->hex_color,
+                                    'subtype_id' => $subtype?->id,
+                                    'subtype_name' => $subtype?->name,
                                     'transactions' => [
                                         [
                                             'id' => $trans->id,

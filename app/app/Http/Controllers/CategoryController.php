@@ -28,6 +28,7 @@ class CategoryController extends Controller
         $cat->hex_color = $request->hex_color;
         $cat->user_id = $current_user->id;
         $cat->category_type_id = $request->category_type;
+        $cat->category_subtype_id = $request->category_subtype;
         $cat->save();
         ActivityLogService::categoryCreated($cat->id, $cat->name);
         return redirect()->route('settings.categories')->with('message', 'Successfully Created Category');
@@ -52,17 +53,22 @@ class CategoryController extends Controller
             'name' => $category->name,
             'hex_color' => $category->hex_color,
             'category_type_id' => $category->category_type_id,
+            'category_subtype_id' => $category->category_subtype_id,
             'active' => $category->active,
         ];
         $category->name = $request->name;
         $category->hex_color = $request->hex_color;
         $category->category_type_id = $request->category_type;
+        $category->category_subtype_id = $request->category_subtype;
         $category->active = $request->active;
         $category->save();
+        $oldSubtype = $old['category_subtype_id'] ? \App\Models\CategorySubtype::find($old['category_subtype_id'])?->name : null;
+        $newSubtype = $category->category_subtype_id ? \App\Models\CategorySubtype::find($category->category_subtype_id)?->name : null;
         $changes = array_filter([
             'name' => ['old' => $old['name'], 'new' => $category->name],
             'hex_color' => ['old' => $old['hex_color'], 'new' => $category->hex_color],
             'category_type_id' => ['old' => $old['category_type_id'], 'new' => $category->category_type_id],
+            'category_subtype_id' => ['old' => $oldSubtype, 'new' => $newSubtype],
             'active' => ['old' => $old['active'], 'new' => $category->active],
         ], fn($v) => $v['old'] != $v['new']);
         ActivityLogService::categoryUpdated($category->id, $category->name, $changes);

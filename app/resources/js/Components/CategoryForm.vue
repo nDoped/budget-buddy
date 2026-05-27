@@ -17,6 +17,10 @@
     categoryTypes: {
       type: Object,
       default: () => {}
+    },
+    categorySubtypes: {
+      type: Array,
+      default: () => []
     }
   });
 
@@ -24,11 +28,13 @@
     name: null,
     hex_color: '#000000',
     category_type: '',
+    category_subtype: '',
   });
-  const updateInputs = ({ name, hex_color, type }) => {
+  const updateInputs = ({ name, hex_color, type, subtype }) => {
     form.name = name;
     form.hex_color = hex_color;
     form.category_type = type;
+    form.category_subtype = subtype;
   };
   const inputIncrementer = ref(0);
   function submit() {
@@ -51,6 +57,7 @@
       :errors="form.errors"
       :key="inputIncrementer"
       :category-types="categoryTypes"
+      :category-subtypes="categorySubtypes"
       @field-update="updateInputs"
     />
 

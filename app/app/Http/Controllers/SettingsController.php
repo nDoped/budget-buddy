@@ -12,6 +12,7 @@ use App\Models\AccountType;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\CategoryType;
+use App\Models\CategorySubtype;
 use App\Services\ActivityLogService;
 
 class SettingsController extends Controller
@@ -64,17 +65,20 @@ class SettingsController extends Controller
             })
             ->get();
         $all_cats = $current_user->categories()
-            ->with('categoryType:id,name')
+            ->with('categoryType:id,name', 'categorySubtype:id,name')
             ->orderBy('name')
-            ->get(['id', 'name', 'category_type_id'])
+            ->get(['id', 'name', 'category_type_id', 'category_subtype_id'])
             ->map(fn($cat) => [
                 'id' => $cat->id,
                 'name' => $cat->name,
                 'category_type_id' => $cat->category_type_id,
                 'category_type_name' => $cat->categoryType?->name,
+                'category_subtype_id' => $cat->category_subtype_id,
+                'category_subtype_name' => $cat->categorySubtype?->name,
             ]);
         foreach ($cat_itty as $cat) {
             $catt = CategoryType::find($cat->category_type_id);
+            $subtype = $cat->categorySubtype;
             $cats[] = [
                 'name' => $cat->name,
                 'id' => $cat->id,
@@ -83,6 +87,8 @@ class SettingsController extends Controller
                 'active' => ($cat->active) ? true : false,
                 'category_type_name' => ($catt) ? $catt->name : null,
                 'category_type_id' => ($catt) ? $catt->id : null,
+                'category_subtype_id' => $subtype?->id,
+                'category_subtype_name' => $subtype?->name,
                 'hex_color' => $cat->hex_color,
             ];
 
@@ -99,20 +105,44 @@ class SettingsController extends Controller
         return Inertia::render('Settings/Categories', [
             'categories' => $cats,
             'category-types' => $this->_fetch_category_types(),
+            'category-subtypes' => $this->_fetch_category_subtypes(),
             'all-categories' => $all_cats
         ]);
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function category_types(Request $request)
     {
         return Inertia::render('Settings/CategoryTypes', [
             'category-types' => $this->_fetch_category_types()
         ]);
+    }
+
+    public function category_subtypes(Request $request)
+    {
+        return Inertia::render('Settings/Subtypes', [
+            'category-subtypes' => $this->_fetch_category_subtypes(),
+            'category-types' => $this->_fetch_category_types(),
+        ]);
+    }
+
+    private function _fetch_category_subtypes() : array
+    {
+        $current_user = Auth::user();
+        $subtypes = CategorySubtype::where('user_id', '=', $current_user->id)
+            ->with('categoryType')
+            ->orderBy('name')
+            ->get();
+        $ret = [];
+        foreach ($subtypes as $subtype) {
+            $ret[] = [
+                'id' => $subtype->id,
+                'name' => $subtype->name,
+                'category_type_id' => $subtype->category_type_id,
+                'category_type_name' => $subtype->categoryType?->name,
+                'expand' => true,
+            ];
+        }
+        return $ret;
     }
 
     /**

@@ -19,6 +19,10 @@
       type: Number,
       default: null
     },
+    subtype: {
+      type: Number,
+      default: null
+    },
     color: {
       type: String,
       default: null
@@ -28,6 +32,10 @@
       default: false
     },
     categoryTypes: {
+      type: Array,
+      default: () => []
+    },
+    categorySubtypes: {
       type: Array,
       default: () => []
     },
@@ -44,11 +52,27 @@
   const catName = ref(props.name);
   const catColor = ref((props.color) ? props.color : '#000000');
   const catType = ref(props.type);
+  const catSubtype = ref(props.subtype);
   const catActive = ref(props.active);
+
+  const filteredSubtypes = ref([]);
+  let isInit = true;
+  watch(catType, (newType) => {
+    if (!isInit) {
+      catSubtype.value = null;
+    }
+    isInit = false;
+    if (newType) {
+      filteredSubtypes.value = props.categorySubtypes.filter(s => s.category_type_id === newType);
+    } else {
+      filteredSubtypes.value = [];
+    }
+  }, { immediate: true });
+
   watch(
-    [catName, catColor, catType, catActive ],
-    ([newName, newColor, newType, newActive ]) => {
-      emit('fieldUpdate', { name: newName, hex_color: newColor, type: newType, active: newActive});
+    [catName, catColor, catType, catSubtype, catActive ],
+    ([newName, newColor, newType, newSubtype, newActive ]) => {
+      emit('fieldUpdate', { name: newName, hex_color: newColor, type: newType, subtype: newSubtype, active: newActive});
     }
   );
   const uuid = randomUUID();
@@ -107,6 +131,29 @@
           :value="ctype.id"
         >
           {{ ctype.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="mb-4">
+      <InputLabel
+        :for="getUuid('cat-subtype')"
+        value="Subtype"
+      />
+      <select
+        :id="getUuid('cat-subtype')"
+        v-model="catSubtype"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full max-w-sm p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+      >
+        <option value="">
+          No subtype
+        </option>
+        <option
+          v-for="(st, i) in filteredSubtypes"
+          :key="i"
+          :value="st.id"
+        >
+          {{ st.name }}
         </option>
       </select>
     </div>

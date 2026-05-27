@@ -179,9 +179,4 @@ export const expenseBreakdownOptions = {
       display: false
     }
   },
-  elements: {
-    arc: {
-      borderWidth: 0
-    }
-  }
 }

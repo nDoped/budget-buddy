@@ -25,6 +25,10 @@
       type: Object,
       default: () => {}
     },
+    categorySubtypes: {
+      type: Array,
+      default: () => []
+    },
     allCategories: {
       type: Array,
       default: () => []
@@ -35,7 +39,8 @@
     name: props.category.name,
     hex_color: props.category.hex_color,
     active: props.category.active,
-    category_type: props.category.category_type_id
+    category_type: props.category.category_type_id,
+    category_subtype: props.category.category_subtype_id
   });
 
   watch(
@@ -45,6 +50,7 @@
       form.hex_color = props.category.hex_color;
       form.active = props.category.active;
       form.category_type = props.category.category_type_id;
+      form.category_subtype = props.category.category_subtype_id;
       deleteCategoryForm.id = props.category.id;
       mergeTargetId.value = null;
       catBeingMerged.value = false;
@@ -148,10 +154,11 @@
     });
   };
 
-  const updateInputs = ({ name, hex_color, type, active }) => {
+  const updateInputs = ({ name, hex_color, type, subtype, active }) => {
     form.name = name;
     form.hex_color = hex_color;
     form.category_type = type;
+    form.category_subtype = subtype;
     form.active = active;
   };
 
@@ -185,9 +192,11 @@
             :errors="form.errors"
             :name="form.name"
             :type="form.category_type"
+            :subtype="form.category_subtype"
             :color="form.hex_color"
             :active="form.active"
             :category-types="categoryTypes"
+            :category-subtypes="categorySubtypes"
             :include-active-input="true"
             @field-update="updateInputs"
           />

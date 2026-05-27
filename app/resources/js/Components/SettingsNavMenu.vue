@@ -48,6 +48,13 @@
           >
             Transaction Category Types
           </NavLink>
+
+          <NavLink
+            :href="route('settings.category_subtypes')"
+            :active="route().current('settings.category_subtypes')"
+          >
+            Transaction Category Subtypes
+          </NavLink>
         </div>
       </div>
     </div>
@@ -97,6 +104,10 @@
 
           <ResponsiveNavLink :href="route('settings.category_types')" :active="route().current('settings.category_types')">
             Transaction Category Types
+          </ResponsiveNavLink>
+
+          <ResponsiveNavLink :href="route('settings.category_subtypes')" :active="route().current('settings.category_subtypes')">
+            Transaction Category Subtypes
           </ResponsiveNavLink>
         </div>
       </div>

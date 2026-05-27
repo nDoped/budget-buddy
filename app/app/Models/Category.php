@@ -20,6 +20,10 @@ class Category extends Model
     {
         return $this->belongsTo(CategoryType::class);
     }
+    public function categorySubtype(): BelongsTo
+    {
+        return $this->belongsTo(CategorySubtype::class);
+    }
     /**
      * Get the user that owns the account
      */

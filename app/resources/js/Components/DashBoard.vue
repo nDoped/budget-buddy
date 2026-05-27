@@ -307,7 +307,6 @@
           <template #hidden_row="{item}">
             <AccountBalanceLine :chart-data="item['daily_balance_line_graph_data']" :account-id="item.id" />
           </template>
-
         </ExpandableTable>
       </div>
     </div>
@@ -347,7 +346,6 @@
         </ExpandableTable>
       </div>
     </div>
-
   </div>
 
   <div class="bg-slate-300 dark:bg-gray-800 bg-opacity-75 h-[32rem]">

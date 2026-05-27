@@ -1,84 +1,97 @@
 <script setup>
   import {
-    watch,
-    ref,
     computed,
+    ref,
+    reactive,
     onMounted
   } from 'vue';
   import { router } from '@inertiajs/vue3';
-  import PieChart from '@/Components/Charts/PieChart.vue';
+  import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+  import { Pie } from 'vue-chartjs';
   import { expenseBreakdownOptions } from './chartConfig.js'
   import cloneDeep from 'lodash/cloneDeep';
 
-  let props = defineProps({
+  ChartJS.register(ArcElement, Tooltip, Legend);
+
+  const props = defineProps({
     categorizedExpenses: {
       type: Object,
-      default: () => {}
+      default: () => ({})
     },
     title: {
       type: String,
-      default: () => "Here's some data"
+      default: "Here's some data"
     },
     color: {
       type: String,
-      default: () => "#ffffff"
+      default: "#ffffff"
     }
   });
 
-  const defaultChartStruct = {
-    labels: [],
-    datasets: [
-      {
-        backgroundColor: [],
-        data: [],
-        transactions: []
-      }
-    ],
-  };
+  const fmt = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
-  const sortObj = (obj) => {
-    return Object.keys(obj).sort().reduce(function (result, key) {
-      result[key] = obj[key];
-      return result;
-    }, {});
-  };
-
-  const topCategory = computed(() => {
-    let best = null;
+  const subtypes = computed(() => {
+    const groups = {};
     for (const cat of Object.values(props.categorizedExpenses)) {
-      if (!best || cat.value > best.value) {
-        best = cat;
+      const key = cat.subtype_id ?? '__none__';
+      if (!groups[key]) {
+        groups[key] = {
+          subtypeId: cat.subtype_id,
+          subtypeName: cat.subtype_name || 'No Sub Type',
+          categories: [],
+          total: 0,
+        };
       }
+      groups[key].categories.push(cat);
+      groups[key].total += cat.value;
     }
-    return best;
+    return Object.values(groups).sort((a, b) => {
+      if (a.subtypeId === null) return 1;
+      if (b.subtypeId === null) return -1;
+      return a.subtypeName.localeCompare(b.subtypeName);
+    });
   });
 
-  const bottomCategory = computed(() => {
-    let worst = null;
-    for (const cat of Object.values(props.categorizedExpenses)) {
-      if (!worst || cat.value < worst.value) {
-        worst = cat;
-      }
-    }
-    return worst;
+  const topSubtype = computed(() => {
+    if (!subtypes.value.length) return null;
+    return subtypes.value.reduce((best, s) => s.total > best.total ? s : best);
   });
 
-  const pieChartData = ref(structuredClone(defaultChartStruct));
-  watch(() => props.categorizedExpenses, () => {
-    pieChartData.value = structuredClone(defaultChartStruct);
-    for (let id in sortObj(props.categorizedExpenses)) {
-      pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].hex_color);
-      pieChartData.value.datasets[0].transactions.push(props.categorizedExpenses[id].transactions);
-      pieChartData.value.labels.push(props.categorizedExpenses[id].name);
-    }
+  const bottomSubtype = computed(() => {
+    if (!subtypes.value.length) return null;
+    return subtypes.value.reduce((worst, s) => s.total < worst.total ? s : worst);
   });
 
-  const options = cloneDeep(expenseBreakdownOptions);
-  options.plugins.title.display = false;
-  const tooltipRef = ref(null);
-  const isHoveringTooltip = ref(false);
-  let hideTimeout = null;
+  function groupChartData(categories) {
+    const sorted = [...categories].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    return {
+      labels: sorted.map(c => c.name),
+      datasets: [{
+        backgroundColor: sorted.map(c => c.hex_color),
+        borderColor: sorted.map(() => 'transparent'),
+        borderWidth: sorted.map(() => 0),
+        data: sorted.map(c => c.value),
+        transactions: sorted.map(c => c.transactions.map(t => ({ ...t, _cat_name: c.name }))),
+      }],
+    };
+  }
+
+  function bestCat(categories) {
+    if (!categories.length) return null;
+    return categories.reduce((best, c) => c.value > best.value ? c : best);
+  }
+
+  function worstCat(categories) {
+    if (!categories.length) return null;
+    return categories.reduce((worst, c) => c.value < worst.value ? c : worst);
+  }
+
+  const baseOptions = cloneDeep(expenseBreakdownOptions);
+  baseOptions.plugins.title.display = false;
+
+  const tooltipElements = reactive({});
+  const hoverStates = reactive({});
+  const hideTimeouts = {};
 
   const handleTooltipClick = (e) => {
     const item = e.target.closest('[data-date]');
@@ -88,56 +101,30 @@
     }
   };
 
-  onMounted(() => {
-    for (let id in sortObj(props.categorizedExpenses)) {
-      pieChartData.value.datasets[0].data.push(props.categorizedExpenses[id].value);
-      pieChartData.value.datasets[0].backgroundColor.push(props.categorizedExpenses[id].hex_color);
-      pieChartData.value.datasets[0].transactions.push(props.categorizedExpenses[id].transactions);
-      pieChartData.value.labels.push(props.categorizedExpenses[id].name);
-    }
-    const tEl = tooltipRef.value;
-    if (tEl) {
-      tEl.addEventListener('mouseenter', () => {
-        isHoveringTooltip.value = true;
-        if (hideTimeout) {
-          clearTimeout(hideTimeout);
-          hideTimeout = null;
-        }
-      });
-      tEl.addEventListener('mouseleave', () => {
-        isHoveringTooltip.value = false;
-        hideTimeout = setTimeout(() => {
-          if (!isHoveringTooltip.value && tooltipRef.value) {
-            tooltipRef.value.style.opacity = '0';
-            tooltipRef.value.style.pointerEvents = 'none';
-          }
-          hideTimeout = null;
-        }, 300);
-      });
-    }
-
-    options.plugins.tooltip.enabled = false;
-    options.plugins.tooltip.external = function(ctx) {
+  function makeOptions(idx) {
+    const opts = cloneDeep(baseOptions);
+    opts.plugins.tooltip.enabled = false;
+    opts.plugins.tooltip.external = function(ctx) {
       const { tooltip } = ctx;
-      const el = tooltipRef.value;
+      const el = tooltipElements[idx];
       if (!el) return;
 
       if (tooltip.opacity === 0) {
-        if (isHoveringTooltip.value) return;
-        if (hideTimeout) return;
-        hideTimeout = setTimeout(() => {
-          if (!isHoveringTooltip.value && tooltipRef.value) {
-            tooltipRef.value.style.opacity = '0';
-            tooltipRef.value.style.pointerEvents = 'none';
+        if (hoverStates[idx]) return;
+        if (hideTimeouts[idx]) return;
+        hideTimeouts[idx] = setTimeout(() => {
+          if (!hoverStates[idx] && tooltipElements[idx]) {
+            tooltipElements[idx].style.opacity = '0';
+            tooltipElements[idx].style.pointerEvents = 'none';
           }
-          hideTimeout = null;
+          hideTimeouts[idx] = null;
         }, 200);
         return;
       }
 
-      if (hideTimeout) {
-        clearTimeout(hideTimeout);
-        hideTimeout = null;
+      if (hideTimeouts[idx]) {
+        clearTimeout(hideTimeouts[idx]);
+        hideTimeouts[idx] = null;
       }
 
       const dataPoints = tooltip.dataPoints;
@@ -150,19 +137,17 @@
       const sum = dataset.data.reduce((a, b) => a + b, 0);
       const value = dataset.data[dataIndex];
       const percentage = (value * 100 / sum).toFixed(2) + '%';
-      const displayVal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
-      let html = `<div style="font-weight:bold;margin-bottom:4px">${label}: ${displayVal} - ${percentage}</div>`;
+      let html = `<div style="font-weight:bold;margin-bottom:4px">${label}: ${fmt(value)} - ${percentage}</div>`;
 
       const transactions = dataset.transactions[dataIndex];
       if (transactions && transactions.length) {
         html += `<div style="max-height:250px;overflow-y:auto">`;
         transactions.forEach((t) => {
-          const catVal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(t.cat_value);
           const dateStr = new Date(t.date).toLocaleString('us-en', { timeZone: 'utc', weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' });
-          let txt = `${dateStr} for ${catVal}`;
+          let txt = `${dateStr} for ${fmt(t.cat_value)}`;
           if (t.note) txt += ` - ${t.note}`;
-          html += `<div data-date="${t.date}" style="cursor:pointer;white-space:nowrap;padding:1px 0">${txt}</div>`;
+          html += `<div data-date="${t.date}" style="cursor:pointer;word-break:break-word;padding:1px 0">${txt}</div>`;
         });
         html += `</div>`;
       }
@@ -196,51 +181,73 @@
       el.style.opacity = '1';
       el.style.pointerEvents = 'auto';
     };
+    return opts;
+  }
+
+  const chartDataList = computed(() =>
+    subtypes.value.map(g => groupChartData(g.categories))
+  );
+
+  const topCats = computed(() =>
+    subtypes.value.map(g => bestCat(g.categories))
+  );
+
+  const bottomCats = computed(() =>
+    subtypes.value.map(g => worstCat(g.categories))
+  );
+
+  onMounted(() => {
+    subtypes.value.forEach((_, idx) => {
+      const el = tooltipElements[idx];
+      if (!el) return;
+      el.addEventListener('mouseenter', () => { hoverStates[idx] = true; if (hideTimeouts[idx]) { clearTimeout(hideTimeouts[idx]); hideTimeouts[idx] = null; } });
+      el.addEventListener('mouseleave', () => {
+        hoverStates[idx] = false;
+        hideTimeouts[idx] = setTimeout(() => {
+          if (!hoverStates[idx] && tooltipElements[idx]) {
+            tooltipElements[idx].style.opacity = '0';
+            tooltipElements[idx].style.pointerEvents = 'none';
+          }
+          hideTimeouts[idx] = null;
+        }, 300);
+      });
+    });
   });
 </script>
 
 <template>
   <div class="relative w-full flex flex-col items-center">
-    <div class="text-center mb-1 shrink-0">
-      <div
-        class="font-bold text-2xl"
-        :style="{ color: props.color }"
-      >
+    <div class="text-center mb-2 shrink-0">
+      <div class="font-bold text-2xl" :style="{ color: props.color }">
         {{ props.title }}
       </div>
-      <div
-        v-if="topCategory"
-        class="text-lg"
-        :style="{ color: props.color }"
-      >
-        Highest: {{ topCategory.name }} ({{ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(topCategory.value) }})
+      <div v-if="topSubtype" class="text-lg" :style="{ color: props.color }">
+        Highest: {{ topSubtype.subtypeName }} ({{ fmt(topSubtype.total) }})
       </div>
-      <div
-        v-if="bottomCategory"
-        class="text-lg mt-1"
-        :style="{ color: props.color }"
-      >
-        Lowest: {{ bottomCategory.name }} ({{ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(bottomCategory.value) }})
+      <div v-if="bottomSubtype" class="text-lg mt-1" :style="{ color: props.color }">
+        Lowest: {{ bottomSubtype.subtypeName }} ({{ fmt(bottomSubtype.total) }})
       </div>
     </div>
-    <div class="flex-1 w-full min-h-0">
-      <PieChart
-        :chart-data="pieChartData"
-        :chart-options="options"
-      />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      <div v-for="(group, idx) in subtypes" :key="group.subtypeId ?? '__none__'" class="flex flex-col items-center">
+        <div class="font-bold text-lg" :style="{ color: props.color }">{{ group.subtypeName }}</div>
+        <div v-if="topCats[idx]" class="text-sm" :style="{ color: props.color }">
+          Highest: {{ topCats[idx].name }} ({{ fmt(topCats[idx].value) }})
+        </div>
+        <div v-if="bottomCats[idx]" class="text-sm" :style="{ color: props.color }">
+          Lowest: {{ bottomCats[idx].name }} ({{ fmt(bottomCats[idx].value) }})
+        </div>
+        <div class="w-full" style="height:700px">
+          <Pie :data="chartDataList[idx]" :options="makeOptions(idx)" />
+        </div>
+        <div
+          :ref="el => { tooltipElements[idx] = el }"
+          class="fixed z-50 px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none"
+          style="background: rgba(0,0,0,0.8); color: white; opacity: 0; transition: opacity 0.15s;"
+          @click="handleTooltipClick"
+        />
+      </div>
     </div>
-    <div
-      ref="tooltipRef"
-      class="fixed z-50 px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none"
-      style="background: rgba(0,0,0,0.8); color: white; opacity: 0; transition: opacity 0.15s;"
-      @click="handleTooltipClick"
-    ></div>
   </div>
 </template>
-<style>
-.chart-wrapper {
-  display: inline-block;
-  position: relative;
-  width: 100%;
-}
-</style>

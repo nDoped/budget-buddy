@@ -47,6 +47,7 @@
       name: 'Name',
       hex_color: 'Color',
       category_type_id: 'Category Type',
+      category_subtype_id: 'Category Subtype',
       active: 'Active',
       type_id: 'Account Type',
       interest_rate: 'Interest Rate',

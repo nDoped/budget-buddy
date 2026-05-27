@@ -7,17 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CategoryType extends Model
+class CategorySubtype extends Model
 {
     use HasFactory;
+    protected $table = 'category_subtypes';
+
+    public function categoryType(): BelongsTo
+    {
+        return $this->belongsTo(CategoryType::class);
+    }
+
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);
-    }
-
-    public function subtypes(): HasMany
-    {
-        return $this->hasMany(CategorySubtype::class);
     }
 
     public function user(): BelongsTo

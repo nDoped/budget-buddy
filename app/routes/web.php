@@ -8,6 +8,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransactionImageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryTypeController;
+use App\Http\Controllers\CategorySubtypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\ActivityLogController;
@@ -66,4 +67,9 @@ Route::middleware([
     Route::post('/settings/store_category', [ CategoryController::class, 'store' ])->name('categories.store');
     Route::get('/settings/category_types', [ SettingsController::class, 'category_types' ])->name('settings.category_types');
     Route::post('/settings/store_category_type', [ CategoryTypeController::class, 'store' ])->name('category_type.store');
+
+    Route::get('/settings/category_subtypes', [ SettingsController::class, 'category_subtypes' ])->name('settings.category_subtypes');
+    Route::post('/settings/store_category_subtype', [ CategorySubtypeController::class, 'store' ])->name('category_subtype.store');
+    Route::patch('/category_subtypes/update/{categorySubtype}', [ CategorySubtypeController::class, 'update' ])->name('category_subtypes.update');
+    Route::delete('/category_subtypes/destroy/{id}', [ CategorySubtypeController::class, 'destroy' ])->name('category_subtypes.destroy');
 });
