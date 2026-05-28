@@ -33,13 +33,14 @@
     percent: number,
   }
   interface LineItem {
+    key: string,
     cat_data: {
       cat_id: number | null,
       name: string | null,
       cat_type_id: number | null,
       cat_type_name: string | null,
       hex_color: string,
-      cat_subtype_id: number | null,
+      cat_subtype_id?: number | null,
     },
     price: number,
   }
@@ -93,7 +94,7 @@
     total.value = newVal;
   });
 
-  const lineItems = ref([]);
+  const lineItems = ref<LineItem[]>([]);
   const lineItemSum = computed(() => {
     if (lineItems.value.length === 0) {
       return parseFloat(0);
@@ -353,7 +354,7 @@
     lineItems.value = [];
     taxAmount.value = analysis.tax != null ? String(analysis.tax) : null;
 
-    analysis.line_items.forEach((item) => {
+    analysis.line_items.forEach((item: any) => {
       const match = matchCategory(item.suggested_category);
       lineItems.value.push({
         _key: randomUUID(),
@@ -364,7 +365,7 @@
           cat_type_name: match ? match.cat_type_name : null,
           hex_color: match ? match.hex_color : '#000000',
         },
-        price: String(item.price),
+        price: item.price,
       });
     });
 
@@ -567,15 +568,25 @@
               Remove
             </DangerButton>
           </div>
-          <SecondaryButton
-            v-if="lineItems.length > 0"
-            :id="getUuid('add-line-item-toggle-button')"
-            class="h-6 m-4"
-            type="button"
-            @click="addLineItem"
-          >
-            +
-          </SecondaryButton>
+          <div class="flex flex-col items-start">
+            <SecondaryButton
+              v-if="lineItems.length > 0"
+              :id="getUuid('add-line-item-toggle-button')"
+              class="h-6 m-4"
+              type="button"
+              @click="addLineItem"
+            >
+              +
+            </SecondaryButton>
+            <SecondaryButton
+              v-if="lineItems.length > 0"
+              class="h-6 mx-4 mb-4"
+              type="button"
+              @click="createANewLineItemCategory"
+            >
+              + &amp; create category
+            </SecondaryButton>
+          </div>
         </div>
       </div>
     </template>
