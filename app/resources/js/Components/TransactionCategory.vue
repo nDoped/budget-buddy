@@ -412,6 +412,7 @@
           cat_type_id: match ? match.cat_type_id : null,
           cat_type_name: match ? match.cat_type_name : null,
           hex_color: match ? match.hex_color : '#000000',
+          cat_subtype_id: match ? match.cat_subtype_id : null,
         },
         price: String(item.price),
       });
