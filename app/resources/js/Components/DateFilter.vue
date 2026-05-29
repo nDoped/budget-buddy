@@ -62,7 +62,7 @@
   });
 
   const filterData = ref({});
-  const filterAccounts = ref({});
+  const filterAccounts = ref([]);
   watch(filterAccounts, () => {
     filterData.value.filter_accounts = filterAccounts.value;
   });

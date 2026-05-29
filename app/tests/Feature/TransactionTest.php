@@ -137,6 +137,199 @@ class TransactionTest extends TestCase
     }
 
     #[Group('transactions')]
+    public function test_transaction_post_with_line_items_and_tax()
+    {
+        $savingsTransactions = $this->savingsAccount->transactions;
+        $this->assertCount(3, $savingsTransactions);
+        $tax = 5.25;
+        $response = $this->post(
+            '/transactions/store',
+            [
+                'account_id' => $this->savingsAccount->id,
+                'amount' => 1000,
+                'credit' => true,
+                'note' => 'a transaction with line items',
+                'trans_buddy' => false,
+                'recurring' => false,
+                'tax' => $tax,
+                'line_items' => [
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat1->hex_color,
+                            'cat_id' => $this->cat1->id,
+                            'name' => $this->cat1->name,
+                        ],
+                        'price' => 500.00
+                    ],
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
+                        ],
+                        'price' => 494.75
+                    ],
+                ],
+                'categories' => [
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat1->hex_color,
+                            'cat_id' => $this->cat1->id,
+                            'name' => $this->cat1->name,
+                        ],
+                        'percent' => 50
+                    ],
+                    [
+                        'cat_data' => [
+                            'hex_color' => $this->cat2->hex_color,
+                            'cat_id' => $this->cat2->id,
+                            'name' => $this->cat2->name,
+                        ],
+                        'percent' => 50
+                    ]
+                ],
+                'transaction_date' => '2021-09-01',
+            ]
+        );
+        $response->assertStatus(302);
+
+        $this->user->refresh();
+        $trans = null;
+        foreach ($this->user->transactions as $t) {
+            if ($t->note === 'a transaction with line items') {
+                $trans = $t;
+                break;
+            }
+        }
+        $this->assertNotNull($trans);
+        $this->assertEquals(1000 * 100, $trans->amount);
+        $this->assertEquals($tax * 100, $trans->tax);
+        $this->assertNotNull($trans->line_items);
+        $this->assertCount(2, $trans->line_items);
+        $this->assertEquals(500.00, $trans->line_items[0]['price']);
+        $this->assertEquals(494.75, $trans->line_items[1]['price']);
+        $this->assertArrayHasKey('cat_data', $trans->line_items[0]);
+        $this->assertArrayHasKey('cat_id', $trans->line_items[0]['cat_data']);
+        $this->assertEquals($this->cat1->id, $trans->line_items[0]['cat_data']['cat_id']);
+        $this->assertEquals($this->cat2->id, $trans->line_items[1]['cat_data']['cat_id']);
+    }
+
+    #[Group('transactions')]
+    public function test_transaction_post_with_new_category_in_line_items()
+    {
+        $newCatName = 'A NEW LINE ITEM CATEGORY';
+        $response = $this->post(
+            '/transactions/store',
+            [
+                'account_id' => $this->savingsAccount->id,
+                'amount' => 5000,
+                'credit' => true,
+                'note' => 'transaction with new category in line items',
+                'trans_buddy' => false,
+                'recurring' => false,
+                'tax' => 2.50,
+                'line_items' => [
+                    [
+                        'price' => 47.50,
+                        'cat_data' => [
+                            'cat_id' => null,
+                            'name' => $newCatName,
+                            'hex_color' => '#00ff00',
+                            'cat_type_id' => $this->catType1->id,
+                        ],
+                    ],
+                ],
+                'categories' => [
+                    [
+                        'cat_data' => [
+                            'cat_id' => null,
+                            'name' => $newCatName,
+                            'hex_color' => '#00ff00',
+                            'cat_type_id' => $this->catType1->id,
+                        ],
+                        'percent' => 100,
+                    ],
+                ],
+                'transaction_date' => '2021-09-01',
+            ]
+        );
+        $response->assertStatus(302);
+        $this->user->refresh();
+
+        $trans = null;
+        foreach ($this->user->transactions as $t) {
+            if ($t->note === 'transaction with new category in line items') {
+                $trans = $t;
+                break;
+            }
+        }
+        $this->assertNotNull($trans);
+        $this->assertNotNull($trans->line_items);
+        $this->assertCount(1, $trans->line_items);
+        $this->assertNotNull($trans->line_items[0]['cat_data']['cat_id']);
+        $this->assertEquals($newCatName, $trans->line_items[0]['cat_data']['name']);
+        $cat = Category::find($trans->line_items[0]['cat_data']['cat_id']);
+        $this->assertNotNull($cat);
+        $this->assertEquals($newCatName, $cat->name);
+    }
+
+    #[Group('transactions')]
+    public function test_transaction_patch_updates_line_items_and_tax()
+    {
+        $this->assertEquals(420, $this->savingsTransaction0->amount / 100);
+        $tax = 12.50;
+        $updateData = [
+            'account_id' => $this->savingsTransaction0->account_id,
+            'transaction_date' => $this->savingsTransaction0->transaction_date,
+            'amount' => 1000,
+            'credit' => true,
+            'note' => 'updated with line items',
+            'tax' => $tax,
+            'line_items' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat1->hex_color,
+                        'cat_id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                    ],
+                    'price' => 500.00
+                ],
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat3->hex_color,
+                        'cat_id' => $this->cat3->id,
+                        'name' => $this->cat3->name,
+                    ],
+                    'price' => 487.50
+                ],
+            ],
+            'categories' => [
+                [
+                    'cat_data' => [
+                        'hex_color' => $this->cat1->hex_color,
+                        'cat_id' => $this->cat1->id,
+                        'name' => $this->cat1->name,
+                    ],
+                    'percent' => 100
+                ],
+            ],
+        ];
+        $response = $this->post(
+            '/transactions/update/' . $this->savingsTransaction0->id,
+            $updateData
+        );
+        $response->assertStatus(302);
+        $this->savingsTransaction0->refresh();
+        $this->assertEquals('updated with line items', $this->savingsTransaction0->note);
+        $this->assertEquals(1000 * 100, $this->savingsTransaction0->amount);
+        $this->assertEquals($tax * 100, $this->savingsTransaction0->tax);
+        $this->assertNotNull($this->savingsTransaction0->line_items);
+        $this->assertCount(2, $this->savingsTransaction0->line_items);
+        $this->assertEquals(500.00, $this->savingsTransaction0->line_items[0]['price']);
+        $this->assertEquals(487.50, $this->savingsTransaction0->line_items[1]['price']);
+    }
+
+    #[Group('transactions')]
     public function test_transaction_post_with_new_category()
     {
         $newCatPercent = 32.73;

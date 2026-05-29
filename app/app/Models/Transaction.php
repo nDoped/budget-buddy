@@ -31,6 +31,10 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'line_items' => 'array',
+    ];
+
     /**
      * Get the account that owns the transaction.
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -104,6 +108,12 @@ class Transaction extends Model
         if (array_key_exists('bank_identifier', $data)) {
             $this->bank_identifier = strip_tags($data['bank_identifier']);
         }
+        if (array_key_exists('tax', $data) && $data['tax'] !== null) {
+            $this->tax = $data['tax'] * 100;
+        }
+        if (array_key_exists('line_items', $data)) {
+            $this->line_items = $data['line_items'];
+        }
 
         $this->save();
         if (isset($data['new_images'])) {
@@ -145,6 +155,7 @@ class Transaction extends Model
         }
         $cats = array_key_exists('categories', $data) ? $data['categories'] : [];
         $this->_handleCategories($cats, false, true);
+        $this->save();
 
         $children = $this->children();
         $ret = collect($children->all());
@@ -202,6 +213,12 @@ class Transaction extends Model
         $this->transaction_date = $data['transaction_date'];
         if (array_key_exists('bank_identifier', $data)) {
             $this->bank_identifier = strip_tags($data['bank_identifier']);
+        }
+        if (array_key_exists('tax', $data) && $data['tax'] !== null) {
+            $this->tax = $data['tax'] * 100;
+        }
+        if (array_key_exists('line_items', $data)) {
+            $this->line_items = $data['line_items'];
         }
         $updateChildren = (array_key_exists('edit_child_transactions', $data)
             && $data['edit_child_transactions'])
@@ -362,6 +379,17 @@ class Transaction extends Model
                     }
                     $catModel->user_id = $current_user->id;
                     $catModel->save();
+                    if ($this->line_items) {
+                        $lineItems = $this->line_items;
+                        foreach ($lineItems as $i => $item) {
+                            if (empty($item['cat_data']['cat_id'] ?? null)
+                                && ($item['cat_data']['name'] ?? '') === $catData['name']
+                            ) {
+                                $lineItems[$i]['cat_data']['cat_id'] = $catModel->id;
+                            }
+                        }
+                        $this->line_items = $lineItems;
+                    }
                 }
                 if (array_key_exists('cat_subtype_id', $catData)) {
                     $catModel->category_subtype_id = $catData['cat_subtype_id'] ?: null;

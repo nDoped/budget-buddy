@@ -107,6 +107,8 @@
     note: props.transaction.note,
     bank_identifier: props.transaction.bank_identifier,
     categories: props.transaction.categories,
+    line_items: props.transaction.line_items || [],
+    tax: props.transaction.tax || null,
     new_images: [],
     existing_images: props.transaction.existing_images,
     deleted_image_ids: [],
@@ -127,6 +129,8 @@
       form.deleted_image_ids = [];
       form.new_images = [];
       form.categories = props.transaction.categories;
+      form.line_items = props.transaction.line_items || [];
+      form.tax = props.transaction.tax || null;
       form.uploaded_file = null;
     }
   );
@@ -193,6 +197,11 @@
     form.categories = [];
   };
 
+  const updateLineItems = (data) => {
+    form.line_items = data.lineItems;
+    form.tax = data.tax;
+  };
+
   let ogCats = structuredClone(toRaw(props.categories));
   const cancel = () => {
 
@@ -252,8 +261,11 @@
               :available-categories="props.categories"
               :key="transCatCounter"
               :ai-analysis="aiAnalysis"
+              :saved-line-items="props.transaction.line_items || []"
+              :saved-tax="props.transaction.tax"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
+              @line-items-update="updateLineItems"
             />
           </div>
 

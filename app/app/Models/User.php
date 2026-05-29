@@ -324,6 +324,8 @@ class User extends Authenticatable
                 'existing_images' =>  $trans->transactionImages,
                 'parent_transaction_date' => $trans->parent?->transaction_date,
                 'categories' => $categories,
+                'line_items' => $trans->line_items,
+                'tax' => $trans->tax ? $trans->tax / 100 : null,
             ];
         }
 

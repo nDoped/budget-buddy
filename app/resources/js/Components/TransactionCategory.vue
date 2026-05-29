@@ -4,7 +4,8 @@
     ref,
     watch,
     watchEffect,
-    computed
+    computed,
+    nextTick
   } from 'vue';
   import InputLabel from '@/Components/InputLabel.vue';
   import InputError from '@/Components/InputError.vue';
@@ -44,7 +45,7 @@
     },
     price: number,
   }
-  const emit = defineEmits(['category-update', 'invalid-category-state']);
+  const emit = defineEmits(['category-update', 'invalid-category-state', 'line-items-update']);
   const props = defineProps({
     totalAmount: {
       type: String,
@@ -74,6 +75,14 @@
       type: Object,
       default: null
     },
+    savedLineItems: {
+      type: Array,
+      default: () => []
+    },
+    savedTax: {
+      type: [String, Number],
+      default: null
+    },
   });
 
   const calcCatsByReciept = ref(false);
@@ -95,6 +104,14 @@
   });
 
   const lineItems = ref<LineItem[]>([]);
+  const savedLineItemsRef = ref<LineItem[]>([]);
+  const savedTaxRef = ref(null);
+  const showSavedLineItems = ref(false);
+
+  const hasSavedLineItems = computed(() => {
+    return savedLineItemsRef.value.length > 0;
+  });
+
   const lineItemSum = computed(() => {
     if (lineItems.value.length === 0) {
       return parseFloat(0);
@@ -104,6 +121,11 @@
       }, 0).toFixed(2));
     }
   });
+  if (props.savedLineItems && props.savedLineItems.length > 0) {
+    savedLineItemsRef.value = JSON.parse(JSON.stringify(props.savedLineItems));
+    savedTaxRef.value = props.savedTax;
+  }
+
   watchEffect(
     () => {
       if (lineItems.value.length > 0) {
@@ -131,11 +153,14 @@
     return lineItems.value.length > 0 && (lineItemSum.value == (total.value - taxAmount.value).toFixed(2));
   });
   watch(canCalculatePercentages, (value: Boolean) => {
-    if (value) {
+    if (value && !showSavedLineItems.value) {
       calculatePercentages();
     }
   });
   const calculatePercentages = () => {
+    savedLineItemsRef.value = JSON.parse(JSON.stringify(lineItems.value));
+    savedTaxRef.value = taxAmount.value;
+
     let subTotal = lineItemSum.value;
     catsRef.value = [];
 
@@ -196,6 +221,29 @@
       });
     });
     calcCatsByReciept.value = false;
+    showSavedLineItems.value = false;
+    emitLineItems();
+  };
+
+  const emitLineItems = () => {
+    if (savedLineItemsRef.value.length > 0) {
+      emit('line-items-update', {
+        lineItems: JSON.parse(JSON.stringify(savedLineItemsRef.value)),
+        tax: savedTaxRef.value,
+      });
+    } else {
+      emit('line-items-update', {
+        lineItems: [],
+        tax: null,
+      });
+    }
+  };
+
+  const viewSavedLineItems = () => {
+    lineItems.value = JSON.parse(JSON.stringify(savedLineItemsRef.value));
+    taxAmount.value = savedTaxRef.value != null ? String(savedTaxRef.value) : null;
+    showSavedLineItems.value = true;
+    calcCatsByReciept.value = true;
   };
   const addLineItem = () => {
     let lastEnteredCatIndex = 0;
@@ -365,7 +413,7 @@
           cat_type_name: match ? match.cat_type_name : null,
           hex_color: match ? match.hex_color : '#000000',
         },
-        price: item.price,
+        price: String(item.price),
       });
     });
 
@@ -377,16 +425,63 @@
       focusElement(getUuid('tax-amount'), true);
     }
   };
+
+  watch(taxAmount, (newVal) => {
+    if (showSavedLineItems.value && calcCatsByReciept.value && lineItems.value.length > 0) {
+      savedLineItemsRef.value = JSON.parse(JSON.stringify(lineItems.value));
+      savedTaxRef.value = newVal;
+      emitLineItems();
+    }
+  });
+  const toggleSavedLineItems = async (val) => {
+    showSavedLineItems.value = val;
+    if (val) {
+      calcCatsByReciept.value = true;
+      await nextTick();
+      lineItems.value = JSON.parse(JSON.stringify(savedLineItemsRef.value));
+      taxAmount.value = savedTaxRef.value != null ? String(savedTaxRef.value) : null;
+    } else if (calcCatsByReciept.value) {
+      calcCatsByReciept.value = false;
+      lineItems.value = [];
+      taxAmount.value = null;
+    }
+  };
 </script>
 
 <template>
   <div class="ml-4">
-    <ToggleSlider
-      v-model="calcCatsByReciept"
-      @update:model-value="receiptToggleEventHandler"
-      label="Enter receipt line items"
-      class="ml-2"
-    />
+    <template v-if="! calcCatsByReciept">
+      <ToggleSlider
+        v-if="hasSavedLineItems"
+        :model-value="showSavedLineItems"
+        @update:model-value="toggleSavedLineItems"
+        label="Show line items"
+        class="ml-2"
+      />
+      <ToggleSlider
+        v-else
+        v-model="calcCatsByReciept"
+        @update:model-value="receiptToggleEventHandler"
+        label="Enter receipt line items"
+        class="ml-2"
+      />
+    </template>
+    <template v-else>
+      <ToggleSlider
+        v-if="showSavedLineItems"
+        :model-value="showSavedLineItems"
+        @update:model-value="toggleSavedLineItems"
+        label="Show line items"
+        class="ml-2"
+      />
+      <ToggleSlider
+        v-else
+        v-model="calcCatsByReciept"
+        @update:model-value="receiptToggleEventHandler"
+        label="Enter receipt line items"
+        class="ml-2"
+      />
+    </template>
 
     <template v-if="! calcCatsByReciept">
       <div class="max-w-7xl  sm:px-6 lg:px-8">
@@ -518,7 +613,7 @@
         type="button"
         @click="calculatePercentages"
       >
-        Calculate Percentages
+        {{ showSavedLineItems ? 'Recalculate Percentages' : 'Calculate Percentages' }}
       </PrimaryButton>
 
       <InputError :message="subTotalError" />

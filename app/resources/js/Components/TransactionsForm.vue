@@ -97,6 +97,8 @@
     note: null,
     bank_identifier: null,
     categories: [],
+    line_items: [],
+    tax: null,
     recurring_end_date: null,
     recurring: false,
     trans_buddy: false,
@@ -117,6 +119,11 @@
   const setCategoriesInvalid = () => {
     categoriesInvalid.value = true;
     form.categories = [];
+  };
+
+  const updateLineItems = (data) => {
+    form.line_items = data.lineItems;
+    form.tax = data.tax;
   };
 </script>
 
@@ -158,6 +165,7 @@
               :ai-analysis="aiAnalysis"
               @category-update="updateCategories"
               @invalid-category-state="setCategoriesInvalid"
+              @line-items-update="updateLineItems"
             />
           </div>
 
