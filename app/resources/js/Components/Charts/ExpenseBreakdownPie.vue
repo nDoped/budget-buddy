@@ -238,7 +238,7 @@
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx) => fmt(ctx.parsed.x),
+          label: (ctx) => fmt(ctx.parsed.y),
         },
       },
     },
@@ -274,7 +274,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
       <div v-for="(group, idx) in subtypes" :key="group.subtypeId ?? '__none__'" class="flex flex-col items-center">
-        <div class="font-bold text-lg leading-tight mt-2 mb-1" :style="{ color: props.color }">{{ group.subtypeName }}</div>
+        <div class="font-bold text-lg leading-tight mt-2 mb-1" :style="{ color: props.color }">{{ group.subtypeName }} ({{ fmt(group.total) }})</div>
         <div v-if="topCats[idx]" class="text-sm leading-tight mb-0.5" :style="{ color: props.color }">
           Highest: {{ topCats[idx].name }} ({{ fmt(topCats[idx].value) }})
         </div>
